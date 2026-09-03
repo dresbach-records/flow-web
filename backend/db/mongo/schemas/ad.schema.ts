@@ -1,0 +1,2 @@
+export interface AdSchema { _id: string; advertiserId: string; campaignId: string; creativeUrl: string; format: 'post' | 'video' | 'story'; destinationType: 'internal' | 'external'; destinationUrl?: string; reviewStatus: 'pending' | 'approved' | 'rejected' | 'manual_review'; domainLocked?: boolean; budgetCents: number; spentCents: number; status: 'draft' | 'active' | 'paused' | 'completed' | 'blocked'; startsAt?: Date; endsAt?: Date; createdAt: Date; updatedAt: Date; }
+export const AD_COLLECTION = 'ads' as const;
