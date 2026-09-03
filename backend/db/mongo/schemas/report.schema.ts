@@ -1,0 +1,2 @@
+export interface ReportSchema { _id: string; reporterId: string; targetId: string; targetType: 'post' | 'video' | 'comment' | 'product' | 'user' | 'ad'; category: 'illegal' | 'copyright' | 'counterfeit' | 'sexual' | 'violence' | 'harassment' | 'spam' | 'scam' | 'regulated_product' | 'other'; description?: string; status: 'pending' | 'under_review' | 'resolved' | 'dismissed'; evidenceUrls: string[]; createdAt: Date; updatedAt: Date; }
+export const REPORT_COLLECTION = 'reports' as const;
