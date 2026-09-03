@@ -1,24 +1,16 @@
-# Dependencies
-node_modules/
-
-# Build outputs
-dist/
-build/
-.vite/
-
-# Environment files
+# Environment
 .env
 .env.*
 !.env.example
 !.env.local.example
 !.env.production.example
 
-# Firebase service account credentials
+# Firebase credentials
 serviceAccountKey.json
 firebase-service-account.json
 *-firebase-adminsdk-*.json
 
-# Private keys and certificates
+# Local secrets
 *.pem
 *.key
 *.crt
@@ -29,15 +21,20 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
-# IDE / editor
-.idea/
+# Build
+dist/
+build/
+.vite/
+
+# Dependencies
+node_modules/
+
+# IDE
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+.idea/
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Coverage
-coverage/
