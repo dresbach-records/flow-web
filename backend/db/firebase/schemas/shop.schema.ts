@@ -1,0 +1,11 @@
+export type ProductClassification = 'ALLOWED' | 'RESTRICTED' | 'PROHIBITED' | 'UNDER_REVIEW';
+export type OrderStatus = 'PENDING_PAYMENT' | 'PAID' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'PROTECTION_PERIOD' | 'DISPUTED' | 'REFUNDED' | 'RELEASED' | 'CANCELLED';
+
+export interface ShopSchema { id: string; ownerId: string; name: string; description?: string; status: 'PENDING_REVIEW' | 'ACTIVE' | 'SUSPENDED' | 'CLOSED'; createdAt: unknown; updatedAt: unknown; }
+export interface ProductSchema { id: string; shopId: string; sellerId: string; title: string; description: string; priceCents: number; currency: string; stock: number; classification: ProductClassification; status: 'DRAFT' | 'PENDING_REVIEW' | 'ACTIVE' | 'BLOCKED' | 'REMOVED'; images: string[]; createdAt: unknown; updatedAt: unknown; }
+export interface OrderSchema { id: string; buyerId: string; sellerId: string; shopId: string; status: OrderStatus; subtotalCents: number; shippingCents: number; feesCents: number; commissionCents: number; taxCents: number; totalCents: number; paymentId?: string; deliveredAt?: unknown; protectionEndsAt?: unknown; createdAt: unknown; updatedAt: unknown; }
+export interface OrderItemSchema { id: string; orderId: string; productId: string; titleSnapshot: string; unitPriceCents: number; quantity: number; totalCents: number; }
+export interface ShipmentSchema { id: string; orderId: string; carrier?: string; trackingCode?: string; status: 'PENDING' | 'SHIPPED' | 'IN_TRANSIT' | 'DELIVERED' | 'EXCEPTION'; shippedAt?: unknown; deliveredAt?: unknown; updatedAt: unknown; }
+export interface ComplaintSchema { id: string; orderId: string; openedBy: string; reason: string; evidenceStoragePaths?: string[]; status: 'OPEN' | 'UNDER_REVIEW' | 'SELLER_RESPONSE' | 'RESOLVED' | 'REJECTED'; createdAt: unknown; updatedAt: unknown; }
+export interface ReturnSchema { id: string; orderId: string; requestedBy: string; reason: string; status: 'REQUESTED' | 'APPROVED' | 'IN_TRANSIT' | 'RECEIVED' | 'REFUNDED' | 'REJECTED'; createdAt: unknown; updatedAt: unknown; }
+export interface PaymentRecordSchema { id: string; orderId: string; provider: 'STRIPE'; providerPaymentId: string; status: 'PENDING' | 'AUTHORIZED' | 'PAID' | 'REFUNDED' | 'FAILED'; amountCents: number; currency: string; idempotencyKey: string; createdAt: unknown; updatedAt: unknown; }
