@@ -15,7 +15,7 @@ export async function createPost(input: { authorId: string; type: 'post' | 'shor
 export async function likePost(postId: string, userId: string) {
   const post = await mongoDb.collection('posts').findOne({ _id: new ObjectId(postId) });
   if (!post) throw new Error('POST_NOT_FOUND');
-  await mongoDb.collection('post_likes').updateOne({ postId, userId }, { $setOnInsert: { postId, userId, createdAt: new Date() } }, { upsert: true });
-  await mongoDb.collection('posts').updateOne({ _id: new ObjectId(postId) }, { $inc: { likesCount: 1 } });
-  return { liked: true };
+  const result = await mongoDb.collection('post_likes').updateOne({ postId, userId }, { $setOnInsert: { postId, userId, createdAt: new Date() } }, { upsert: true });
+  if (result.upsertedCount === 1) await mongoDb.collection('posts').updateOne({ _id: new ObjectId(postId) }, { $inc: { likesCount: 1 } });
+  return { liked: true, created: result.upsertedCount === 1 };
 }
