@@ -10,6 +10,7 @@
     "test": "tsx tests/domain.test.ts"
   },
   "dependencies": {
+    "@google/genai": "latest",
     "firebase-admin": "latest",
     "firebase": "latest",
     "argon2": "latest",
