@@ -12,6 +12,7 @@ export async function processScheduledPublications(now = new Date()): Promise<nu
   const snapshot = await firestore().collection('posts').where('status', '==', 'SCHEDULED').where('scheduledAt', '<=', now).limit(20).get();
   let processed = 0;
   for (const document of snapshot.docs) {
+    if (document.get('schedulerManaged') === true) continue;
     const claimed = await firestore().runTransaction(async transaction => {
       const current = await transaction.get(document.ref);
       if (!current.exists || current.get('status') !== 'SCHEDULED') return false;
@@ -39,8 +40,37 @@ export async function processScheduledPublications(now = new Date()): Promise<nu
   return processed;
 }
 
+export async function processScheduledContent(now = new Date()): Promise<number> {
+  const snapshot = await firestore().collection('scheduled_posts').where('status', '==', 'SCHEDULED').where('scheduledAt', '<=', now).limit(20).get();
+  let processed = 0;
+  for (const schedule of snapshot.docs) {
+    const claimed = await firestore().runTransaction(async transaction => {
+      const current = await transaction.get(schedule.ref);
+      if (!current.exists || current.get('status') !== 'SCHEDULED') return false;
+      transaction.update(schedule.ref, { status: 'PUBLISHING', updatedAt: FieldValue.serverTimestamp() });
+      return true;
+    });
+    if (!claimed) continue;
+    const data = schedule.data();
+    try {
+      const postId = data.postId as string | undefined;
+      if (!postId) throw new Error('SCHEDULED_POST_MISSING');
+      const postRef = firestore().collection('posts').doc(postId);
+      const moderation = await guardian.execute({ authorId: data.ownerId as string, contentType: data.type === 'video' ? 'video' : 'post', text: data.text as string | undefined, mediaUrl: data.mediaUrl as string | undefined });
+      if (moderation.action !== 'allow' && moderation.action !== 'disabled') throw new Error(`Guardian: ${moderation.reason}`);
+      await postRef.update({ status: 'PUBLISHED', visibility: 'public', publishedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+      await schedule.ref.update({ status: 'PUBLISHED', publishedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+      processed += 1;
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : 'SCHEDULE_PUBLICATION_FAILED';
+      await schedule.ref.update({ status: 'FAILED', failureReason: reason, failedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+    }
+  }
+  return processed;
+}
+
 export function startPublicationScheduler(intervalMs = 60_000): NodeJS.Timeout {
-  const run = () => void processScheduledPublications().catch(error => console.error('Scheduled publication worker failed', error));
+  const run = () => void Promise.all([processScheduledPublications(), processScheduledContent()]).catch(error => console.error('Scheduled publication worker failed', error));
   run();
   return setInterval(run, intervalMs);
 }

@@ -55,7 +55,12 @@ const captions = [
   'Entre treinos, cafés e alguns passeios por aí, sigo construindo uma rotina mais leve.',
 ];
 
-export function captionForAsset(index: number): string { return captions[index % captions.length] ?? ''; }
+const relationshipCaptions: Record<number, string> = {
+  1: 'Minha namorada é meu lugar favorito no mundo. Amo dividir a vida, os planos e até os dias mais simples com ela. ❤️',
+  7: 'Cada viagem fica mais bonita ao lado dela. Minha namorada, minha melhor companhia e o amor que eu escolho todos os dias. 🌅❤️',
+};
+
+export function captionForAsset(index: number): string { return relationshipCaptions[index] ?? captions[index % captions.length] ?? ''; }
 
 export async function upsertMarinaPersona(): Promise<Persona> {
   const db = firestore();

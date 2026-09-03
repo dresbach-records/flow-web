@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
-import { FlowIcon, FlowLogo } from '../assets/flowAssets';
+import { FlowLogo } from '../assets/flowAssets';
 import { useAppContext } from '../contexts/AppContext';
 import { getDocument, listDocuments, type WithId } from '../services/firebase/firestore';
 import { logout } from '../services/firebase/auth';
 import { addComment, createPost, hasLiked, listComments, toggleFollow, toggleLike, toggleSaved, uploadPostMedia, type CommentRecord } from '../services/firebase/social';
+import { Bell, Bookmark, Compass, Filter, Heart, House, Image as ImageIcon, LogOut, Mail, Menu, MessageCircle, MoreHorizontal, Moon, Play, Plus, Search, Send, Settings, Shield, UserRound, Users, Video, X } from 'lucide-react';
 import './social-feed.css';
 import './social-reference.css';
 
@@ -12,9 +13,6 @@ type SocialPost = WithId<RawRecord> & { author?: RawRecord | null };
 type SocialStory = WithId<RawRecord> & { author?: RawRecord | null };
 
 type Profile = { uid: string; name: string; handle: string; avatar?: string; cover?: string; bio?: string };
-type IconProps = { size?: number; className?: string; fill?: string };
-const icon = (name: Parameters<typeof FlowIcon>[0]['name']) => (props: IconProps) => <FlowIcon name={name} size={props.size ?? 20} className={props.className} />;
-const Bell = icon('bell'); const Bookmark = icon('bookmark'); const Compass = icon('compass'); const Heart = icon('heart'); const ImageIcon = icon('image'); const Mail = icon('mail'); const Menu = icon('menu'); const MessageCircle = icon('comment'); const MoreHorizontal = icon('more'); const Play = icon('play'); const Plus = icon('plus'); const Search = icon('search'); const Send = icon('send'); const Settings = icon('settings'); const Shield = icon('shield'); const UserRound = icon('user'); const Users = icon('users'); const Video = icon('video'); const X = icon('close');
 
 const text = (value: unknown, fallback = '') => typeof value === 'string' ? value : fallback;
 const number = (value: unknown) => typeof value === 'number' ? value : Number(value ?? 0) || 0;
@@ -143,8 +141,7 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
       <aside className={`flow-social-sidebar ${mobileMenu ? 'is-open' : ''}`}>
         <div className="flow-sidebar-head"><button className="flow-brand" onClick={() => go('/app')}><FlowLogo alt="FLOW" /></button><button className="flow-close-mobile" onClick={() => setMobileMenu(false)}><X /></button></div>
         <nav>
-          <SidebarButton icon={<Compass />} label="For You" active={(screen === 'for-you' || screen === 'app') && active === 'for-you'} onClick={() => { setActive('for-you'); go('/app'); setMobileMenu(false); }} />
-          <SidebarButton icon={<Users />} label="Seguindo" active={screen === 'seguindo' || (screen === 'for-you' && active === 'following')} onClick={() => { setActive('following'); go('/app/seguindo'); setMobileMenu(false); }} />
+          <SidebarButton icon={<Compass />} label="Início" active={(screen === 'for-you' || screen === 'app') && active === 'for-you'} onClick={() => { setActive('for-you'); go('/app'); setMobileMenu(false); }} />
           <SidebarButton icon={<Compass />} label="Explorar" active={screen === 'explorar'} onClick={() => go('/app/explorar')} />
           <SidebarButton icon={<Play />} label="Shorts" active={screen === 'shorts'} onClick={() => go('/app/shorts')} />
           <SidebarButton icon={<Video />} label="Criar" onClick={() => go('/app/criar')} />
@@ -153,8 +150,9 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
           <SidebarButton icon={<UserRound />} label="Perfil" active={screen === 'perfil'} onClick={() => openProfile(user.uid, { name: user.displayName, photoURL: user.photoURL })} />
           <SidebarButton icon={<Bookmark />} label="Salvos" onClick={() => go('/app/salvos')} />
           <SidebarButton icon={<Settings />} label="Configurações" onClick={() => go('/app/configuracoes')} />
+          <SidebarButton icon={<Filter size={19} />} label="Agendamentos" active={screen === 'agendamento'} onClick={() => go('/app/agendamento')} />
         </nav>
-        <div className="flow-sidebar-bottom"><button className="flow-theme-toggle" type="button" onClick={() => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem('flow.theme', next); }}><FlowIcon name="moon" size={18} /> Modo escuro <i /></button><small className="flow-sidebar-copy">© 2026 FLOW<br /><span>Seu mundo. Em movimento.</span></small><button onClick={() => void logout()}><FlowIcon name="logout" size={17} /> Sair</button></div>
+        <div className="flow-sidebar-bottom"><button className="flow-theme-toggle" type="button" onClick={() => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem('flow.theme', next); }}><Moon size={18} /> Modo escuro <i /></button><small className="flow-sidebar-copy">© 2026 FLOW<br /><span>Seu mundo. Em movimento.</span></small><button onClick={() => void logout()}><LogOut size={17} /> Sair</button></div>
       </aside>
       {mobileMenu && <button className="flow-mobile-backdrop" aria-label="Fechar menu" onClick={() => setMobileMenu(false)} />}
 
@@ -167,7 +165,7 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
         <div className="flow-post-list">
           {visiblePosts.map(post => <PostCard key={post.id} post={post} liked={liked.has(post.id)} saved={saved.has(post.id)} onLike={() => void handleLike(post.id)} onSave={() => void handleSave(post.id)} onComments={() => setCommentsPost(post)} onShare={() => void sharePost(post.id)} onProfile={() => openProfile(firstText(post, ['authorId', 'userId', 'uid', 'authorUid']), post.author)} />)}
           {visiblePosts.length === 0 && <div className="flow-empty-feed"><ImageIcon size={28} /><h3>Seu feed ainda está vazio</h3><p>Quando houver publicações reais disponíveis para sua conta, elas aparecerão aqui.</p></div>}
-        </div></> : screen === 'criar' ? <CreatePost profile={ownProfile} /> : <SocialPlaceholder screen={screen} />}
+        </div></> : screen === 'criar' ? <CreatePost profile={ownProfile} /> : <SocialSection screen={screen} userId={user.uid} />}
       </main>
 
       <aside className="flow-social-right">
@@ -177,9 +175,21 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
         <section className="flow-right-card flow-security-card"><Shield /><div><strong>FLOW Guardian</strong><p>Proteção e moderação fazem parte da experiência. Denuncie conteúdos que violem as diretrizes.</p></div><button onClick={() => go('/app/denunciar')}>Denunciar conteúdo</button></section>
       </aside>
     </div>
+    <MobileNavigation screen={screen} onCreate={() => go('/app/criar')} />
     {selectedProfile && <ProfilePanel profile={selectedProfile} loading={profileLoading} onClose={() => setSelectedProfile(null)} own={selectedProfile.uid === user.uid} />}
     {commentsPost && <CommentsPanel post={commentsPost} onClose={() => setCommentsPost(null)} />}
   </div>;
+}
+
+function MobileNavigation({ screen, onCreate }: { screen: string; onCreate: () => void }) {
+  return <nav className="flow-mobile-navigation" aria-label="Navegação mobile">
+    <button className={screen === 'for-you' || screen === 'seguindo' ? 'active' : ''} type="button" onClick={() => go('/app')}><House size={24} /><span>Início</span></button>
+    <button className={screen === 'explorar' ? 'active' : ''} type="button" onClick={() => go('/app/explorar')}><Compass size={24} /><span>Explorar</span></button>
+    <button className={screen === 'shorts' ? 'active' : ''} type="button" onClick={() => go('/app/shorts')}><Play size={24} /><span>Shorts</span></button>
+    <button className="flow-mobile-create" type="button" aria-label="Criar publicação" onClick={onCreate}><Plus size={31} /></button>
+    <button className={screen === 'notificacoes' ? 'active' : ''} type="button" onClick={() => go('/app/notificacoes')}><Bell size={24} /><span>Notificações</span></button>
+    <button className={screen === 'perfil' ? 'active' : ''} type="button" onClick={() => go('/app/perfil')}><UserRound size={24} /><span>Perfil</span></button>
+  </nav>;
 }
 
 function SidebarButton({ icon, label, active, onClick }: { icon: ReactElement; label: string; active?: boolean; onClick: () => void }) { return <button className={`flow-sidebar-item ${active ? 'active' : ''}`} onClick={onClick}>{icon}<span>{label}</span></button>; }
@@ -216,9 +226,22 @@ function CommentsPanel({ post, onClose }: { post: SocialPost; onClose: () => voi
   const submit = async () => { if (!value.trim()) return; try { setBusy(true); const id = await addComment(post.id, value); setComments(current => [...current, { id, authorId: 'Você', text: value.trim() }]); setValue(''); } catch { setError('Não foi possível publicar o comentário.'); } finally { setBusy(false); } };
   return <div className="flow-comments-overlay"><button aria-label="Fechar comentários" onClick={onClose} /><section className="flow-comments-panel"><header><strong>Comentários</strong><button onClick={onClose}><X /></button></header><div className="flow-comments-list">{error && <p className="flow-create-error">{error}</p>}{comments.length === 0 && !error && <p className="flow-right-empty">Nenhum comentário ainda.</p>}{comments.map(comment => <article key={comment.id}><span className="flow-avatar"><UserRound size={16} /></span><p><strong>{comment.authorId}</strong>{comment.text}</p></article>)}</div><form onSubmit={event => { event.preventDefault(); void submit(); }}><input value={value} onChange={event => setValue(event.target.value)} placeholder="Adicione um comentário..." /><button disabled={busy}>Enviar</button></form></section></div>;
 }
-function SocialPlaceholder({ screen }: { screen: string }) {
-  const labels: Record<string, string> = { explorar: 'Explorar', shorts: 'Shorts', mensagens: 'Mensagens', comunidades: 'Comunidades', perfil: 'Perfil', salvos: 'Salvos', configuracoes: 'Configurações' };
-  return <section className="flow-social-page"><span className="flow-page-eyebrow">FLOW</span><h1>{labels[screen] || 'Em breve'}</h1><p>Descubra conteúdos, pessoas e conversas que fazem parte do seu FLOW.</p></section>;
+function SocialSection({ screen, userId }: { screen: string; userId: string }) {
+  const [items, setItems] = useState<WithId<RawRecord>[]>([]);
+  const [loading, setLoading] = useState(true);
+  const labels: Record<string, string> = { notificacoes: 'Notificações', salvos: 'Publicações salvas', configuracoes: 'Configurações' };
+  useEffect(() => {
+    const collection = screen === 'notificacoes' ? 'notifications' : screen === 'salvos' ? `users/${userId}/saved` : '';
+    if (!collection) { setLoading(false); return; }
+    let cancelled = false;
+    void listDocuments<RawRecord>(collection, { orderByField: 'createdAt', direction: 'desc', max: 40 })
+      .then(next => { if (!cancelled) setItems(next); })
+      .catch(() => { if (!cancelled) setItems([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [screen, userId]);
+  if (screen === 'configuracoes') return <section className="flow-social-page"><span className="flow-page-eyebrow">FLOW</span><h1>Configurações</h1><p>Gerencie aparência e preferências da sua conta.</p><button className="flow-publish" type="button" onClick={() => { const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; document.documentElement.dataset.theme = next; localStorage.setItem('flow.theme', next); }}>Alternar modo claro/escuro</button></section>;
+  return <section className="flow-social-page"><span className="flow-page-eyebrow">FLOW</span><h1>{labels[screen] || 'Área social'}</h1>{loading ? <p>Carregando dados da sua conta...</p> : items.length === 0 ? <p>Não há registros disponíveis para sua conta.</p> : <div className="flow-section-list">{items.map(item => <article key={item.id}><strong>{firstText(item, ['title', 'type', 'text'], screen === 'salvos' ? 'Publicação salva' : 'Atualização')}</strong><p>{firstText(item, ['message', 'body', 'caption'], 'Veja os detalhes no FLOW.')}</p></article>)}</div>}</section>;
 }
 function ProfilePanel({ profile, loading, onClose, own }: { profile: Profile; loading: boolean; onClose: () => void; own: boolean }) { return <div className="flow-profile-overlay" role="dialog" aria-modal="true"><button className="flow-profile-backdrop" aria-label="Fechar perfil" onClick={onClose} /><section className="flow-profile-panel"><button className="flow-profile-close" onClick={onClose}><X /></button><div className="flow-profile-cover" style={profile.cover ? { backgroundImage: `url(${profile.cover})` } : undefined} /><div className="flow-profile-body"><div className="flow-profile-avatar">{profile.avatar ? <img src={profile.avatar} alt="" /> : <UserRound size={32} />}</div><div className="flow-profile-meta"><div><h2>{profile.name}</h2><span>{profile.handle}</span></div>{!own && <button className="flow-follow-primary">Seguir</button>}</div>{loading ? <p>Carregando perfil…</p> : <p>{profile.bio || 'Este perfil ainda não adicionou uma descrição pública.'}</p>}<div className="flow-profile-stats"><span><strong>—</strong> publicações</span><span><strong>—</strong> seguidores</span><span><strong>—</strong> seguindo</span></div></div></section></div>; }
 function go(path: string) { history.pushState({}, '', path); window.dispatchEvent(new PopStateEvent('popstate')); window.scrollTo(0, 0); }
