@@ -1,5 +1,6 @@
 import React from 'react';
 import { AdminApp, AuthPage, CreatorCenter, ModuleCenter, PlatformModules, PublicApp, SiteEditor } from './pages';
+import SocialFeed from './app/SocialFeed';
 import { AppProvider } from './contexts/AppContext';
 
 const AUTH_ROUTES = ['/auth/login', '/login', '/cadastro', '/recuperar-senha', '/redefinir-senha', '/verificar-conta'];
@@ -24,6 +25,7 @@ export default function App() {
   else if (path === '/admin/site') content = <AdminAppShell><SiteEditor /></AdminAppShell>;
   else if (path.startsWith('/admin')) content = <AdminApp />;
   else if (AUTH_ROUTES.includes(path)) content = <AuthPage path={path} go={go} />;
+  else if (path === '/app' || path === '/app/' || path === '/app/for-you' || path === '/app/seguindo') content = <SocialFeed />;
   else if (path.startsWith('/app/criador')) content = <CreatorCenter />;
   else if (path === '/app/shop' || path === '/app/loja') content = <PlatformModules screen={path === '/app/shop' ? 'shop' : 'seller'} />;
   else if (path === '/app/pedidos') content = <PlatformModules screen="orders" />;
