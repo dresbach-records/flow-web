@@ -1,0 +1,15 @@
+import { Router } from 'express';
+import { requireAuth, requireAdmin } from '../middleware/firebase-auth.js';
+import { FlowDomainService, ACCOUNT_LEVELS, SHOP_STATES } from '../modules/flow-domain.service.js';
+const r=Router(); const svc=new FlowDomainService();
+const body=(req:any)=>req.body ?? {};
+const fail=(res:any,e:any)=>{const code=e instanceof Error?e.message:'INTERNAL_ERROR';const status:Record<string,number>={VALIDATION_ERROR:400,NOT_FOUND:404,FORBIDDEN:403,ADMIN_REQUIRED:403,INVALID_TRANSITION:409};res.status(status[code]??500).json({error:code});};
+
+r.post('/recovery/hacked',requireAuth,async(req,res)=>{try{const b=body(req);if(!b.frontPath||!b.backPath||!b.authorizedTermPath)return res.status(400).json({error:'VALIDATION_ERROR'});res.status(201).json(await svc.recoverAccount({uid:req.actor!.uid,frontPath:b.frontPath,backPath:b.backPath,authorizedTermPath:b.authorizedTermPath},req.actor!));}catch(e){fail(res,e);}});
+r.post('/reports',requireAuth,async(req,res)=>{try{const b=body(req);if(!b.targetType||!b.targetId||!b.reason)return res.status(400).json({error:'VALIDATION_ERROR'});res.status(201).json(await svc.report(b.targetType,b.targetId,b.reason,req.actor!,b.details));}catch(e){fail(res,e);}});
+r.post('/admin/accounts/:userId/restriction',requireAuth,requireAdmin,async(req,res)=>{try{const b=body(req);if(!ACCOUNT_LEVELS.includes(b.level))return res.status(400).json({error:'VALIDATION_ERROR'});res.json(await svc.restrictAccount(req.params.userId,b.level,b.reason??'',req.actor!));}catch(e){fail(res,e);}});
+r.post('/ads/submit',requireAuth,async(req,res)=>{try{res.status(201).json(await svc.submitAd(body(req),req.actor!));}catch(e){fail(res,e);}});
+r.post('/ledger/:collection',requireAuth,async(req,res)=>{try{const b=body(req);if(!['wallet_ledger','ad_balance_ledger'].includes(req.params.collection)||!['CREDIT','DEBIT'].includes(b.type)||!b.ownerId)return res.status(400).json({error:'VALIDATION_ERROR'});res.status(201).json(await svc.ledger(req.params.collection,b.ownerId,b.type,Number(b.amount),String(b.reference??''),req.actor!));}catch(e){fail(res,e);}});
+r.post('/notifications/:userId',requireAuth,async(req,res)=>{try{if(req.params.userId!==req.actor!.uid&&!req.actor!.admin)return res.status(403).json({error:'FORBIDDEN'});const b=body(req);res.status(201).json({id:await svc.notify(req.params.userId,b.type,b.title,b.body)});}catch(e){fail(res,e);}});
+r.post('/:collection/:id/transition',requireAuth,async(req,res)=>{try{const allowed=['ads','posts','videos','shorts','stories','lives','shops','products','orders','campaigns','communities','pages'];if(!allowed.includes(req.params.collection)||typeof body(req).status!=='string')return res.status(400).json({error:'VALIDATION_ERROR'});if(req.params.collection==='orders'&&!SHOP_STATES.includes(body(req).status))return res.status(400).json({error:'VALIDATION_ERROR'});res.json(await svc.transition(req.params.collection,req.params.id,body(req).status,req.actor!));}catch(e){fail(res,e);}});
+export default r;
