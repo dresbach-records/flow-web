@@ -6,6 +6,7 @@ import { connectDatabases } from './infrastructure/database.js';
 import { register, login } from './services/auth.service.js';
 import { createPost, likePost, listFeed } from './services/content.service.js';
 import { createReport } from './services/report.service.js';
+import { startPublicationScheduler } from './services/scheduler.service.js';
 
 const app = express();
 app.use(helmet());
@@ -60,4 +61,5 @@ app.post('/api/v1/reports', async (req, res) => {
 });
 
 await connectDatabases();
+startPublicationScheduler();
 app.listen(env.PORT, () => console.log(`FLOW API listening on :${env.PORT}`));
