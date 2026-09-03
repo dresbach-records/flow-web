@@ -1,6 +1,5 @@
 @import '../styles.css';
 @import '../responsive.css';
-@import '../site-fidelity.css';
 @import '../app/flow.css';
 @import '../app/auth.css';
 @import '../app/creator.css';
@@ -8,3 +7,4 @@
 @import '../admin/admin.css';
 @import '../admin/module-center.css';
 @import '../admin/site-editor.css';
+@import '../site-fidelity.css';
