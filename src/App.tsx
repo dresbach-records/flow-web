@@ -1,57 +1,33 @@
 import React from 'react';
 import { AdminApp, AuthPage, CreatorCenter, ModuleCenter, PlatformModules, PublicApp, SiteEditor } from './pages';
+import FlowDomainCenter from './app/FlowDomainCenter';
 import { AppProvider, useAppContext } from './contexts/AppContext';
 import { adminAuthApi } from './services/api/auth';
 
 const AUTH_ROUTES = ['/auth/login', '/login', '/cadastro', '/recuperar-senha', '/redefinir-senha', '/verificar-conta'];
+const DOMAIN_ROUTES:Record<string,string>={social:'social',pages:'pages',communities:'communities',communication:'communication',shop:'shop',rewards:'rewards',ads:'ads',moderation:'moderation',security:'security'};
 
-export default function App() {
-  const [path, setPath] = React.useState(() => window.location.pathname);
-
-  React.useEffect(() => {
-    const onPopState = () => setPath(window.location.pathname);
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, []);
-
-  const go = React.useCallback((next: string) => {
-    history.pushState({}, '', next);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-    window.scrollTo(0, 0);
-  }, []);
-
-  let content: React.ReactNode;
-  if (path === '/admin/modulos') content = <AdminAppShell><ModuleCenter /></AdminAppShell>;
-  else if (path === '/admin/site') content = <AdminAppShell><SiteEditor /></AdminAppShell>;
-  else if (path.startsWith('/admin')) content = <AdminApp />;
-  else if (AUTH_ROUTES.includes(path)) content = <AuthPage path={path} go={go} />;
-  else if (path.startsWith('/app/criador')) content = <CreatorCenter />;
-  else if (path === '/app/shop' || path === '/app/loja') content = <PlatformModules screen={path === '/app/shop' ? 'shop' : 'seller'} />;
-  else if (path === '/app/pedidos') content = <PlatformModules screen="orders" />;
-  else if (path === '/app/rewards') content = <PlatformModules screen="rewards" />;
-  else if (path === '/app/anunciar' || path === '/app/ads') content = <PlatformModules screen="ads" />;
-  else if (path === '/app/denunciar') content = <PlatformModules screen="report" />;
-  else if (path === '/app/seguranca') content = <PlatformModules screen="safety" />;
-  else content = <PublicApp />;
-
-  return <AppProvider>{content}</AppProvider>;
+export default function App(){
+ const[path,setPath]=React.useState(()=>window.location.pathname);
+ React.useEffect(()=>{const h=()=>setPath(window.location.pathname);window.addEventListener('popstate',h);return()=>window.removeEventListener('popstate',h)},[]);
+ const go=React.useCallback((next:string)=>{history.pushState({},'',next);window.dispatchEvent(new PopStateEvent('popstate'));window.scrollTo(0,0)},[]);
+ const match=path.match(/^\/app\/(social|pages|communities|communication|shop|rewards|ads|moderation|security)(?:\/|$)/);
+ let content:React.ReactNode;
+ if(path==='/admin/modulos')content=<AdminAppShell><ModuleCenter/></AdminAppShell>;
+ else if(path==='/admin/site')content=<AdminAppShell><SiteEditor/></AdminAppShell>;
+ else if(path.startsWith('/admin'))content=<AdminApp/>;
+ else if(AUTH_ROUTES.includes(path))content=<AuthPage path={path} go={go}/>;
+ else if(match)content=<FlowDomainCenter domain={DOMAIN_ROUTES[match[1]]}/>;
+ else if(path.startsWith('/app/criador'))content=<CreatorCenter/>;
+ else if(path==='/app/pedidos')content=<PlatformModules screen="orders"/>;
+ else if(path==='/app/denunciar')content=<PlatformModules screen="report"/>;
+ else if(path==='/app/seguranca')content=<PlatformModules screen="safety"/>;
+ else content=<PublicApp/>;
+ return <AppProvider>{content}</AppProvider>;
 }
 
-function AdminAppShell({ children }: { children: React.ReactNode }) {
-  const { adminAuthenticated: auth, setAdminSession } = useAppContext();
-  const [email, setEmail] = React.useState('');
-  const [pass, setPass] = React.useState('');
-  const [error, setError] = React.useState('');
-
-  if (!auth) {
-    return <div className="admin-login"><div className="admin-login-card">
-      <div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW" /><span className="admin-badge">ADMIN</span></div>
-      <h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p>
-      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" />
-      <input value={pass} onChange={e => setPass(e.target.value)} placeholder="Senha" type="password" />
-      {error && <p role="alert" className="form-error">{error}</p>}
-      <button className="admin-btn primary" onClick={async () => { try { const result = await adminAuthApi.login({ email, password: pass }); setAdminSession(result.user); setError(''); } catch { setError('Não foi possível autenticar este administrador.'); } }}>Entrar no painel</button>
-    </div></div>;
-  }
-  return <>{children}</>;
+function AdminAppShell({children}:{children:React.ReactNode}){
+ const{adminAuthenticated:auth,setAdminSession}=useAppContext();const[email,setEmail]=React.useState('');const[pass,setPass]=React.useState('');const[error,setError]=React.useState('');
+ if(!auth)return <div className="admin-login"><div className="admin-login-card"><div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW"/><span className="admin-badge">ADMIN</span></div><h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-mail administrativo" type="email"/><input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Senha" type="password"/>{error&&<p role="alert" className="form-error">{error}</p>}<button className="admin-btn primary" onClick={async()=>{try{const result=await adminAuthApi.login({email,password:pass});setAdminSession(result.user);setError('')}catch{setError('Não foi possível autenticar este administrador.')}}}>Entrar no painel</button></div></div>;
+ return <>{children}</>;
 }
