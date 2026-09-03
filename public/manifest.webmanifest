@@ -6,9 +6,10 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#070d16",
-  "background_color": "#070d16",
+  "theme_color": "#2563eb",
+  "background_color": "#f7f9fc",
   "icons": [
+    { "src": "/flow-assets-svg/brand/light/flow-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
     { "src": "/flow-assets-svg/brand/dark/flow-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
 }
