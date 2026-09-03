@@ -26,7 +26,7 @@ export default function App() {
   else if (path === '/admin/site') content = <AdminAppShell><SiteEditor /></AdminAppShell>;
   else if (path.startsWith('/admin')) content = <AdminApp />;
   else if (AUTH_ROUTES.includes(path)) content = <AuthPage path={path} go={go} />;
-  else if (SOCIAL_ROUTES.has(path)) content = <SocialFeed />;
+  else if (SOCIAL_ROUTES.has(path)) content = <SocialFeed path={path} />;
   else if (path.startsWith('/app/criador')) content = <CreatorCenter />;
   else if (path === '/app/shop' || path === '/app/loja') content = <PlatformModules screen={path === '/app/shop' ? 'shop' : 'seller'} />;
   else if (path === '/app/pedidos') content = <PlatformModules screen="orders" />;

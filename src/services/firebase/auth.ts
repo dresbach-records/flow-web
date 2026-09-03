@@ -20,6 +20,7 @@ export type FlowUser = {
   uid: string;
   email: string | null;
   displayName: string | null;
+  photoURL: string | null;
   role: 'user' | 'creator' | 'seller' | 'moderator' | 'admin';
   accountType: AccountType;
   emailVerified: boolean;
@@ -46,6 +47,7 @@ export async function toFlowUser(user: User): Promise<FlowUser> {
     uid: user.uid,
     email: user.email,
     displayName: user.displayName ?? (profile.name as string) ?? null,
+    photoURL: user.photoURL,
     role: (profile.role as FlowUser['role']) ?? 'user',
     accountType: (profile.accountType as AccountType) ?? 'individual',
     emailVerified: user.emailVerified,

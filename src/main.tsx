@@ -6,6 +6,9 @@ import './styles/index.css';
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('FLOW root element not found');
 
+document.documentElement.dataset.theme = localStorage.getItem('flow.theme') ?? 'dark';
+if ('serviceWorker' in navigator) window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js'));
+
 createRoot(rootElement).render(
   <React.StrictMode>
     <App />

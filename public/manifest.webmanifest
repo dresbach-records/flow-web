@@ -1,0 +1,14 @@
+{
+  "name": "FLOW - Seu mundo. Em movimento.",
+  "short_name": "FLOW",
+  "description": "Uma experiência social para descobrir, criar e conectar.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#070d16",
+  "background_color": "#070d16",
+  "icons": [
+    { "src": "/flow-assets-svg/brand/dark/flow-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

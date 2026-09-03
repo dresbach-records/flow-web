@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sparkles } from 'lucide-react';
 import { loginUser, loginWithGoogle, registerUser, requestPasswordReset, resendVerification, type AccountType } from '../services/firebase/auth';
 import { trackEvent } from '../services/firebase/analytics';
+import { FlowLogo } from '../assets/flowAssets';
 
 type AuthPageProps = { path: string; go: (path: string) => void };
 
@@ -128,7 +129,7 @@ export default function AuthPage({ path, go }: AuthPageProps) {
     <main className="flow-auth-page">
       <section className="flow-auth-showcase">
         <button className="flow-auth-logo" onClick={() => go('/')} aria-label="Voltar para o FLOW">
-          <img src="/flow-logo.svg" alt="FLOW" />
+          <FlowLogo alt="FLOW" />
         </button>
         <div className="flow-auth-showcase-copy">
           <span><Sparkles size={15} /> A NOVA GERAÇÃO SOCIAL</span>
@@ -145,7 +146,7 @@ export default function AuthPage({ path, go }: AuthPageProps) {
       <section className="flow-auth-content">
         <button className="flow-auth-back" onClick={() => go('/')}><ArrowLeft size={17} /> Voltar ao site</button>
         <div className="flow-auth-card">
-          <img className="flow-auth-card-logo" src="/flow-logo.svg" alt="FLOW" />
+          <FlowLogo className="flow-auth-card-logo" alt="FLOW" />
           <div className="flow-auth-heading">
             <h2>{title}</h2>
             <p>{subtitle}</p>
