@@ -1,14 +1,61 @@
-import { applicationDefault, cert, getApps, initializeApp, type App } from 'firebase-admin/app';
+import { cert, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { env } from '../../config/env.js';
+
+type ServiceAccount = {
+  project_id: string;
+  client_email: string;
+  private_key: string;
+};
+
+function loadServiceAccount(): ServiceAccount | undefined {
+  const configuredPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  const candidates = configuredPath ? [resolve(configuredPath)] : [];
+  const secretsDir = resolve(process.cwd(), 'secrets');
+
+  if (existsSync(secretsDir)) {
+    for (const file of readdirSync(secretsDir)) {
+      if (file.endsWith('.json')) candidates.push(resolve(secretsDir, file));
+    }
+  }
+
+  for (const filePath of candidates) {
+    if (!existsSync(filePath)) continue;
+    try {
+      const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as Partial<ServiceAccount>;
+      if (parsed.project_id && parsed.client_email && parsed.private_key) {
+        return parsed as ServiceAccount;
+      }
+    } catch {
+      // Continue to the next credential source.
+    }
+  }
+
+  return undefined;
+}
 
 export function getFirebaseApp(): App {
   const existing = getApps()[0];
   if (existing) return existing;
 
-  if (env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
+  const serviceAccount = loadServiceAccount();
+
+  if (serviceAccount) {
+    return initializeApp({
+      credential: cert({
+        projectId: serviceAccount.project_id,
+        clientEmail: serviceAccount.client_email,
+        privateKey: serviceAccount.private_key.replace(/\\n/g, '\n'),
+      }),
+      storageBucket: env.FIREBASE_STORAGE_BUCKET,
+    });
+  }
+
+  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
     return initializeApp({
       credential: cert({
         projectId: env.FIREBASE_PROJECT_ID,
@@ -19,10 +66,9 @@ export function getFirebaseApp(): App {
     });
   }
 
-  return initializeApp({
-    credential: applicationDefault(),
-    storageBucket: env.FIREBASE_STORAGE_BUCKET,
-  });
+  throw new Error(
+    'Firebase Admin credentials not found. Place the Firebase service-account JSON in backend/secrets/ or configure GOOGLE_APPLICATION_CREDENTIALS.'
+  );
 }
 
 export const firebaseAuth = () => getAuth(getFirebaseApp());
