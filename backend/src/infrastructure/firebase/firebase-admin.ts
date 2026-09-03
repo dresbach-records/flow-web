@@ -1,25 +1,27 @@
-import { applicationDefault, cert, getApps, initializeApp } from 'firebase-admin/app';
+import { applicationDefault, cert, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
+import { env } from '../../config/env.js';
 
-export function getFirebaseApp() {
-  if (getApps().length) return getApps()[0];
+export function getFirebaseApp(): App {
+  const existing = getApps()[0];
+  if (existing) return existing;
 
-  const projectId = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
-
-  if (projectId && clientEmail && privateKey) {
+  if (env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
     return initializeApp({
-      credential: cert({ projectId, clientEmail, privateKey }),
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+      credential: cert({
+        projectId: env.FIREBASE_PROJECT_ID,
+        clientEmail: env.FIREBASE_CLIENT_EMAIL,
+        privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      }),
+      storageBucket: env.FIREBASE_STORAGE_BUCKET,
     });
   }
 
   return initializeApp({
     credential: applicationDefault(),
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+    storageBucket: env.FIREBASE_STORAGE_BUCKET,
   });
 }
 
