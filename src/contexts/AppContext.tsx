@@ -1,18 +1,44 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { onFlowAuthChanged, type FlowUser } from '../services/firebase/auth';
 
 type AppContextValue = {
   authenticated: boolean;
-  setAuthenticated: (value: boolean) => void;
+  user: FlowUser | null;
+  loading: boolean;
   adminAuthenticated: boolean;
-  setAdminAuthenticated: (value: boolean) => void;
+  adminUser: FlowUser | null;
+  setAdminUser: (user: FlowUser | null) => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [authenticated, setAuthenticated] = useState(() => localStorage.getItem('flow.auth') === '1');
-  const [adminAuthenticated, setAdminAuthenticated] = useState(() => localStorage.getItem('flow.admin.session') === '1');
-  const value = useMemo(() => ({ authenticated, setAuthenticated, adminAuthenticated, setAdminAuthenticated }), [authenticated, adminAuthenticated]);
+  const [user, setUser] = useState<FlowUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [adminUser, setAdminUser] = useState<FlowUser | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onFlowAuthChanged((next) => {
+      setUser(next);
+      setLoading(false);
+      // Keep the admin session in sync: if Firebase signs out, drop admin too.
+      if (!next) setAdminUser(null);
+    });
+    return unsubscribe;
+  }, []);
+
+  const value = useMemo<AppContextValue>(
+    () => ({
+      authenticated: Boolean(user),
+      user,
+      loading,
+      adminAuthenticated: Boolean(adminUser),
+      adminUser,
+      setAdminUser,
+    }),
+    [user, loading, adminUser],
+  );
+
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
