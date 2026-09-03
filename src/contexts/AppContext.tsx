@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { onFlowAuthChanged, type FlowUser } from '../services/firebase/auth';
+import { completeGoogleSignIn, onFlowAuthChanged, type FlowUser } from '../services/firebase/auth';
 
 type AppContextValue = {
   authenticated: boolean;
@@ -18,6 +18,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [adminUser, setAdminUser] = useState<FlowUser | null>(null);
 
   useEffect(() => {
+    void completeGoogleSignIn().then((next) => {
+      if (next && window.location.pathname !== '/app') {
+        history.replaceState({}, '', '/app');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+    }).catch(() => undefined);
     const unsubscribe = onFlowAuthChanged((next) => {
       setUser(next);
       setLoading(false);

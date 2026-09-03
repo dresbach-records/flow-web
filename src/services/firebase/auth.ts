@@ -5,7 +5,8 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  getRedirectResult,
+  signInWithRedirect,
   signOut,
   updateProfile,
   type User,
@@ -79,10 +80,24 @@ export async function loginUser(email: string, password: string): Promise<FlowUs
   return toFlowUser(credential.user);
 }
 
-export async function loginWithGoogle(accountType: AccountType = 'individual', acceptedTerms = false): Promise<FlowUser> {
+const googleSignupStorageKey = 'flow-google-signup';
+
+export async function loginWithGoogle(accountType: AccountType = 'individual', acceptedTerms = false): Promise<void> {
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  const credential = await signInWithPopup(firebaseAuth, provider);
+  sessionStorage.setItem(googleSignupStorageKey, JSON.stringify({ accountType, acceptedTerms }));
+  await signInWithRedirect(firebaseAuth, provider);
+}
+
+export async function completeGoogleSignIn(): Promise<FlowUser | null> {
+  const credential = await getRedirectResult(firebaseAuth);
+  if (!credential) return null;
+
+  const signupData = sessionStorage.getItem(googleSignupStorageKey);
+  sessionStorage.removeItem(googleSignupStorageKey);
+  const { accountType = 'individual', acceptedTerms = false } = signupData
+    ? JSON.parse(signupData) as { accountType?: AccountType; acceptedTerms?: boolean }
+    : {};
   const userRef = doc(firestore, 'users', credential.user.uid);
   const snapshot = await getDoc(userRef);
 
