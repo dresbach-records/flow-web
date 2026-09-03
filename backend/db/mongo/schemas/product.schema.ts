@@ -1,0 +1,2 @@
+export interface ProductSchema { _id: string; sellerId: string; title: string; description: string; categoryId: string; priceCents: number; currency: 'BRL'; condition: 'new' | 'used'; stock: number; images: string[]; status: 'draft' | 'active' | 'paused' | 'blocked' | 'deleted'; policyStatus: 'pending' | 'approved' | 'rejected' | 'manual_review'; externalDestination?: string; createdAt: Date; updatedAt: Date; }
+export const PRODUCT_COLLECTION = 'products' as const;
