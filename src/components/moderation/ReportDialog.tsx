@@ -1,0 +1,4 @@
+import { useState } from 'react';
+import { apiRequest } from '../../services/api/client';
+const reasons=['Pirataria ou falsificação','Golpe ou fraude','Conteúdo sexual','Violência','Produto proibido','Outro'];
+export function ReportDialog({targetId,onClose}:{targetId:string;onClose:()=>void}){const [reason,setReason]=useState(reasons[0]);const [sending,setSending]=useState(false);const [done,setDone]=useState(false);const submit=async()=>{setSending(true);try{await apiRequest({path:'/api/v1/reports',method:'POST',body:{targetId,reason}});setDone(true)}finally{setSending(false)}};return <div role="dialog" aria-modal="true"><h2>Denunciar</h2>{done?<p>Denúncia enviada com sucesso.</p>:<><select value={reason} onChange={e=>setReason(e.target.value)}>{reasons.map(r=><option key={r}>{r}</option>)}</select><button disabled={sending} onClick={submit}>{sending?'Enviando…':'Enviar denúncia'}</button></>}<button onClick={onClose}>Fechar</button></div>}
