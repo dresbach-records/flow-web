@@ -12,7 +12,11 @@ app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 
-app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'flow-api' }));
+app.get('/health', (_req, res) => res.json({
+  status: 'ok',
+  service: 'flow-api',
+  guardian: env.FLOW_GUARDIAN_ENABLED ? 'enabled' : 'disabled',
+}));
 
 app.post('/api/v1/auth/register', async (req, res) => {
   try { res.status(201).json(await register(req.body)); }
@@ -30,8 +34,19 @@ app.get('/api/v1/feed', async (req, res) => {
 });
 
 app.post('/api/v1/posts', async (req, res) => {
-  try { res.status(201).json(await createPost(req.body)); }
-  catch { res.status(400).json({ error: 'POST_CREATE_FAILED' }); }
+  try {
+    res.status(201).json(await createPost(req.body));
+  } catch (error) {
+    if (error instanceof Error && error.message === 'CONTENT_BLOCKED_BY_GUARDIAN') {
+      res.status(422).json({ error: 'CONTENT_BLOCKED_BY_GUARDIAN' });
+      return;
+    }
+    if (error instanceof Error && error.message === 'GUARDIAN_TIMEOUT') {
+      res.status(503).json({ error: 'GUARDIAN_UNAVAILABLE' });
+      return;
+    }
+    res.status(400).json({ error: 'POST_CREATE_FAILED' });
+  }
 });
 
 app.post('/api/v1/posts/:id/like', async (req, res) => {
