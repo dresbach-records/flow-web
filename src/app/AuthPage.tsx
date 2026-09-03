@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck, Sparkles } from 'lucide-react';
-import { loginUser, registerUser, requestPasswordReset, resendVerification, type AccountType } from '../services/firebase/auth';
+import { loginUser, loginWithGoogle, registerUser, requestPasswordReset, resendVerification, type AccountType } from '../services/firebase/auth';
 import { trackEvent } from '../services/firebase/analytics';
 
 type AuthPageProps = { path: string; go: (path: string) => void };
@@ -102,6 +102,25 @@ export default function AuthPage({ path, go }: AuthPageProps) {
     }
   };
 
+  const submitGoogle = async () => {
+    setError('');
+    setMessage('');
+    if (mode === 'register' && !acceptedTerms) {
+      setError('É necessário aceitar os termos para criar a conta.');
+      return;
+    }
+    try {
+      setBusy(true);
+      await loginWithGoogle(accountType, mode === 'register' && acceptedTerms);
+      await trackEvent(mode === 'register' ? 'sign_up' : 'login', { method: 'google' });
+      go('/app');
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const title = mode === 'register' ? 'Crie sua conta' : mode === 'recover' ? 'Recupere seu acesso' : mode === 'reset' ? 'Nova senha' : mode === 'verify' ? 'Verifique sua conta' : 'Bem-vindo de volta';
   const subtitle = mode === 'register' ? 'Entre para descobrir, criar e compartilhar.' : mode === 'recover' ? 'Digite seu e-mail e enviaremos as instruções.' : mode === 'reset' ? 'Defina uma nova senha para sua conta FLOW.' : mode === 'verify' ? 'Confirme seu e-mail para concluir a verificação.' : 'Continue de onde você parou.';
 
@@ -131,6 +150,12 @@ export default function AuthPage({ path, go }: AuthPageProps) {
             <h2>{title}</h2>
             <p>{subtitle}</p>
           </div>
+
+          {(mode === 'login' || mode === 'register') && (
+            <button className="flow-auth-google" type="button" onClick={submitGoogle} disabled={busy}>
+              <strong>G</strong> Continuar com Google
+            </button>
+          )}
 
           <form onSubmit={submit}>
             {mode === 'register' && (

@@ -1,9 +1,11 @@
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   updateProfile,
   type User,
@@ -74,6 +76,27 @@ export async function registerUser(input: RegisterInput): Promise<FlowUser> {
 
 export async function loginUser(email: string, password: string): Promise<FlowUser> {
   const credential = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+  return toFlowUser(credential.user);
+}
+
+export async function loginWithGoogle(accountType: AccountType = 'individual', acceptedTerms = false): Promise<FlowUser> {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const credential = await signInWithPopup(firebaseAuth, provider);
+  const userRef = doc(firestore, 'users', credential.user.uid);
+  const snapshot = await getDoc(userRef);
+
+  if (!snapshot.exists()) {
+    await setDoc(userRef, {
+      name: credential.user.displayName ?? null,
+      email: credential.user.email,
+      accountType,
+      role: 'user',
+      acceptedTermsAt: acceptedTerms ? serverTimestamp() : null,
+      createdAt: serverTimestamp(),
+    });
+  }
+
   return toFlowUser(credential.user);
 }
 

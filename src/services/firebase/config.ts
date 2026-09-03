@@ -13,7 +13,7 @@ import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
  * app runs out of the box, while still allowing overrides via VITE_ env vars.
  */
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? 'AIzaSyB-flow-social-network-public-web-key',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? 'flow-social-network-dc313.firebaseapp.com',
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? 'flow-social-network-dc313',
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? 'flow-social-network-dc313.firebasestorage.app',

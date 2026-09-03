@@ -55,17 +55,6 @@ export function getFirebaseApp(): App {
     });
   }
 
-  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
-    return initializeApp({
-      credential: cert({
-        projectId: env.FIREBASE_PROJECT_ID,
-        clientEmail: env.FIREBASE_CLIENT_EMAIL,
-        privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      }),
-      storageBucket: env.FIREBASE_STORAGE_BUCKET,
-    });
-  }
-
   throw new Error(
     'Firebase Admin credentials not found. Place the Firebase service-account JSON in backend/secrets/ or configure GOOGLE_APPLICATION_CREDENTIALS.'
   );
