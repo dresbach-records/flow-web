@@ -1,4 +1,4 @@
-import { cert, getApps, initializeApp, type App } from 'firebase-admin/app';
+import { applicationDefault, cert, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
@@ -27,11 +27,9 @@ function loadServiceAccount(): ServiceAccount | undefined {
     if (!existsSync(filePath)) continue;
     try {
       const parsed = JSON.parse(readFileSync(filePath, 'utf8')) as Partial<ServiceAccount>;
-      if (parsed.project_id && parsed.client_email && parsed.private_key) {
-        return parsed as ServiceAccount;
-      }
+      if (parsed.project_id && parsed.client_email && parsed.private_key) return parsed as ServiceAccount;
     } catch {
-      // Continue to the next credential source.
+      // Try the next credential source.
     }
   }
 
@@ -43,7 +41,6 @@ export function getFirebaseApp(): App {
   if (existing) return existing;
 
   const serviceAccount = loadServiceAccount();
-
   if (serviceAccount) {
     return initializeApp({
       credential: cert({
@@ -55,9 +52,12 @@ export function getFirebaseApp(): App {
     });
   }
 
-  throw new Error(
-    'Firebase Admin credentials not found. Place the Firebase service-account JSON in backend/secrets/ or configure GOOGLE_APPLICATION_CREDENTIALS.'
-  );
+  // Cloud Run and other Google environments should use Application Default Credentials.
+  return initializeApp({
+    credential: applicationDefault(),
+    projectId: env.FIREBASE_PROJECT_ID,
+    storageBucket: env.FIREBASE_STORAGE_BUCKET,
+  });
 }
 
 export const firebaseAuth = () => getAuth(getFirebaseApp());
