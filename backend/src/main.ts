@@ -6,6 +6,7 @@ import { connectDatabases } from './infrastructure/database.js';
 import { errorHandler, rateLimit, requestContext } from './middleware/security.js';
 import { requireAuth } from './middleware/firebase-auth.js';
 import flowRoutes from './routes/flow.routes.js';
+import flowDomainRoutes from './routes/flow-domain.routes.js';
 
 const app=express();
 app.disable('x-powered-by');
@@ -16,6 +17,7 @@ app.use(rateLimit());
 app.use(express.json({limit:'10mb'}));
 app.get('/health',(_req,res)=>res.json({status:'ok',service:'flow-api',database:'firebase'}));
 app.get('/api/v1/me',requireAuth,(req,res)=>res.json({uid:req.actor!.uid,admin:req.actor!.admin,permissions:req.actor!.permissions}));
+app.use('/api/v1',flowDomainRoutes);
 app.use('/api/v1',flowRoutes);
 app.use(errorHandler);
 await connectDatabases();
