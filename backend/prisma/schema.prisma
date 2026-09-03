@@ -39,5 +39,17 @@ model Session {
   @@index([expiresAt])
 }
 
-enum UserRole { USER CREATOR SELLER MODERATOR ADMIN }
-enum UserStatus { ACTIVE PENDING_VERIFICATION SUSPENDED BANNED }
+enum UserRole {
+  USER
+  CREATOR
+  SELLER
+  MODERATOR
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING_VERIFICATION
+  SUSPENDED
+  BANNED
+}

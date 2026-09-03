@@ -1,6 +1,7 @@
 import React from 'react';
 import { AdminApp, AuthPage, CreatorCenter, ModuleCenter, PlatformModules, PublicApp, SiteEditor } from './pages';
-import { AppProvider } from './contexts/AppContext';
+import { AppProvider, useAppContext } from './contexts/AppContext';
+import { adminAuthApi } from './services/api/auth';
 
 const AUTH_ROUTES = ['/auth/login', '/login', '/cadastro', '/recuperar-senha', '/redefinir-senha', '/verificar-conta'];
 
@@ -37,9 +38,10 @@ export default function App() {
 }
 
 function AdminAppShell({ children }: { children: React.ReactNode }) {
-  const [auth, setAuth] = React.useState(() => localStorage.getItem('flow.admin.session') === '1');
+  const { adminAuthenticated: auth, setAdminSession } = useAppContext();
   const [email, setEmail] = React.useState('');
   const [pass, setPass] = React.useState('');
+  const [error, setError] = React.useState('');
 
   if (!auth) {
     return <div className="admin-login"><div className="admin-login-card">
@@ -47,7 +49,8 @@ function AdminAppShell({ children }: { children: React.ReactNode }) {
       <h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p>
       <input value={email} onChange={e => setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" />
       <input value={pass} onChange={e => setPass(e.target.value)} placeholder="Senha" type="password" />
-      <button className="admin-btn primary" onClick={() => { if (email && pass) { localStorage.setItem('flow.admin.session', '1'); setAuth(true); } }}>Entrar no painel</button>
+      {error && <p role="alert" className="form-error">{error}</p>}
+      <button className="admin-btn primary" onClick={async () => { try { const result = await adminAuthApi.login({ email, password: pass }); setAdminSession(result.user); setError(''); } catch { setError('Não foi possível autenticar este administrador.'); } }}>Entrar no painel</button>
     </div></div>;
   }
   return <>{children}</>;
