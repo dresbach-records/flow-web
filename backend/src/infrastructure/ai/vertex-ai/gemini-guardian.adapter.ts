@@ -17,11 +17,7 @@ export class GeminiGuardianAdapter implements GuardianAiPort {
     private readonly location = env.GOOGLE_CLOUD_LOCATION,
     private readonly model = env.FLOW_GUARDIAN_MODEL,
   ) {
-    this.client = new GoogleGenAI({
-      vertexai: true,
-      project: this.project,
-      location: this.location,
-    });
+    this.client = new GoogleGenAI({ vertexai: true, project: this.project, location: this.location });
   }
 
   async moderate(input: GuardianInput): Promise<ModerationResult> {
@@ -31,28 +27,22 @@ export class GeminiGuardianAdapter implements GuardianAiPort {
     try {
       const response = await this.client.models.generateContent({
         model: this.model,
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              {
-                text: [
-                  'You are FLOW Guardian, the content safety classifier for the FLOW social network.',
-                  'Classify only the supplied user content.',
-                  'Return JSON matching the requested schema.',
-                  'Use action=allow for content that can remain public, review when human moderation should inspect it, and block for clear policy violations.',
-                  'Use category=none when there is no relevant violation.',
-                  'Do not invent facts or include personal data in the reason.',
-                  `authorId: ${input.authorId}`,
-                  `contentType: ${input.contentType}`,
-                  `text: ${input.text ?? ''}`,
-                  `mediaUrlProvided: ${Boolean(input.mediaUrl)}`,
-                ].join('\n'),
-              },
-            ],
-          },
-        ],
+        contents: [{
+          role: 'user',
+          parts: [{ text: [
+            'You are FLOW Guardian, the content safety classifier for the FLOW social network.',
+            'Classify only the supplied user content and return JSON matching the schema.',
+            'Use action=allow for content that can remain public, review when human moderation should inspect it, and block for clear policy violations.',
+            'Use category=none when there is no relevant violation.',
+            'Do not invent facts or include personal data in the reason.',
+            `authorId: ${input.authorId}`,
+            `contentType: ${input.contentType}`,
+            `text: ${input.text ?? ''}`,
+            `mediaUrlProvided: ${Boolean(input.mediaUrl)}`,
+          ].join('\n') }],
+        }],
         config: {
+          abortSignal: controller.signal,
           responseMimeType: 'application/json',
           responseSchema: {
             type: Type.OBJECT,
@@ -65,31 +55,23 @@ export class GeminiGuardianAdapter implements GuardianAiPort {
             required: ['action', 'category', 'confidence', 'reason'],
           },
         },
-        signal: controller.signal,
       });
 
       const raw = response.text?.trim();
       if (!raw) throw new Error('GUARDIAN_EMPTY_RESPONSE');
-
       const parsed = JSON.parse(raw) as Partial<ModerationResult>;
-      if (!actionValues.includes(parsed.action as (typeof actionValues)[number])) {
-        throw new Error('GUARDIAN_INVALID_ACTION');
-      }
-      if (!categoryValues.includes(parsed.category as (typeof categoryValues)[number])) {
-        throw new Error('GUARDIAN_INVALID_CATEGORY');
-      }
-      if (typeof parsed.confidence !== 'number' || parsed.confidence < 0 || parsed.confidence > 1) {
-        throw new Error('GUARDIAN_INVALID_CONFIDENCE');
-      }
+      if (!actionValues.includes(parsed.action as (typeof actionValues)[number])) throw new Error('GUARDIAN_INVALID_ACTION');
+      if (!categoryValues.includes(parsed.category as (typeof categoryValues)[number])) throw new Error('GUARDIAN_INVALID_CATEGORY');
+      if (typeof parsed.confidence !== 'number' || parsed.confidence < 0 || parsed.confidence > 1) throw new Error('GUARDIAN_INVALID_CONFIDENCE');
       if (typeof parsed.reason !== 'string') throw new Error('GUARDIAN_INVALID_REASON');
 
       return {
-        action: parsed.action,
-        category: parsed.category,
+        action: parsed.action as ModerationResult['action'],
+        category: parsed.category as ModerationResult['category'],
         confidence: parsed.confidence,
         reason: parsed.reason.slice(0, 500),
         model: this.model,
-      } as ModerationResult;
+      };
     } catch (error) {
       if (controller.signal.aborted) throw new Error('GUARDIAN_TIMEOUT');
       throw error;
