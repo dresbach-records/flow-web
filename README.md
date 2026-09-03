@@ -57,7 +57,7 @@ Os módulos são projetados para serem habilitados, desabilitados ou colocados e
 
 O frontend não implementa backend dentro de componentes. A comunicação deverá passar por `src/services/backend` e pelos serviços de domínio em `src/services/*`.
 
-A camada atual fornece contratos de integração e adaptadores iniciais para substituir os mocks/dados locais por APIs reais sem alterar a composição das páginas.
+A API Express em `backend/` expõe endpoints versionados, valida ambiente e aplica request-id, rate limiting, Helmet e tratamento estruturado de erros. Integrações externas sem credenciais devem permanecer como adapters explicitamente indisponíveis, sem simular transações.
 
 ## Site público
 
