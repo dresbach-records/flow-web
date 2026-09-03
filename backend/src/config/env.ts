@@ -3,11 +3,10 @@ import { z } from 'zod';
 
 const schema = z.object({
   PORT: z.coerce.number().default(8080),
-  DATABASE_URL: z.string().min(1),
-  MONGODB_URI: z.string().min(1),
-  MONGODB_DATABASE: z.string().default('flow'),
-  JWT_SECRET: z.string().min(32),
-  JWT_REFRESH_SECRET: z.string().min(32),
+  FIREBASE_PROJECT_ID: z.string().min(1),
+  FIREBASE_CLIENT_EMAIL: z.string().email(),
+  FIREBASE_PRIVATE_KEY: z.string().min(1),
+  FIREBASE_STORAGE_BUCKET: z.string().min(1),
   CORS_ORIGIN: z.string().default('https://flow-web-mu.vercel.app')
 });
 
