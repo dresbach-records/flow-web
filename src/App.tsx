@@ -2,7 +2,7 @@ import React from 'react';
 import { AdminApp, AuthPage, CreatorCenter, ModuleCenter, PlatformModules, ProfilePage, PublicApp, SiteEditor } from './pages';
 import SocialFeed from './app/SocialFeed';
 import ScheduleCenter from './app/ScheduleCenter';
-import { AppProvider } from './contexts/AppContext';
+import { AppProvider, useAppContext } from './contexts/AppContext';
 
 const AUTH_ROUTES = ['/auth/login', '/login', '/cadastro', '/recuperar-senha', '/redefinir-senha', '/verificar-conta'];
 const SOCIAL_ROUTES = new Set(['/app', '/app/', '/app/for-you', '/app/seguindo', '/app/explorar', '/app/shorts', '/app/criar', '/app/mensagens', '/app/notificacoes', '/app/comunidades', '/app/perfil', '/app/salvos', '/app/configuracoes', '/app/agendamento', '/app/agendamentos']);
@@ -19,23 +19,48 @@ export default function App() {
   else if (AUTH_ROUTES.includes(path)) content = <AuthPage path={path} go={go} />;
   else if (path === '/app/perfil') content = <ProfilePage />;
   else if (path.startsWith('/app/perfil/')) content = <ProfilePage uid={decodeURIComponent(path.slice('/app/perfil/'.length))} />;
-  else if (path === '/app/agendamento' || path === '/app/agendamentos') content = <ScheduleCenter />;
-  else if (SOCIAL_ROUTES.has(path)) content = <SocialFeed path={path} />;
-  else if (path.startsWith('/app/criador')) content = <CreatorCenter />;
-  else if (path === '/app/shop' || path === '/app/loja') content = <PlatformModules screen={path === '/app/shop' ? 'shop' : 'seller'} />;
-  else if (path === '/app/pedidos') content = <PlatformModules screen="orders" />;
-  else if (path === '/app/rewards') content = <PlatformModules screen="rewards" />;
-  else if (path === '/app/anunciar' || path === '/app/ads') content = <PlatformModules screen="ads" />;
-  else if (path === '/app/denunciar') content = <PlatformModules screen="report" />;
-  else if (path === '/app/seguranca') content = <PlatformModules screen="safety" />;
+  else if (path === '/app/agendamento' || path === '/app/agendamentos') content = <ProtectedApp><ScheduleCenter /></ProtectedApp>;
+  else if (SOCIAL_ROUTES.has(path)) content = <ProtectedApp><SocialFeed path={path} /></ProtectedApp>;
+  else if (path.startsWith('/app/criador')) content = <ProtectedApp><CreatorCenter /></ProtectedApp>;
+  else if (path === '/app/shop' || path === '/app/loja') content = <ProtectedApp><PlatformModules screen={path === '/app/shop' ? 'shop' : 'seller'} /></ProtectedApp>;
+  else if (path === '/app/pedidos') content = <ProtectedApp><PlatformModules screen="orders" /></ProtectedApp>;
+  else if (path === '/app/rewards') content = <ProtectedApp><PlatformModules screen="rewards" /></ProtectedApp>;
+  else if (path === '/app/anunciar' || path === '/app/ads') content = <ProtectedApp><PlatformModules screen="ads" /></ProtectedApp>;
+  else if (path === '/app/denunciar') content = <ProtectedApp><PlatformModules screen="report" /></ProtectedApp>;
+  else if (path === '/app/seguranca') content = <ProtectedApp><PlatformModules screen="safety" /></ProtectedApp>;
   else content = <PublicApp />;
   return <AppProvider>{content}</AppProvider>;
 }
 
+function ProtectedApp({ children }: { children: React.ReactNode }) {
+  const { authenticated, loading } = useAppContext();
+  const [redirecting, setRedirecting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!loading && !authenticated) {
+      setRedirecting(true);
+      history.replaceState({}, '', '/auth/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  }, [authenticated, loading]);
+
+  if (loading || redirecting) {
+    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--flow-bg, #ffffff)', color: 'var(--flow-text, #172033)' }}><span>Carregando FLOW…</span></div>;
+  }
+  return <>{children}</>;
+}
+
 function AdminAppShell({ children }: { children: React.ReactNode }) {
-  const [auth, setAuth] = React.useState(() => localStorage.getItem('flow.admin.session') === '1');
+  const [auth, setAuth] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [pass, setPass] = React.useState('');
-  if (!auth) return <div className="admin-login"><div className="admin-login-card"><div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW" /><span className="admin-badge">ADMIN</span></div><h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p><input value={email} onChange={e => setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" /><input value={pass} onChange={e => setPass(e.target.value)} placeholder="Senha" type="password" /><button className="admin-btn primary" onClick={() => { if (email && pass) { localStorage.setItem('flow.admin.session', '1'); setAuth(true); } }}>Entrar no painel</button></div></div>;
+  const [error, setError] = React.useState('');
+  const { adminUser, setAdminUser } = useAppContext();
+
+  React.useEffect(() => {
+    setAuth(Boolean(adminUser));
+  }, [adminUser]);
+
+  if (!auth) return <div className="admin-login"><div className="admin-login-card"><div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW" /><span className="admin-badge">ADMIN</span></div><h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p>{error&&<div className="admin-error">{error}</div>}<input value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" autoComplete="username"/><input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Senha" type="password" autoComplete="current-password"/><button className="admin-btn primary" onClick={async()=>{try{setError('');const { loginAdmin } = await import('./services/firebase/auth');const user=await loginAdmin(email,pass);setAdminUser(user);}catch(err){setError(err instanceof Error?err.message:'Não foi possível entrar no painel.')}}}>Entrar no painel</button></div></div>;
   return <>{children}</>;
 }
