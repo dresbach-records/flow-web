@@ -1,5 +1,6 @@
 export { default as PublicApp } from '../app/FlowWeb';
 export { default as AuthPage } from '../app/AuthPage';
+export { default as CompleteProfilePage } from '../app/CompleteProfilePage';
 export { default as CreatorCenter } from '../app/CreatorCenter';
 export { default as ProfilePage } from '../app/ProfilePage';
 export { default as PlatformModules } from '../app/PlatformModules';
