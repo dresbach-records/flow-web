@@ -8,34 +8,34 @@ importers:
 
   .:
     dependencies:
-      '@vitejs/plugin-react':
-        specifier: latest
-        version: 6.1.1(vite@8.2.2(@types/node@26.4.1))
       firebase:
-        specifier: latest
+        specifier: 12.18.0
         version: 12.18.0
       lucide-react:
-        specifier: latest
+        specifier: 1.39.0
         version: 1.39.0(react@19.2.8)
       react:
-        specifier: latest
+        specifier: 19.2.8
         version: 19.2.8
       react-dom:
-        specifier: latest
+        specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@types/react':
+        specifier: 19.2.18
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: 19.2.5
+        version: 19.2.5(@types/react@19.2.18)
+      '@vitejs/plugin-react':
+        specifier: 6.1.1
+        version: 6.1.1(vite@8.2.2(@types/node@26.4.1))
       typescript:
         specifier: 5.9.3
         version: 5.9.3
       vite:
-        specifier: latest
+        specifier: 8.2.2
         version: 8.2.2(@types/node@26.4.1)
-    devDependencies:
-      '@types/react':
-        specifier: ^19.2.18
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: ^19.2.5
-        version: 19.2.5(@types/react@19.2.18)
 
 packages:
 
