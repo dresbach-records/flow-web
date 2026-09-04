@@ -1,0 +1,2 @@
+export interface VideoSchema { _id: string; authorId: string; videoUrl: string; thumbnailUrl?: string; durationSeconds: number; caption?: string; visibility: 'public' | 'followers' | 'private'; moderationStatus: 'pending' | 'approved' | 'rejected' | 'restricted'; viewsCount: number; likesCount: number; commentsCount: number; createdAt: Date; updatedAt: Date; }
+export const VIDEO_COLLECTION = 'videos' as const;

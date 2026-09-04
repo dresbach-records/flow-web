@@ -1,19 +1,38 @@
+ v0/flow-db-structure
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import type { FlowUser } from '../services/api/auth';
+
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { completeGoogleSignIn, onFlowAuthChanged, type FlowUser } from '../services/firebase/auth';
+ main
 
 type AppContextValue = {
   authenticated: boolean;
   user: FlowUser | null;
+ v0/flow-db-structure
+  setSession: (user: FlowUser | null) => void;
+  adminAuthenticated: boolean;
+  adminUser: FlowUser | null;
+  setAdminSession: (user: FlowUser | null) => void;
+
   loading: boolean;
   adminAuthenticated: boolean;
   adminUser: FlowUser | null;
   setAdminUser: (user: FlowUser | null) => void;
+ main
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FlowUser | null>(null);
+ v0/flow-db-structure
+  const [adminUser, setAdminUser] = useState<FlowUser | null>(null);
+  const value = useMemo(() => ({
+    authenticated: Boolean(user), user, setSession: setUser,
+    adminAuthenticated: Boolean(adminUser), adminUser, setAdminSession: setAdminUser,
+  }), [user, adminUser]);
+
   const [loading, setLoading] = useState(true);
   const [adminUser, setAdminUser] = useState<FlowUser | null>(null);
 
@@ -45,6 +64,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [user, loading, adminUser],
   );
 
+ main
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 

@@ -6,11 +6,18 @@ import { connectDatabases } from './infrastructure/database.js';
 import { register, login } from './services/auth.service.js';
 import { createPost, likePost, listFeed } from './services/content.service.js';
 import { createReport } from './services/report.service.js';
+ v0/flow-db-structure
+import { errorHandler, rateLimit, requestContext } from './middleware/security.js';
+
 import { startPublicationScheduler } from './services/scheduler.service.js';
+ main
 
 const app = express();
-app.use(helmet());
+app.disable('x-powered-by');
+app.use(requestContext);
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+app.use(rateLimit());
 app.use(express.json({ limit: '2mb' }));
 
 app.get('/health', (_req, res) => res.json({
@@ -59,6 +66,8 @@ app.post('/api/v1/reports', async (req, res) => {
   try { res.status(201).json(await createReport(req.body)); }
   catch { res.status(400).json({ error: 'REPORT_FAILED' }); }
 });
+
+app.use(errorHandler);
 
 await connectDatabases();
 startPublicationScheduler();

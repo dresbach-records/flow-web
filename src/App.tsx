@@ -1,9 +1,15 @@
 import React from 'react';
+ v0/flow-db-structure
+import { AdminApp, AuthPage, CreatorCenter, ModuleCenter, PlatformModules, PublicApp, SiteEditor } from './pages';
+import { AppProvider, useAppContext } from './contexts/AppContext';
+import { adminAuthApi } from './services/api/auth';
+
 import { AdminApp, AuthPage, CreatorCenter, ModuleCenter, PlatformModules, ProfilePage, PublicApp, SiteEditor } from './pages';
 import SocialFeed from './app/SocialFeed';
 import ScheduleCenter from './app/ScheduleCenter';
 import { AppProvider } from './contexts/AppContext';
 import { firebaseDiagnostics, getFirebaseInitializationError } from './services/firebase/config';
+ main
 
 const AUTH_ROUTES = ['/auth/login', '/login', '/cadastro', '/recuperar-senha', '/redefinir-senha', '/verificar-conta'];
 const SOCIAL_ROUTES = new Set(['/app', '/app/', '/app/for-you', '/app/seguindo', '/app/explorar', '/app/shorts', '/app/criar', '/app/mensagens', '/app/notificacoes', '/app/comunidades', '/app/perfil', '/app/salvos', '/app/configuracoes', '/app/agendamento', '/app/agendamentos']);
@@ -74,9 +80,24 @@ function FirebaseRuntimeNotice() {
 }
 
 function AdminAppShell({ children }: { children: React.ReactNode }) {
-  const [auth, setAuth] = React.useState(() => localStorage.getItem('flow.admin.session') === '1');
+  const { adminAuthenticated: auth, setAdminSession } = useAppContext();
   const [email, setEmail] = React.useState('');
   const [pass, setPass] = React.useState('');
+ v0/flow-db-structure
+  const [error, setError] = React.useState('');
+
+  if (!auth) {
+    return <div className="admin-login"><div className="admin-login-card">
+      <div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW" /><span className="admin-badge">ADMIN</span></div>
+      <h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p>
+      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" />
+      <input value={pass} onChange={e => setPass(e.target.value)} placeholder="Senha" type="password" />
+      {error && <p role="alert" className="form-error">{error}</p>}
+      <button className="admin-btn primary" onClick={async () => { try { const result = await adminAuthApi.login({ email, password: pass }); setAdminSession(result.user); setError(''); } catch { setError('Não foi possível autenticar este administrador.'); } }}>Entrar no painel</button>
+    </div></div>;
+  }
+
   if (!auth) return <div className="admin-login"><div className="admin-login-card"><div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW" /><span className="admin-badge">ADMIN</span></div><h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p><input value={email} onChange={e => setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" /><input value={pass} onChange={e => setPass(e.target.value)} placeholder="Senha" type="password" /><button className="admin-btn primary" onClick={() => { if (email && pass) { localStorage.setItem('flow.admin.session', '1'); setAuth(true); } }}>Entrar no painel</button></div></div>;
+ main
   return <>{children}</>;
 }

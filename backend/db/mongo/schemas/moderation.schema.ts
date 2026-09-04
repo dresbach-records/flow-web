@@ -1,0 +1,2 @@
+export interface ModerationSchema { _id: string; targetId: string; targetType: 'post' | 'video' | 'comment' | 'product' | 'ad' | 'profile'; action: 'allow' | 'restrict' | 'hide' | 'remove' | 'ban' | 'manual_review'; reason: string; source: 'automated' | 'user_report' | 'moderator' | 'legal_request'; confidence?: number; moderatorId?: string; createdAt: Date; }
+export const MODERATION_COLLECTION = 'moderation_actions' as const;

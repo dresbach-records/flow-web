@@ -1,0 +1,2 @@
+export interface OrderSchema { _id: string; buyerId: string; sellerId: string; productId: string; amountCents: number; platformFeeCents: number; taxCents: number; influencerCommissionCents: number; sellerNetCents: number; currency: 'BRL'; status: 'pending' | 'paid' | 'shipped' | 'delivered' | 'confirmed' | 'disputed' | 'refunded' | 'released'; deliveredAt?: Date; buyerConfirmedAt?: Date; payoutEligibleAt?: Date; createdAt: Date; updatedAt: Date; }
+export const ORDER_COLLECTION = 'orders' as const;

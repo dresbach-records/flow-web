@@ -59,6 +59,13 @@ export async function createPost(input: { authorId: string; type: 'post' | 'shor
 }
 
 export async function likePost(postId: string, userId: string) {
+ v0/flow-db-structure
+  const post = await mongoDb.collection('posts').findOne({ _id: new ObjectId(postId) });
+  if (!post) throw new Error('POST_NOT_FOUND');
+  const result = await mongoDb.collection('post_likes').updateOne({ postId, userId }, { $setOnInsert: { postId, userId, createdAt: new Date() } }, { upsert: true });
+  if (result.upsertedCount === 1) await mongoDb.collection('posts').updateOne({ _id: new ObjectId(postId) }, { $inc: { likesCount: 1 } });
+  return { liked: true, created: result.upsertedCount === 1 };
+
   const db = firestore();
   const postRef = db.collection('posts').doc(postId);
   const likeRef = db.collection('post_likes').doc(`${postId}_${userId}`);
@@ -73,4 +80,5 @@ export async function likePost(postId: string, userId: string) {
   });
 
   return { liked: true };
+ main
 }
