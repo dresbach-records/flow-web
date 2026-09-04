@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { completeGoogleSignIn, onFlowAuthChanged, logout as firebaseLogout, type FlowUser } from '../services/firebase/auth';
 
 type AppContextValue = {
@@ -11,7 +11,7 @@ type AppContextValue = {
   logout: () => Promise<void>;
 };
 
-const AppContext = React.createContext<AppContextValue | null>(null);
+const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FlowUser | null>(null);
