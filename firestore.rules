@@ -66,8 +66,15 @@ service cloud.firestore {
     }
 
     match /consents/{consentId} {
-      allow read, create: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid) && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if false;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && consentId == request.auth.uid;
+      allow update: if request.auth != null
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && consentId == request.auth.uid;
+      allow delete: if false;
     }
   }
 }
