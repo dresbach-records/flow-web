@@ -3,6 +3,7 @@ import { AdminApp, AuthPage, CreatorCenter, ModuleCenter, PlatformModules, Profi
 import SocialFeed from './app/SocialFeed';
 import ScheduleCenter from './app/ScheduleCenter';
 import { AppProvider } from './contexts/AppContext';
+import { firebaseDiagnostics, getFirebaseInitializationError } from './services/firebase/config';
 
 const AUTH_ROUTES = ['/auth/login', '/login', '/cadastro', '/recuperar-senha', '/redefinir-senha', '/verificar-conta'];
 const SOCIAL_ROUTES = new Set(['/app', '/app/', '/app/for-you', '/app/seguindo', '/app/explorar', '/app/shorts', '/app/criar', '/app/mensagens', '/app/notificacoes', '/app/comunidades', '/app/perfil', '/app/salvos', '/app/configuracoes', '/app/agendamento', '/app/agendamentos']);
@@ -29,7 +30,47 @@ export default function App() {
   else if (path === '/app/denunciar') content = <PlatformModules screen="report" />;
   else if (path === '/app/seguranca') content = <PlatformModules screen="safety" />;
   else content = <PublicApp />;
-  return <AppProvider>{content}</AppProvider>;
+
+  return (
+    <AppProvider>
+      <FirebaseRuntimeNotice />
+      {content}
+    </AppProvider>
+  );
+}
+
+function FirebaseRuntimeNotice() {
+  const error = getFirebaseInitializationError();
+  if (!error) return null;
+
+  return (
+    <div
+      role="alert"
+      style={{
+        position: 'fixed',
+        top: 12,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 99999,
+        width: 'min(680px, calc(100vw - 24px))',
+        padding: '14px 16px',
+        borderRadius: 14,
+        border: '1px solid rgba(239,68,68,.28)',
+        background: 'rgba(255,247,247,.97)',
+        color: '#7f1d1d',
+        boxShadow: '0 12px 32px rgba(0,0,0,.14)',
+        fontFamily: 'inherit',
+      }}
+    >
+      <strong style={{ display: 'block', marginBottom: 4 }}>Serviço de autenticação indisponível</strong>
+      <span style={{ display: 'block', fontSize: 13, lineHeight: 1.45 }}>
+        A interface da Flow continua disponível, mas o Firebase precisa de uma configuração válida para login e cadastro.
+      </span>
+      <span style={{ display: 'block', marginTop: 6, fontSize: 11, opacity: .75 }}>
+        Diagnóstico: apiKeyConfigured={String(firebaseDiagnostics.apiKeyConfigured)}
+      </span>
+    </div>
+  );
 }
 
 function AdminAppShell({ children }: { children: React.ReactNode }) {
