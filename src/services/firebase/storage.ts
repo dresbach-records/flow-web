@@ -1,5 +1,5 @@
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import { firebaseStorage } from './config';
+import { requireFirebaseStorage } from './config';
 
 export type UploadResult = { path: string; url: string };
 
@@ -12,9 +12,10 @@ export function uploadMedia(
   file: File,
   onProgress?: (percent: number) => void,
 ): Promise<UploadResult> {
+  const storage = requireFirebaseStorage();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const path = `${folder}/${Date.now()}-${safeName}`;
-  const storageRef = ref(firebaseStorage, path);
+  const storageRef = ref(storage, path);
   const task = uploadBytesResumable(storageRef, file, { contentType: file.type });
 
   return new Promise<UploadResult>((resolve, reject) => {
@@ -36,5 +37,6 @@ export function uploadMedia(
 }
 
 export async function deleteMedia(path: string): Promise<void> {
-  await deleteObject(ref(firebaseStorage, path));
+  const storage = requireFirebaseStorage();
+  await deleteObject(ref(storage, path));
 }
