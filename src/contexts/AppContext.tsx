@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { completeGoogleSignIn, onFlowAuthChanged, type FlowUser } from '../services/firebase/auth';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { completeGoogleSignIn, onFlowAuthChanged, logout as firebaseLogout, type FlowUser } from '../services/firebase/auth';
 
 type AppContextValue = {
   authenticated: boolean;
@@ -8,9 +8,10 @@ type AppContextValue = {
   adminAuthenticated: boolean;
   adminUser: FlowUser | null;
   setAdminUser: (user: FlowUser | null) => void;
+  logout: () => Promise<void>;
 };
 
-const AppContext = createContext<AppContextValue | null>(null);
+const AppContext = React.createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FlowUser | null>(null);
@@ -18,32 +19,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [adminUser, setAdminUser] = useState<FlowUser | null>(null);
 
   useEffect(() => {
-    void completeGoogleSignIn().then((next) => {
-      if (next && window.location.pathname !== '/app') {
-        history.replaceState({}, '', '/app');
-        window.dispatchEvent(new PopStateEvent('popstate'));
-      }
-    }).catch(() => undefined);
+    let mounted = true;
+    void completeGoogleSignIn().catch(() => undefined);
     const unsubscribe = onFlowAuthChanged((next) => {
+      if (!mounted) return;
       setUser(next);
       setLoading(false);
-      // Keep the admin session in sync: if Firebase signs out, drop admin too.
       if (!next) setAdminUser(null);
     });
-    return unsubscribe;
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
-  const value = useMemo<AppContextValue>(
-    () => ({
-      authenticated: Boolean(user),
-      user,
-      loading,
-      adminAuthenticated: Boolean(adminUser),
-      adminUser,
-      setAdminUser,
-    }),
-    [user, loading, adminUser],
-  );
+  const value = useMemo<AppContextValue>(() => ({
+    authenticated: Boolean(user),
+    user,
+    loading,
+    adminAuthenticated: Boolean(adminUser),
+    adminUser,
+    setAdminUser,
+    logout: async () => {
+      await firebaseLogout();
+      setUser(null);
+      setAdminUser(null);
+    },
+  }), [user, loading, adminUser]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
