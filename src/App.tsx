@@ -17,8 +17,8 @@ export default function App() {
   else if (path === '/admin/site') content = <AdminAppShell><SiteEditor /></AdminAppShell>;
   else if (path.startsWith('/admin')) content = <AdminApp />;
   else if (AUTH_ROUTES.includes(path)) content = <AuthPage path={path} go={go} />;
-  else if (path === '/app/perfil') content = <ProfilePage />;
-  else if (path.startsWith('/app/perfil/')) content = <ProfilePage uid={decodeURIComponent(path.slice('/app/perfil/'.length))} />;
+  else if (path === '/app/perfil') content = <ProtectedApp><ProfilePage /></ProtectedApp>;
+  else if (path.startsWith('/app/perfil/')) content = <ProtectedApp><ProfilePage uid={decodeURIComponent(path.slice('/app/perfil/'.length))} /></ProtectedApp>;
   else if (path === '/app/agendamento' || path === '/app/agendamentos') content = <ProtectedApp><ScheduleCenter /></ProtectedApp>;
   else if (SOCIAL_ROUTES.has(path)) content = <ProtectedApp><SocialFeed path={path} /></ProtectedApp>;
   else if (path.startsWith('/app/criador')) content = <ProtectedApp><CreatorCenter /></ProtectedApp>;
@@ -34,33 +34,28 @@ export default function App() {
 
 function ProtectedApp({ children }: { children: React.ReactNode }) {
   const { authenticated, loading } = useAppContext();
-  const [redirecting, setRedirecting] = React.useState(false);
+  const redirectedRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (!loading && !authenticated) {
-      setRedirecting(true);
+    if (!loading && !authenticated && !redirectedRef.current) {
+      redirectedRef.current = true;
       history.replaceState({}, '', '/auth/login');
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }, [authenticated, loading]);
 
-  if (loading || redirecting) {
-    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--flow-bg, #ffffff)', color: 'var(--flow-text, #172033)' }}><span>Carregando FLOW…</span></div>;
+  if (loading || !authenticated) {
+    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'var(--flow-bg, #ffffff)', color: 'var(--flow-text, #172033)' }}><span>{loading ? 'Carregando FLOW…' : 'Redirecionando…'}</span></div>;
   }
   return <>{children}</>;
 }
 
 function AdminAppShell({ children }: { children: React.ReactNode }) {
-  const [auth, setAuth] = React.useState(false);
   const [email, setEmail] = React.useState('');
   const [pass, setPass] = React.useState('');
   const [error, setError] = React.useState('');
   const { adminUser, setAdminUser } = useAppContext();
 
-  React.useEffect(() => {
-    setAuth(Boolean(adminUser));
-  }, [adminUser]);
-
-  if (!auth) return <div className="admin-login"><div className="admin-login-card"><div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW" /><span className="admin-badge">ADMIN</span></div><h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p>{error&&<div className="admin-error">{error}</div>}<input value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" autoComplete="username"/><input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Senha" type="password" autoComplete="current-password"/><button className="admin-btn primary" onClick={async()=>{try{setError('');const { loginAdmin } = await import('./services/firebase/auth');const user=await loginAdmin(email,pass);setAdminUser(user);}catch(err){setError(err instanceof Error?err.message:'Não foi possível entrar no painel.')}}}>Entrar no painel</button></div></div>;
+  if (!adminUser) return <div className="admin-login"><div className="admin-login-card"><div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW" /><span className="admin-badge">ADMIN</span></div><h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p>{error&&<div className="admin-error">{error}</div>}<input value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" autoComplete="username"/><input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Senha" type="password" autoComplete="current-password"/><button className="admin-btn primary" onClick={async()=>{try{setError('');const user=await (await import('./services/firebase/auth')).loginAdmin(email,pass);setAdminUser(user);}catch(err){setError(err instanceof Error?err.message:'Não foi possível entrar no painel.')}}}>Entrar no painel</button></div></div>;
   return <>{children}</>;
 }
