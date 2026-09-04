@@ -1,0 +1,740 @@
+/* ═══════════════════════════════════════════════════════
+   FLOW — Master App Shell Layout (Desktop Light UI)
+   
+   Arquitetura:
+   ┌─────────┬──────────────────────┬───────────┐
+   │ Sidebar │      Topbar          │ RightRail │  ← fixed
+   │ (fixed) ├──────────────────────┤  (fixed)  │
+   │  260px  │   .flow-app-content  │   300px   │
+   │         │   (body scrolls)     │           │
+   └─────────┴──────────────────────┴───────────┘
+   
+   Sidebar e RightRail: position:fixed, top:0, bottom:0
+   Topbar: position:fixed, top:0, left:sidebar-w, right:rail-w
+   Conteúdo: margin-left:sidebar-w, margin-top:topbar-h, margin-right:rail-w
+   Body/html scrollam normalmente (não overflow hidden)
+═══════════════════════════════════════════════════════ */
+
+/* ─── TOKENS ────────────────────────────────────────── */
+:root {
+  --topbar-h:      68px;
+  --sidebar-w:     260px;
+  --sidebar-w-collapsed: 72px;
+  --right-rail-w:  300px;
+
+  --flow-surface:  #FFFFFF;
+  --flow-bg:       #F3F5F9;
+  --flow-border:   #E2E8F0;
+  --flow-primary:  #3B82F6;
+  --flow-text:     #0F172A;
+  --flow-muted:    #64748B;
+  --flow-shadow-sm: 0 1px 3px rgba(15,23,42,0.04);
+  --flow-radius-md: 12px;
+  --flow-radius-lg: 16px;
+  --flow-radius-full: 999px;
+  --flow-space-1: 4px;
+  --flow-space-2: 8px;
+  --flow-space-3: 12px;
+  --flow-space-4: 16px;
+  --flow-space-5: 20px;
+  --flow-color-bg: #F3F5F9;
+  --flow-color-surface: #FFFFFF;
+  --flow-color-border: #E2E8F0;
+  --flow-color-text: #0F172A;
+  --flow-color-text-muted: #64748B;
+  --flow-color-text-secondary: #475569;
+  --flow-color-primary: #3B82F6;
+  --flow-color-primary-hover: #2563EB;
+  --flow-color-border-subtle: #F1F5F9;
+  --flow-gradient-brand: linear-gradient(135deg, #3B82F6 0%, #8B5CF6 50%, #EC4899 100%);
+  --flow-shadow-card: 0 1px 3px rgba(15,23,42,0.04);
+}
+
+/* ─── RESET BASE ─────────────────────────────────────── */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* body scroll é o scroll principal do app */
+body {
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════
+   SHELL WRAPPER
+   Apenas para garantir contexto; não define scroll aqui
+═══════════════════════════════════════════════════════ */
+.flow-app-shell {
+  min-height: 100vh;
+  background: var(--flow-bg);
+  color: var(--flow-text);
+  font-family: 'Plus Jakarta Sans', 'Outfit', Inter, system-ui, sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════
+   SIDEBAR  (Fixed, left)
+═══════════════════════════════════════════════════════ */
+.flow-sidebar {
+  position: fixed;
+  top: var(--topbar-h);   /* começa abaixo do topbar */
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--flow-surface);
+  border-right: 1px solid var(--flow-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 90;
+  transition: width 0.22s ease;
+  overflow: hidden;
+}
+
+/* Collapsed state */
+.flow-sidebar.is-collapsed {
+  width: var(--sidebar-w-collapsed);
+}
+
+.flow-sidebar.is-collapsed .label {
+  display: none;
+}
+
+.flow-sidebar.is-collapsed .flow-sidebar-nav {
+  align-items: center;
+}
+
+.flow-sidebar.is-collapsed .flow-sidebar-item {
+  justify-content: center;
+  padding: 10px;
+}
+
+.flow-sidebar.is-collapsed .flow-sidebar-collapse-btn {
+  transform: rotate(180deg);
+}
+
+/* Brand area */
+.flow-sidebar-brand {
+  display: flex;
+  align-items: center;
+  padding: 20px 16px 14px;
+  flex-shrink: 0;
+}
+
+/* Nav area — scrollable if needed */
+.flow-sidebar-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.flow-sidebar-nav::-webkit-scrollbar { width: 3px; }
+.flow-sidebar-nav::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 2px; }
+
+/* Nav item */
+.flow-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--flow-radius-md);
+  border: none;
+  background: transparent;
+  color: var(--flow-muted, #475569);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.flow-sidebar-item:hover {
+  background: #F1F5F9;
+  color: var(--flow-text);
+}
+
+.flow-sidebar-item.active {
+  background: #EBF3FF;
+  color: var(--flow-primary);
+  font-weight: 700;
+}
+
+/* Divider */
+.flow-sidebar-divider {
+  height: 1px;
+  background: var(--flow-border);
+  margin: 6px 8px;
+  flex-shrink: 0;
+}
+
+/* Footer */
+.flow-sidebar-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-top: 1px solid var(--flow-border);
+}
+
+/* Status dot */
+.flow-sidebar-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--flow-muted);
+}
+
+.flow-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22C55E;
+  flex-shrink: 0;
+}
+
+/* Collapse toggle button */
+.flow-sidebar-collapse-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--flow-border);
+  background: var(--flow-surface);
+  color: var(--flow-muted);
+  cursor: pointer;
+  align-self: flex-end;
+  margin-right: 4px;
+  transition: transform 0.22s ease, background 0.15s ease;
+}
+
+.flow-sidebar-collapse-btn:hover {
+  background: #F1F5F9;
+  color: var(--flow-text);
+}
+
+/* Mobile overlay backdrop */
+.flow-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.45);
+  z-index: 190;
+  border: none;
+  cursor: default;
+}
+
+/* Mobile: sidebar hidden by default, shown when open */
+@media (max-width: 768px) {
+  .flow-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.22s ease, width 0.22s ease;
+    z-index: 300;
+  }
+  .flow-sidebar.is-mobile-open {
+    transform: translateX(0);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOPBAR  (Fixed, full width, topo da página)
+═══════════════════════════════════════════════════════ */
+.flow-topbar,
+.flow-topbar-canonical {
+  position: fixed;
+  top: 0;
+  left: 0;    /* largura total — cobre toda a página */
+  right: 0;
+  height: var(--topbar-h);
+  background: var(--flow-surface);
+  border-bottom: 1px solid var(--flow-border);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 20px 0 0;
+  z-index: 100;
+  box-shadow: 0 1px 6px rgba(15,23,42,0.06);
+}
+
+/* ── Logo slot — mesma largura da sidebar ── */
+.flow-topbar-logo {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  border-right: 1px solid var(--flow-border);
+  height: 100%;
+  transition: width 0.22s ease;
+  overflow: hidden;
+}
+
+/* Botão wrapper do logo — sem borda, sem fundo */
+.flow-topbar-logo-btn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  max-width: 100%;
+  height: 100%;
+}
+
+/* Imagem do logo — horizontal, cabe no slot */
+.flow-topbar-logo-btn img {
+  height: 42px;          /* cabe dentro dos 68px do topbar */
+  width: auto;
+  max-width: calc(var(--sidebar-w) - 36px); /* não estoura o slot */
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+}
+
+/* Sidebar colapsada → mostra só o símbolo (quadrado) */
+.flow-app-shell:has(.flow-sidebar.is-collapsed) .flow-topbar-logo {
+  width: var(--sidebar-w-collapsed);
+  padding: 0 14px;
+  justify-content: center;
+}
+
+.flow-app-shell:has(.flow-sidebar.is-collapsed) .flow-topbar-logo-btn img {
+  height: 34px;
+  max-width: calc(var(--sidebar-w-collapsed) - 28px);
+}
+
+/* ── Centro do topbar — busca + ações ── */
+.flow-topbar-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  gap: 16px;
+  min-width: 0;
+}
+
+.flow-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 480px;
+}
+
+.flow-topbar-search-form {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.flow-search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--flow-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.flow-search-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 16px 0 42px;
+  border-radius: var(--flow-radius-full);
+  border: 1px solid var(--flow-border);
+  background: var(--flow-bg);
+  color: var(--flow-text);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.flow-search-input::placeholder { color: var(--flow-muted); }
+
+.flow-search-input:focus {
+  border-color: var(--flow-primary);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+.flow-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.flow-topbar-icon-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.flow-topbar-icon-btn:hover {
+  background: #F1F5F9;
+  color: var(--flow-primary);
+}
+
+.flow-topbar-plus-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--flow-primary);
+  color: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.flow-topbar-plus-btn:hover { background: #2563EB; }
+
+.flow-topbar-badge-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #F43F5E;
+  border: 2px solid #FFFFFF;
+}
+
+.flow-topbar-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border-radius: var(--flow-radius-full);
+  border: 1px solid var(--flow-border);
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.flow-topbar-user-chip:hover { background: #F8FAFC; }
+
+.flow-topbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.flow-topbar-user-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.flow-topbar-user-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--flow-text);
+  line-height: 1.2;
+}
+
+.flow-topbar-user-handle {
+  font-size: 11px;
+  color: var(--flow-muted);
+}
+
+/* Topbar on mobile — full width */
+@media (max-width: 768px) {
+  .flow-topbar,
+  .flow-topbar-canonical {
+    left: 0;
+    right: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   RIGHT RAIL  (Fixed, right)
+═══════════════════════════════════════════════════════ */
+.flow-right-rail-column {
+  position: fixed;
+  top: var(--topbar-h);
+  right: 0;
+  bottom: 0;
+  width: var(--right-rail-w);
+  background: var(--flow-surface);
+  border-left: 1px solid var(--flow-border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 16px;
+  z-index: 90;
+}
+
+.flow-right-rail-column::-webkit-scrollbar { width: 4px; }
+.flow-right-rail-column::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 2px; }
+
+@media (max-width: 1100px) {
+  .flow-right-rail-column { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN CONTENT AREA
+   Offsets para não ficar atrás dos painéis fixos.
+   O scroll acontece no body (comportamento nativo).
+═══════════════════════════════════════════════════════ */
+.flow-app-content {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--topbar-h);
+  margin-right: var(--right-rail-w);
+  min-height: calc(100vh - var(--topbar-h));
+  background: var(--flow-bg);
+  transition: margin-left 0.22s ease;
+}
+
+/* Adjust when sidebar is collapsed */
+.flow-app-shell:has(.flow-sidebar.is-collapsed) .flow-app-content {
+  margin-left: var(--sidebar-w-collapsed);
+}
+
+/* Mobile: remove sidebar and rail margins */
+@media (max-width: 768px) {
+  .flow-app-content {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+@media (max-width: 1100px) {
+  .flow-app-content {
+    margin-right: 0;
+  }
+  .flow-topbar,
+  .flow-topbar-canonical {
+    right: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   BOTTOM NAV  (Mobile only)
+═══════════════════════════════════════════════════════ */
+.flow-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .flow-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--flow-surface);
+    border-top: 1px solid var(--flow-border);
+    align-items: center;
+    justify-content: space-around;
+    z-index: 200;
+    padding: 0 8px;
+  }
+
+  .flow-bottom-nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    border: none;
+    background: transparent;
+    color: var(--flow-muted);
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: color 0.15s ease;
+  }
+
+  .flow-bottom-nav-btn.active {
+    color: var(--flow-primary);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   FLOATING PLAYER  (Fixed, bottom-right)
+═══════════════════════════════════════════════════════ */
+.flow-floating-player {
+  position: fixed;
+  bottom: 20px;
+  right: calc(var(--right-rail-w) + 16px);
+  z-index: 150;
+  background: var(--flow-surface);
+  border: 1px solid var(--flow-border);
+  border-radius: var(--flow-radius-lg);
+  box-shadow: 0 8px 32px rgba(15,23,42,0.12);
+  padding: 12px 16px;
+  min-width: 280px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .flow-floating-player {
+    right: 16px;
+    bottom: 72px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOPBAR — Classes reais usadas em layouts/Topbar.tsx
+═══════════════════════════════════════════════════════ */
+
+/* Search bar inside topbar */
+.flow-topbar-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 440px;
+  height: 40px;
+  padding: 0 16px 0 14px;
+  border-radius: var(--flow-radius-full);
+  border: 1px solid var(--flow-border);
+  background: var(--flow-bg);
+  color: var(--flow-text);
+  cursor: text;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.flow-topbar-search svg {
+  color: var(--flow-muted);
+  flex-shrink: 0;
+}
+
+.flow-topbar-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: var(--flow-text);
+  min-width: 0;
+}
+
+.flow-topbar-search input::placeholder {
+  color: var(--flow-muted);
+}
+
+.flow-topbar-search:focus-within {
+  border-color: var(--flow-primary);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+/* Spacer pushes actions to right */
+.flow-topbar-spacer {
+  flex: 1;
+}
+
+/* Actions group */
+.flow-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Generic icon button */
+.flow-topbar-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--flow-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.flow-topbar-btn:hover {
+  background: #F1F5F9;
+  color: var(--flow-primary);
+}
+
+/* Mobile menu button — hidden on desktop */
+.flow-topbar-menu-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .flow-topbar-menu-btn {
+    display: flex;
+  }
+}
+
+/* Notification badge */
+.flow-topbar-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: var(--flow-radius-full);
+  background: #F43F5E;
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  border: 2px solid #FFFFFF;
+  line-height: 1;
+}
+
+/* Avatar button */
+.flow-topbar-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--flow-border);
+  background: var(--flow-bg);
+  color: var(--flow-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  font-weight: 700;
+  font-size: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.flow-topbar-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.flow-topbar-avatar:hover {
+  border-color: var(--flow-primary);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}

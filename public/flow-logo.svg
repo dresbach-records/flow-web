@@ -1,1 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" role="img" aria-labelledby="title desc"><title id="title">FLOW</title><desc id="desc">Logotipo FLOW com símbolo em gradiente azul, violeta e magenta</desc><defs><linearGradient id="flow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0ea5ff"/><stop offset=".38" stop-color="#2563eb"/><stop offset=".67" stop-color="#7c3aed"/><stop offset="1" stop-color="#ec0ab7"/></linearGradient><linearGradient id="mark" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0ea5ff"/><stop offset=".52" stop-color="#7c3aed"/><stop offset="1" stop-color="#f72585"/></linearGradient></defs><g fill="none" stroke="url(#mark)" stroke-linecap="round"><path stroke-width="18" d="M25 39c18-22 50-25 72-7 8 7 13 15 15 24"/><path stroke-width="18" d="M24 66c17-21 48-25 70-8 9 7 15 16 17 26"/><path stroke-width="18" d="M28 92c13-15 34-18 49-10"/></g><circle cx="101" cy="91" r="9" fill="url(#mark)"/><text x="130" y="86" font-family="Inter,Arial,sans-serif" font-size="76" font-weight="800" letter-spacing="-4" fill="url(#flow)">Flow</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 60" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">FLOW</title>
+  <desc id="desc">Logotipo oficial FLOW com símbolo e gradiente azul, roxo, magenta e rosa</desc>
+  <defs>
+    <linearGradient id="flow-fg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4F7FFF"/>
+      <stop offset="33%" stop-color="#8B5CF6"/>
+      <stop offset="66%" stop-color="#D946EF"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+    <linearGradient id="flow-fgH" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4F7FFF"/>
+      <stop offset="50%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+    <radialGradient id="flow-rg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#D946EF"/>
+      <stop offset="100%" stop-color="#4F7FFF"/>
+    </radialGradient>
+  </defs>
+  <!-- Símbolo F -->
+  <path d="M10 8 C10 8 12 6 18 6 C23 6 25 8 25 11 C25 14 21 15.5 17 15.5 L10 15.5" stroke="url(#flow-fg)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M10 15.5 L10 52" stroke="url(#flow-fg)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M10 28 L20 28" stroke="url(#flow-fg)" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="26" cy="48" r="5" fill="url(#flow-rg)"/>
+  <!-- Wordmark: Flow -->
+  <text x="36" y="42" font-family="'Outfit',system-ui,-apple-system,sans-serif" font-weight="800" font-size="32" fill="url(#flow-fgH)">Flow</text>
+</svg>

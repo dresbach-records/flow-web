@@ -19,7 +19,6 @@ export default function CreatorCenter(){
  const totals=period==='7'?{views:'26,4 mil',delta:'+314',followers:'117',fdelta:'+4',income:'R$ 0,00'}:{views:'84,7 mil',delta:'+1.284',followers:'128',fdelta:'+11',income:'R$ 0,00'};
  const chart=useMemo(()=>period==='7'?[32,45,39,61,54,72,88]:[24,32,29,45,42,54,49,66,61,72,68,84],[period]);
  return <div className="creator-shell">
-  <header className="creator-top"><button className="back" onClick={()=>go('/app')}><ArrowLeft/></button><div className="creator-brand"><img src="/flow-logo.svg" alt="FLOW"/><span>Creator</span></div><div className="creator-search"><Search/><input placeholder="Pesquisar no FLOW"/></div><button className="top-icon"><BellDot/></button><button className="avatar" onClick={()=>go('/app/perfil')}><img src="https://i.pravatar.cc/80?img=68"/></button></header>
   <main className="creator-main">
    <section className="creator-heading"><div><span className="eyebrow"><Sparkles/> FLOW CREATOR</span><h1>Central do Criador</h1><p>Entenda seu desempenho, cresça sua comunidade e descubra novas oportunidades.</p></div><button className="create-btn" onClick={()=>setShowCreate(true)}><Plus/> Criar publicação</button></section>
    <section className="creator-profile"><div className="creator-user"><img src="https://i.pravatar.cc/120?img=68"/><div><h2>Seu perfil FLOW <CheckCircle2/></h2><span>@flow.creator</span><p>11 direitos de criador · Perfil público</p></div></div><div className="level"><b>Prata</b><span>11 Direitos</span><div><i style={{width:'58%'}}/></div></div></section>

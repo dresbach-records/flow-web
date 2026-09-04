@@ -1,0 +1,93 @@
+/* FLOW — AppShell Component Styles */
+.flow-app-shell {
+  display: grid;
+  grid-template-areas:
+    "topbar topbar topbar"
+    "sidebar content rightrail";
+  grid-template-columns: var(--flow-sidebar-width, 260px) 1fr var(--flow-right-rail-width, 320px);
+  grid-template-rows: var(--flow-topbar-height, 64px) 1fr;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--flow-background, #F8FAFC);
+  color: var(--flow-text, #0F172A);
+  overflow-x: hidden;
+}
+
+.flow-shell-topbar-slot {
+  grid-area: topbar;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.flow-shell-sidebar-slot {
+  grid-area: sidebar;
+  position: sticky;
+  top: var(--flow-topbar-height, 64px);
+  height: calc(100vh - var(--flow-topbar-height, 64px));
+  overflow-y: auto;
+  border-right: 1px solid var(--flow-border, #E2E8F0);
+  background: var(--flow-surface, #FFFFFF);
+  z-index: 90;
+}
+
+.flow-shell-content-slot {
+  grid-area: content;
+  min-width: 0;
+  min-height: calc(100vh - var(--flow-topbar-height, 64px));
+  padding: 24px 20px 64px;
+  display: flex;
+  justify-content: center;
+}
+
+.flow-shell-content-inner {
+  width: 100%;
+  max-width: var(--flow-content-max-width, 720px);
+}
+
+.flow-shell-rightrail-slot {
+  grid-area: rightrail;
+  position: sticky;
+  top: var(--flow-topbar-height, 64px);
+  height: calc(100vh - var(--flow-topbar-height, 64px));
+  overflow-y: auto;
+  padding: 24px 16px;
+  border-left: 1px solid var(--flow-border, #E2E8F0);
+  background: var(--flow-surface, #FFFFFF);
+}
+
+/* Sem RightRail */
+.flow-app-shell.no-rail {
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar content";
+  grid-template-columns: var(--flow-sidebar-width, 260px) 1fr;
+}
+
+/* Responsividade */
+@media (max-width: 1140px) {
+  .flow-app-shell {
+    grid-template-areas:
+      "topbar topbar"
+      "sidebar content";
+    grid-template-columns: var(--flow-sidebar-width, 260px) 1fr;
+  }
+  .flow-shell-rightrail-slot {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .flow-app-shell {
+    grid-template-areas:
+      "topbar"
+      "content";
+    grid-template-columns: 1fr;
+  }
+  .flow-shell-sidebar-slot {
+    display: none;
+  }
+  .flow-shell-content-slot {
+    padding: 16px 12px 80px;
+  }
+}

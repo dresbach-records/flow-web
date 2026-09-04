@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" fill="none" role="img">
+<defs>
+  <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#4F7FFF"/>
+    <stop offset="33%" stop-color="#8B5CF6"/>
+    <stop offset="66%" stop-color="#D946EF"/>
+    <stop offset="100%" stop-color="#EC4899"/>
+  </linearGradient>
+  <linearGradient id="fgH" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#4F7FFF"/>
+    <stop offset="50%" stop-color="#8B5CF6"/>
+    <stop offset="100%" stop-color="#EC4899"/>
+  </linearGradient>
+  <radialGradient id="rg" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#D946EF"/>
+    <stop offset="100%" stop-color="#4F7FFF"/>
+  </radialGradient>
+</defs>
+  <path d="M8 6 C8 6 10 4 16 4 C21 4 23 6 23 9 C23 12 19 13.5 15 13.5 L8 13.5" stroke="url(#fg)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M8 13.5 L8 42" stroke="url(#fg)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M8 23 L17 23" stroke="url(#fg)" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="23.5" cy="38.5" r="4.5" fill="url(#rg)"/>
+  <text x="32" y="34" font-family="'Outfit',system-ui,sans-serif" font-weight="800" font-size="28" fill="url(#fgH)">Flow</text>
+  <text x="32" y="44" font-family="'Plus Jakarta Sans',system-ui,sans-serif" font-weight="500" font-size="9" fill="#8B5CF6" letter-spacing="2">SUA REDE. SEU MUNDO.</text>
+</svg>

@@ -7,7 +7,8 @@ import './styles/index.css';
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('FLOW root element not found');
 
-document.documentElement.dataset.theme = localStorage.getItem('flow.theme') ?? 'light';
+document.documentElement.dataset.theme = 'light';
+localStorage.removeItem('flow.theme');
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

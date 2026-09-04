@@ -1,122 +1,139 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, AlertTriangle, BarChart3, Bell, CheckCircle2, ChevronRight, CircleHelp, Eye, FileImage, Flag, Gauge, Heart, LayoutDashboard, LogOut, Menu, MessageCircle, Search, Settings, Shield, UserCog, Users, Video, X, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import './styles/admin.css';
+import { AdminAuthProvider, useAdminAuth } from './context/AdminAuthContext';
+import { AdminLogin } from './components/AdminLogin';
+import { AdminShell } from './components/AdminShell';
+import type { AdminRouteId } from './components/AdminSidebar';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { AdminUsers } from './pages/AdminUsers';
+import { AdminModeration } from './pages/AdminModeration';
+import { AdminContent } from './pages/AdminContent';
+import { AdminSecurity } from './pages/AdminSecurity';
+import { AdminAnalytics } from './pages/AdminAnalytics';
+import { AdminCommunities } from './pages/AdminCommunities';
+import { AdminSettings } from './pages/AdminSettings';
+import { AdminLogs } from './pages/AdminLogs';
+import ModuleCenter from './ModuleCenter';
+import SiteEditor from './SiteEditor';
 
-type AdminRoute = string;
-type Row = Record<string,string>;
+const AdminAppContent: React.FC = () => {
+  const { user, loading } = useAdminAuth();
+  const [currentRoute, setCurrentRoute] = useState<AdminRouteId>(() => {
+    const p = window.location.pathname;
+    if (p.includes('/modulos')) return 'modulos';
+    if (p.includes('/site')) return 'site';
+    if (p.includes('/usuarios')) return 'usuarios';
+    if (p.includes('/moderacao') || p.includes('/denuncias')) return 'moderacao';
+    if (p.includes('/conteudo') || p.includes('/posts')) return 'conteudo';
+    if (p.includes('/analytics')) return 'analytics';
+    if (p.includes('/comunidades')) return 'comunidades';
+    if (p.includes('/configuracoes')) return 'configuracoes';
+    if (p.includes('/logs') || p.includes('/auditoria')) return 'logs';
+    if (p.includes('/seguranca')) return 'seguranca';
+    return 'dashboard';
+  });
+  const [searchQuery, setSearchQuery] = useState('');
 
-const nav = [
-  ['Dashboard','/admin',LayoutDashboard], ['Usuários','/admin/usuarios',Users], ['Conteúdo','/admin/conteudo',FileImage],
-  ['Posts','/admin/posts',FileImage], ['Shorts','/admin/shorts',Video], ['Stories','/admin/stories',Eye], ['Lives','/admin/lives',Zap],
-  ['Comentários','/admin/comentarios',MessageCircle], ['Denúncias','/admin/denuncias',Flag], ['Moderação','/admin/moderacao',Shield],
-  ['Criadores','/admin/criadores',UserCog], ['Comunidades','/admin/comunidades',Users], ['Segurança','/admin/seguranca',Shield],
-  ['Analytics','/admin/analytics',BarChart3], ['Relatórios','/admin/relatorios',FileImage], ['Administradores','/admin/administradores',UserCog],
-  ['Configurações','/admin/configuracoes',Settings], ['Auditoria','/admin/auditoria',Activity], ['Logs','/admin/logs',Gauge],
-] as const;
+  // Handle browser popstate
+  useEffect(() => {
+    const handlePopState = () => {
+      const p = window.location.pathname;
+      if (p.includes('/modulos')) setCurrentRoute('modulos');
+      else if (p.includes('/site')) setCurrentRoute('site');
+      else if (p.includes('/usuarios')) setCurrentRoute('usuarios');
+      else if (p.includes('/moderacao') || p.includes('/denuncias')) setCurrentRoute('moderacao');
+      else if (p.includes('/conteudo') || p.includes('/posts')) setCurrentRoute('conteudo');
+      else if (p.includes('/analytics')) setCurrentRoute('analytics');
+      else if (p.includes('/comunidades')) setCurrentRoute('comunidades');
+      else if (p.includes('/configuracoes')) setCurrentRoute('configuracoes');
+      else if (p.includes('/logs') || p.includes('/auditoria')) setCurrentRoute('logs');
+      else if (p.includes('/seguranca')) setCurrentRoute('seguranca');
+      else setCurrentRoute('dashboard');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
-const users: Row[] = [
- {id:'USR-1024',user:'@flow.creator',name:'Flow Creator',status:'Ativo',followers:'128.4K',joined:'02/08/2026'},
- {id:'USR-1023',user:'@maria.flow',name:'Maria Santos',status:'Ativo',followers:'84.2K',joined:'01/08/2026'},
- {id:'USR-1022',user:'@joao.cria',name:'João Silva',status:'Ativo',followers:'57.8K',joined:'31/07/2026'},
- {id:'USR-1021',user:'@ana.digital',name:'Ana Costa',status:'Revisão',followers:'21.1K',joined:'29/07/2026'},
- {id:'USR-1020',user:'@lucas.dev',name:'Lucas Rocha',status:'Ativo',followers:'18.7K',joined:'28/07/2026'},
- {id:'USR-1019',user:'@bia.music',name:'Beatriz Lima',status:'Bloqueado',followers:'9.4K',joined:'25/07/2026'},
-];
-const content: Row[] = [
- {id:'#82931',type:'Post',creator:'@flow.creator',reach:'84.2K',likes:'12.8K',comments:'482',status:'Publicado'},
- {id:'#82930',type:'Vídeo',creator:'@maria.flow',reach:'142.8K',likes:'21.4K',comments:'913',status:'Publicado'},
- {id:'#82929',type:'Short',creator:'@joao.cria',reach:'428K',likes:'58.1K',comments:'2.4K',status:'Em revisão'},
- {id:'#82928',type:'Post',creator:'@ana.digital',reach:'12.4K',likes:'1.8K',comments:'96',status:'Publicado'},
- {id:'#82927',type:'Story',creator:'@lucas.dev',reach:'8.2K',likes:'—',comments:'41',status:'Expirado'},
-];
-const reports: Row[] = [
- {id:'#1042',reason:'Conteúdo impróprio',reporter:'@user_482',target:'Post #82929',date:'Hoje, 14:32',status:'Pendente'},
- {id:'#1041',reason:'Spam',reporter:'@creator_91',target:'@creator_91',date:'Hoje, 13:18',status:'Em análise'},
- {id:'#1040',reason:'Assédio',reporter:'@maria_88',target:'Post #82914',date:'Ontem, 21:04',status:'Pendente'},
- {id:'#1039',reason:'Falsa identidade',reporter:'@flow_221',target:'@flow_221',date:'Ontem, 18:42',status:'Resolvida'},
-];
-const creators = users.slice(0,5).map((u,i)=>({...u,views:['4.8M','3.2M','2.7M','1.9M','1.4M'][i],engagement:['18.4%','15.2%','13.8%','11.4%','9.8%'][i]}));
+  const handleNavigate = (route: AdminRouteId) => {
+    setCurrentRoute(route);
+    const targetPath = route === 'dashboard' ? '/admin' : `/admin/${route}`;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({}, '', targetPath);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-function go(path:string){ history.pushState({},'',path); window.dispatchEvent(new PopStateEvent('popstate')); window.scrollTo(0,0); }
-function titleFor(path:string){ return nav.find(n=>path===n[1] || (path.startsWith(n[1]+'/') && n[1]!='/admin'))?.[0] || 'Dashboard'; }
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#f8fafc',
+          fontFamily: 'sans-serif',
+          color: '#6366f1',
+          gap: '12px',
+        }}
+      >
+        <div style={{ width: 24, height: 24, border: '3px solid #e2e8f0', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <span style={{ fontWeight: 600, color: '#0f172a' }}>Carregando FLOW Admin...</span>
+      </div>
+    );
+  }
 
-export default function AdminApp(){
- const [path,setPath]=useState(location.pathname || '/admin');
- const [auth,setAuth]=useState(localStorage.getItem('flow.admin.session')==='1');
- const [mobile,setMobile]=useState(false); const [search,setSearch]=useState(''); const [toast,setToast]=useState('');
- useEffect(()=>{const fn=()=>setPath(location.pathname); addEventListener('popstate',fn); return()=>removeEventListener('popstate',fn)},[]);
- const navigate=(p:string)=>{go(p);setMobile(false)};
- const login=()=>{localStorage.setItem('flow.admin.session','1');setAuth(true);navigate('/admin')};
- if(!auth) return <AdminLogin onLogin={login}/>;
- const logout=()=>{localStorage.removeItem('flow.admin.session');setAuth(false);navigate('/admin/login')};
- if(path==='/admin/login') return <AdminLogin onLogin={login}/>;
- return <div className="admin-shell">
-   <aside className={'admin-sidebar '+(mobile?'open':'')}>
-     <div className="admin-brand"><img src="/flow-logo.svg" alt="FLOW"/><span className="admin-badge">ADMIN</span><button className="admin-icon-btn mobile-close" onClick={()=>setMobile(false)}><X/></button></div>
-     <div className="admin-context">CONTROL CENTER</div>
-     <nav>{nav.map(([label,route,Icon])=><button key={route} className={'admin-nav '+(path===route || (route!=='/admin'&&path.startsWith(route+'/'))?'active':'')} onClick={()=>navigate(route)}><Icon/><span>{label}</span>{label==='Denúncias'&&<b>19</b>}</button>)}</nav>
-     <div className="admin-sidebar-spacer"/>
-     <div className="admin-profile-mini"><div><div className="admin-avatar">AD</div><div><strong>Administrador</strong><span>Super Admin</span></div></div></div>
-     <button className="admin-nav" onClick={logout}><LogOut/><span>Sair</span></button>
-   </aside>
-   <section className="admin-main">
-     <header className="admin-header"><button className="admin-menu-mobile" onClick={()=>setMobile(true)}><Menu/></button><div className="admin-title"><strong>{titleFor(path)}</strong><small>FLOW / Administração</small></div><div className="admin-header-spacer"/><div className="admin-search"><Search/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Pesquisar..."/></div><button className="admin-icon-btn"><Bell/><i>3</i></button><div className="admin-avatar">AD</div></header>
-     <main className="admin-content">{renderRoute(path,search,navigate,setToast)}</main>
-   </section>
-   {toast&&<div className="admin-toast">✓ {toast}</div>}
- </div>
+  // Not logged in -> Show Firebase-integrated Admin Login
+  if (!user) {
+    return <AdminLogin />;
+  }
+
+  return (
+    <AdminShell
+      currentRoute={currentRoute}
+      onNavigate={handleNavigate}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+    >
+      {currentRoute === 'dashboard' && <AdminDashboard onNavigate={handleNavigate} />}
+      {currentRoute === 'usuarios' && <AdminUsers searchQuery={searchQuery} />}
+      {currentRoute === 'moderacao' && <AdminModeration />}
+      {currentRoute === 'conteudo' && <AdminContent />}
+      {currentRoute === 'seguranca' && <AdminSecurity />}
+      {currentRoute === 'analytics' && <AdminAnalytics />}
+      {currentRoute === 'comunidades' && <AdminCommunities />}
+      {currentRoute === 'configuracoes' && <AdminSettings />}
+      {currentRoute === 'logs' && <AdminLogs />}
+      {currentRoute === 'modulos' && <ModuleCenter />}
+      {currentRoute === 'site' && <SiteEditor />}
+
+      {/* Fallback for additional routes */}
+      {!['dashboard', 'usuarios', 'moderacao', 'conteudo', 'seguranca', 'analytics', 'comunidades', 'configuracoes', 'logs', 'modulos', 'site'].includes(currentRoute) && (
+        <div className="admin-card" style={{ padding: '40px', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', textTransform: 'capitalize' }}>
+            Módulo: {currentRoute}
+          </h2>
+          <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto 20px auto', fontSize: '13.5px' }}>
+            Este painel operacional está conectado à infraestrutura LTS do FLOW Control Center.
+          </p>
+          <button
+            type="button"
+            className="admin-submit-btn"
+            style={{ width: 'auto', margin: '0 auto' }}
+            onClick={() => handleNavigate('dashboard')}
+          >
+            Retornar ao Dashboard Principal
+          </button>
+        </div>
+      )}
+    </AdminShell>
+  );
+};
+
+export default function AdminApp() {
+  return (
+    <AdminAuthProvider>
+      <AdminAppContent />
+    </AdminAuthProvider>
+  );
 }
-
-function AdminLogin({onLogin}:{onLogin:()=>void}){const [email,setEmail]=useState('');const [pass,setPass]=useState('');const [error,setError]=useState('');return <div className="admin-login"><div className="admin-login-card"><div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW"/><span className="admin-badge">ADMIN</span></div><h1>Acesso administrativo</h1><p>Entre no Control Center do FLOW. Este acesso é exclusivo para administradores.</p>{error&&<div className="admin-error">{error}</div>}<div className="admin-field"><label>E-MAIL ADMINISTRATIVO</label><input value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="admin@flow.social" autoComplete="username"/></div><div className="admin-field"><label>SENHA</label><input value={pass} onChange={e=>setPass(e.target.value)} type="password" placeholder="••••••••" autoComplete="current-password" onKeyDown={e=>e.key==='Enter'&&submit()}/></div><button className="admin-btn primary" onClick={submit}>Entrar no painel</button><div className="admin-login-meta"><button onClick={()=>setError('A recuperação de acesso será disponibilizada nesta área.')}>Esqueci minha senha</button><span>FLOW Control Center</span></div></div></div>;function submit(){if(!email||!pass){setError('Informe e-mail e senha para continuar.');return}onLogin()}}
-
-function renderRoute(path:string,search:string,navigate:(p:string)=>void,setToast:(s:string)=>void){
- if(path==='/admin') return <Dashboard navigate={navigate} toast={setToast}/>;
- if(path==='/admin/usuarios') return <UsersPage search={search} navigate={navigate}/>;
- if(path.startsWith('/admin/usuarios/')) return <DetailPage kind="Usuário" id={path.split('/').pop()||''} navigate={navigate}/>;
- if(['/admin/conteudo','/admin/posts'].includes(path)) return <ContentPage type={path.endsWith('posts')?'Posts':'Conteúdo'} navigate={navigate}/>;
- if(path==='/admin/shorts') return <ShortsPage/>;
- if(path==='/admin/stories') return <SimpleTable title="Stories" subtitle="Acompanhe stories ativos, alcance e expiração." rows={content.filter(x=>x.type==='Story')} columns={['id','creator','reach','comments','status']}/>;
- if(path==='/admin/lives') return <LivesPage/>;
- if(path==='/admin/comentarios') return <CommentsPage/>;
- if(path==='/admin/denuncias') return <ReportsPage/>;
- if(path==='/admin/moderacao') return <ModerationPage/>;
- if(path==='/admin/criadores') return <CreatorsPage/>;
- if(path.startsWith('/admin/criadores/')) return <DetailPage kind="Criador" id={path.split('/').pop()||''} navigate={navigate}/>;
- if(path==='/admin/comunidades') return <CommunitiesPage/>;
- if(path.startsWith('/admin/comunidades/')) return <DetailPage kind="Comunidade" id={path.split('/').pop()||''} navigate={navigate}/>;
- if(path==='/admin/seguranca') return <SecurityPage/>;
- if(path.startsWith('/admin/analytics')) return <AnalyticsPage/>;
- if(path.startsWith('/admin/relatorios')) return <ReportsCenter/>;
- if(path==='/admin/administradores') return <AdminsPage/>;
- if(path==='/admin/configuracoes') return <SettingsPage/>;
- if(path==='/admin/auditoria') return <AuditPage/>;
- if(path==='/admin/logs') return <LogsPage/>;
- return <Dashboard navigate={navigate} toast={setToast}/>;
-}
-
-function Header({title,subtitle,action,children}:{title:string;subtitle:string;action?:string;children?:React.ReactNode}){return <div className="section-header"><div><div className="eyebrow">FLOW CONTROL CENTER</div><h1>{title}</h1><p>{subtitle}</p></div><div style={{display:'flex',gap:8}}>{children}{action&&<button className="admin-btn primary">{action}</button>}</div></div>}
-function Metric({icon:Icon,label,value,delta}:{icon:any;label:string;value:string;delta:string}){return <div className="metric-card"><div className="metric-top"><span>{label}</span><div className="metric-icon"><Icon/></div></div><strong className="metric-value">{value}</strong><span className="metric-delta">{delta}</span></div>}
-function Panel({title,children,action}:{title:string;children:React.ReactNode;action?:string}){return <div className="panel"><div className="panel-head"><h2>{title}</h2>{action&&<button>{action} <ChevronRight size={12}/></button>}</div>{children}</div>}
-function Dashboard({navigate,toast}:{navigate:(p:string)=>void;toast:(s:string)=>void}){return <><Header title="Visão geral" subtitle="Acompanhe o ecossistema social do FLOW em tempo real." action="Exportar relatório"/><div className="metric-grid"><Metric icon={Users} label="Usuários" value="284,6K" delta="↑ 12,8% no período"/><Metric icon={FileImage} label="Conteúdos" value="1,84M" delta="↑ 8,4% no período"/><Metric icon={Eye} label="Visualizações" value="18,7M" delta="↑ 21,6% no período"/><Metric icon={Heart} label="Engajamentos" value="6,42M" delta="↑ 16,2% no período"/></div><div className="admin-grid"><Panel title="Crescimento de usuários" action="Últimos 30 dias"><div className="chart">{[38,45,42,51,48,58,55,68,63,73,71,82,78,90,86,94,91,103,99,111,108,120,116,129,124,138,134,147,143,154].map((v,i)=><div className="bar" style={{height:`${v/1.7}%`}} key={i}/>)}</div><div className="chart-labels"><span>01 AGO</span><span>08 AGO</span><span>15 AGO</span><span>22 AGO</span><span>30 AGO</span></div></Panel><Panel title="Distribuição de conteúdo" action="Este mês"><div className="donut-wrap"><div className="donut"><strong>1,84M</strong><span>conteúdos</span></div><div className="legend"><div><i/>Fotos <b>46%</b></div><div><i/>Vídeos <b>31%</b></div><div><i/>Shorts <b>23%</b></div></div></div></Panel></div><div className="admin-grid"><Panel title="Atividade recente" action="Ver tudo"><div className="activity">{[['Novo cadastro','@carlos.flow','há 2 min',Users],['Short viralizou','@pixel.art • 428K views','há 9 min',Video],['Post em alta','#tecnologia • 18,4K likes','há 17 min',Activity],['Denúncia resolvida','#1040 • Assédio','há 31 min',CheckCircle2]].map(([a,b,c,I])=><div className="activity-row" key={String(a)}>{React.createElement(I as React.ComponentType, null)}<div><strong>{String(a)}</strong><span>{String(b)}</span></div><time>{String(c)}</time></div>)}</div></Panel><Panel title="Central de moderação" action="Abrir central"><div className="mod-summary"><div className="mod-box"><AlertTriangle/><strong>37</strong><span>itens aguardando análise</span></div><div className="mod-box"><Flag/><strong>12</strong><span>denúncias novas</span></div><div className="mod-box"><CheckCircle2/><strong>184</strong><span>ações concluídas</span></div></div></Panel></div><Panel title="Ações rápidas"><div className="quick-grid"><button onClick={()=>navigate('/admin/usuarios')}>Gerenciar usuários</button><button onClick={()=>navigate('/admin/moderacao')}>Abrir fila de moderação</button><button onClick={()=>navigate('/admin/denuncias')}>Analisar denúncias</button><button onClick={()=>{toast('Relatório preparado para exportação.')}}>Gerar relatório</button></div></Panel></>}
-
-function UsersPage({search,navigate}:{search:string;navigate:(p:string)=>void}){const [q,setQ]=useState(search);const rows=users.filter(u=>(u.user+' '+u.name+' '+u.id).toLowerCase().includes(q.toLowerCase()));return <><Header title="Usuários" subtitle="Gerencie contas, perfis, status e atividade." action="Exportar usuários"/><div className="toolbar"><div className="admin-search"><Search/><input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar por nome, username ou ID..."/></div><select className="filter-select"><option>Todos os status</option><option>Ativo</option><option>Revisão</option><option>Bloqueado</option></select></div><DataTable rows={rows} columns={['Usuário','Nome','Status','Seguidores','Cadastro']} onRow={r=>navigate('/admin/usuarios/'+r.id)}/></>}
-function ContentPage({type,navigate}:{type:string;navigate:(p:string)=>void}){const rows=type==='Posts'?content.filter(x=>x.type==='Post'||x.type==='Vídeo'):content;return <><Header title={type} subtitle="Monitore alcance, engajamento, status e conteúdo publicado." action="Exportar dados"/><div className="cards-3"><Mini title="Publicados hoje" value="18.492" delta="↑ 9,2%"/><Mini title="Em revisão" value="284" delta="↓ 4,1%"/><Mini title="Removidos" value="63" delta="↓ 12,8%"/></div><DataTable rows={rows} columns={['Conteúdo','Criador','Alcance','Curtidas','Comentários','Status']} onRow={r=>navigate('/admin/conteudo/'+r.id.replace('#',''))}/></>}
-function ShortsPage(){return <><Header title="Shorts" subtitle="Acompanhe consumo, tendências e performance do vídeo curto." action="Ver tendências"/><div className="short-grid">{['#viagem','#tecnologia','#humor','#música','#gaming','#criadores'].map((x,i)=><div className="short-card" key={x}><div className="short-cover"><Video/><b>{[428,312,287,254,198,174][i]}K views</b></div><div style={{padding:13}}><strong>{x}</strong><span>{[18.4,14.2,12.8,11.4,9.7,8.9][i]}% de engajamento</span></div></div>)}</div></>}
-function LivesPage(){return <><Header title="Lives" subtitle="Monitore transmissões ao vivo, audiência e status."/><div className="cards-3"><Mini title="Ao vivo agora" value="28" delta="↑ 6"/><Mini title="Espectadores" value="18,4K" delta="↑ 14,8%"/><Mini title="Lives hoje" value="312" delta="↑ 8,1%"/></div><DataTable rows={[{id:'LIVE-92',creator:'@flow.creator',type:'Tecnologia',reach:'4.8K',likes:'1.2K',comments:'342',status:'Ao vivo'},{id:'LIVE-91',creator:'@maria.flow',type:'Música',reach:'2.9K',likes:'842',comments:'221',status:'Ao vivo'},{id:'LIVE-90',creator:'@joao.cria',type:'Gaming',reach:'1.8K',likes:'511',comments:'184',status:'Encerrada'}]} columns={['ID','Criador','Categoria','Espectadores','Curtidas','Comentários','Status']}/></>}
-function CommentsPage(){return <><Header title="Comentários" subtitle="Acompanhe conversas e ações de moderação." action="Filtros"/><Panel title="Comentários recentes"><div>{['Adorei essa novidade! 🔥','Esse conteúdo ficou incrível.','Quando sai a próxima atualização?','FLOW está ficando muito bom!','Conteúdo excelente, parabéns!'].map((x,i)=><div className="comment" key={x}><div className="admin-avatar">{['MA','JO','LU','CA','BI'][i]}</div><div className="comment-main"><strong>@usuario_{i+102}</strong><p>{x}</p><small>Post #{82931-i} • há {i+2}h</small></div><button className="admin-btn small">Moderar</button></div>)}</div></Panel></>}
-function ReportsPage(){return <><Header title="Denúncias" subtitle="Central de denúncias e revisão de conteúdo." action="Configurar regras"/><div className="cards-3"><Mini title="Pendentes" value="19" delta="Requer atenção"/><Mini title="Em análise" value="14" delta="Em andamento"/><Mini title="Resolvidas hoje" value="86" delta="↑ 14,2%"/></div><DataTable rows={reports} columns={['ID','Motivo','Denunciante','Alvo','Data','Status']}/></>}
-function ModerationPage(){return <><Header title="Moderação" subtitle="Ferramentas para manter a comunidade segura." action="Regras de moderação"/><div className="admin-grid"><Panel title="Fila de revisão" action="Ver fila"><div className="queue">{['Spam em comentários','Conteúdo sensível','Conta suspeita','Falsa identidade'].map((x,i)=><div className="queue-row" key={x}><AlertTriangle/><div><strong>{x}</strong><span>{[12,8,5,3][i]} itens</span></div><button className="admin-btn small">Revisar</button></div>)}</div></Panel><Panel title="Ações rápidas" action="Histórico"><div className="quick-grid"><button>Suspender conta</button><button>Remover conteúdo</button><button>Limpar comentários</button><button>Bloquear dispositivo</button></div></Panel></div><Panel title="Status das regras"><div className="settings-grid"><Setting title="Detecção de spam" text="Classificação automática de padrões repetitivos."/><Setting title="Conteúdo sensível" text="Sinalização preventiva antes da publicação."/><Setting title="Contas suspeitas" text="Sinais de comportamento anômalo."/><Setting title="Proteção de menores" text="Políticas reforçadas para contas jovens."/></div></Panel></>}
-function CreatorsPage(){return <><Header title="Criadores" subtitle="Performance, crescimento e saúde do ecossistema creator." action="Exportar creators"/><div className="cards-3"><Mini title="Criadores ativos" value="42.8K" delta="↑ 9,4%"/><Mini title="Verificados" value="2.184" delta="↑ 4,8%"/><Mini title="Conteúdo creator" value="68%" delta="da plataforma"/></div><DataTable rows={creators} columns={['Usuário','Nome','Seguidores','Views','Engajamento','Status']}/></>}
-function CommunitiesPage(){return <><Header title="Comunidades" subtitle="Descubra, acompanhe e modere comunidades do FLOW." action="Nova categoria"/><DataTable rows={[{id:'COM-102',user:'Tecnologia & IA',name:'12.8K membros',status:'Ativa',followers:'2.4K posts',joined:'Hoje'},{id:'COM-101',user:'Fotografia',name:'8.4K membros',status:'Ativa',followers:'1.8K posts',joined:'Hoje'},{id:'COM-100',user:'Música',name:'7.2K membros',status:'Revisão',followers:'1.1K posts',joined:'Ontem'}]} columns={['ID','Comunidade','Membros','Status','Posts','Criada em']}/></>}
-function SecurityPage(){return <><Header title="Segurança" subtitle="Proteção de contas, sessões e eventos de risco." action="Exportar eventos"/><div className="cards-3"><Mini title="Alertas hoje" value="28" delta="↓ 18,2%"/><Mini title="Sessões ativas" value="91,4K" delta="Normal"/><Mini title="Incidentes críticos" value="0" delta="Tudo normal"/></div><Panel title="Eventos recentes"><DataTable rows={[{id:'SEC-8842',user:'@flow.creator',name:'Novo dispositivo',status:'Verificado',followers:'Chrome / Android',joined:'14:32'},{id:'SEC-8841',user:'@maria.flow',name:'Login incomum',status:'Resolvido',followers:'São Paulo, BR',joined:'13:19'},{id:'SEC-8840',user:'@user_92',name:'Múltiplas tentativas',status:'Bloqueado',followers:'Unknown',joined:'12:04'}]} columns={['ID','Conta','Evento','Status','Contexto','Hora']}/></Panel></>}
-function AnalyticsPage(){return <><Header title="Analytics" subtitle="Crescimento, retenção, audiência e engajamento." action="Período: 30 dias"/><div className="metric-grid"><Metric icon={Users} label="DAU" value="82,4K" delta="↑ 18,4%"/><Metric icon={Users} label="MAU" value="284,6K" delta="↑ 12,8%"/><Metric icon={Activity} label="Retenção D7" value="42,8%" delta="↑ 4,6%"/><Metric icon={Gauge} label="Sessão média" value="18m 42s" delta="↑ 2m 11s"/></div><Panel title="Engajamento diário"><div className="chart">{[50,63,58,72,67,81,77,91,86,96,88,100].map((v,i)=><div className="bar" style={{height:`${v}%`}} key={i}/>)}</div></Panel><div className="admin-grid"><Panel title="Performance do For You"><div className="detail-list"><div><span>Impressões</span><strong>18,7M</strong></div><div><span>CTR</span><strong>14,8%</strong></div><div><span>Tempo médio</span><strong>22,4s</strong></div><div><span>Conclusão</span><strong>68,2%</strong></div></div></Panel><Panel title="Retenção"><div className="detail-list"><div><span>D1</span><strong>71,4%</strong></div><div><span>D7</span><strong>42,8%</strong></div><div><span>D30</span><strong>24,1%</strong></div><div><span>Sessões/dia</span><strong>3,8</strong></div></div></Panel></div></>}
-function ReportsCenter(){return <><Header title="Relatórios" subtitle="Gere e acompanhe relatórios operacionais e de segurança." action="Novo relatório"/><div className="cards-3"><Mini title="Relatórios gerados" value="184" delta="Este mês"/><Mini title="Exportações" value="62" delta="↑ 12%"/><Mini title="Agendados" value="14" delta="Ativos"/></div><DataTable rows={[{id:'REP-184',user:'Analytics geral',name:'30 dias',status:'Concluído',followers:'CSV / PDF',joined:'Hoje'},{id:'REP-183',user:'Moderação',name:'Semana 34',status:'Concluído',followers:'CSV',joined:'Ontem'},{id:'REP-182',user:'Segurança',name:'Agosto',status:'Processando',followers:'PDF',joined:'Ontem'}]} columns={['ID','Relatório','Período','Status','Formato','Criado']}/></>}
-function AdminsPage(){return <><Header title="Administradores" subtitle="Contas administrativas, cargos e permissões." action="Novo administrador"/><DataTable rows={[{id:'ADM-01',user:'admin@flow.social',name:'Super Admin',status:'Ativo',followers:'Todos',joined:'02/08/2026'},{id:'ADM-02',user:'moderacao@flow.social',name:'Moderador',status:'Ativo',followers:'Moderação',joined:'05/08/2026'},{id:'ADM-03',user:'suporte@flow.social',name:'Suporte',status:'Ativo',followers:'Suporte',joined:'10/08/2026'}]} columns={['ID','Conta','Nome','Status','Permissões','Criado']}/></>}
-function SettingsPage(){return <><Header title="Configurações" subtitle="Preferências operacionais do Control Center." action="Salvar alterações"/><div className="settings-grid"><Setting title="Segurança reforçada" text="Exigir autenticação adicional para ações sensíveis."/><Setting title="Moderação automática" text="Classificar conteúdo potencialmente sensível."/><Setting title="Alertas críticos" text="Alertar sobre picos de denúncias e risco."/><Setting title="Auditoria completa" text="Registrar todas as ações administrativas."/><Setting title="Notificações" text="Preferências de alertas do administrador."/><Setting title="Privacidade" text="Controles de exposição e retenção de dados."/></div></>}
-function AuditPage(){return <><Header title="Auditoria" subtitle="Rastreabilidade de ações administrativas."/><DataTable rows={[{id:'AUD-9012',user:'Administrador',name:'Aprovou denúncia #1039',status:'Concluído',followers:'Denúncias',joined:'14:42'},{id:'AUD-9011',user:'Moderador',name:'Suspendeu @user_482',status:'Concluído',followers:'Usuários',joined:'14:20'},{id:'AUD-9010',user:'Administrador',name:'Alterou regra de spam',status:'Concluído',followers:'Configurações',joined:'13:58'}]} columns={['ID','Responsável','Ação','Status','Área','Hora']}/></>}
-function LogsPage(){return <><Header title="Logs" subtitle="Eventos técnicos e operacionais da plataforma."/><DataTable rows={[{id:'LOG-881',user:'FLOW',name:'Feed refresh',status:'OK',followers:'200',joined:'14:48:21'},{id:'LOG-880',user:'FLOW',name:'Content index',status:'OK',followers:'842',joined:'14:48:19'},{id:'LOG-879',user:'FLOW',name:'Notification batch',status:'OK',followers:'1.204',joined:'14:48:18'}]} columns={['ID','Origem','Evento','Status','Itens','Hora']}/></>}
-function DetailPage({kind,id,navigate}:{kind:string;id:string;navigate:(p:string)=>void}){return <><button className="admin-btn" onClick={()=>navigate(kind==='Usuário'?'/admin/usuarios':kind==='Criador'?'/admin/criadores':'/admin/comunidades')}>← Voltar</button><div style={{height:12}}/><Header title={`${kind} ${id}`} subtitle={`Visão detalhada de ${kind.toLowerCase()} no FLOW.`} action="Editar"/><div className="detail"><div className="detail-card"><h3>Informações principais</h3><div className="detail-list"><div><span>ID</span><strong>{id}</strong></div><div><span>Status</span><strong>Ativo</strong></div><div><span>Atividade</span><strong>Alta</strong></div><div><span>Última atividade</span><strong>Hoje, 14:42</strong></div></div></div><div className="detail-card"><h3>Ações</h3><div className="quick-grid"><button>Ver atividade</button><button>Ver conteúdo</button><button>Enviar alerta</button><button className="admin-btn danger">Suspender</button></div></div></div></>}
-function Mini({title,value,delta}:{title:string;value:string;delta:string}){return <div className="mini-card"><span>{title}</span><strong>{value}</strong><em>{delta}</em></div>}
-function Setting({title,text}:{title:string;text:string}){const [on,setOn]=useState(true);return <div className="setting"><div><strong>{title}</strong><p>{text}</p></div><button className={'switch '+(on?'on':'')} onClick={()=>setOn(!on)} aria-label={title}/></div>}
-function DataTable({rows,columns,onRow}:{rows:Row[];columns:string[];onRow?:(r:Row)=>void}){const map:Record<string,string>={Usuário:'user',Nome:'name',Status:'status',Seguidores:'followers',Cadastro:'joined',Conteúdo:'id',Criador:'creator',Alcance:'reach',Curtidas:'likes',Comentários:'comments',Posts:'comments',ID:'id',Motivo:'reason',Denunciante:'reporter',Alvo:'target',Data:'date',Categoria:'type',Espectadores:'reach',Views:'views',Engajamento:'engagement',Comunidade:'user',Membros:'name','Criada em':'joined',Conta:'user',Evento:'name',Contexto:'followers',Hora:'joined',Relatório:'user',Período:'name',Formato:'followers',Criado:'joined',Responsável:'user',Ação:'name',Área:'followers',Origem:'user',Itens:'followers'};return <div className="table-panel"><table className="data-table"><thead><tr>{columns.map(c=><th key={c}>{c}</th>)}<th/></tr></thead><tbody>{rows.map(r=><tr key={r.id} onClick={()=>onRow?.(r)} style={{cursor:onRow?'pointer':'default'}}>{columns.map(c=>{const key=map[c]||c.toLowerCase();const value=r[key]||'—';return <td key={c}>{c==='Status'?<span className={'status '+statusClass(value)}>{value}</span>:c==='Usuário'||c==='Criador'?<div className="user-cell"><div className="avatar">{value.replace('@','').slice(0,2).toUpperCase()}</div><strong>{value}</strong></div>:value}</td>})}<td>{onRow&&<ChevronRight size={15} color="#667084"/>}</td></tr>)}</tbody></table>{!rows.length&&<div className="empty">Nenhum registro encontrado.</div>}</div>}
-function SimpleTable({title,subtitle,rows,columns}:{title:string;subtitle:string;rows:Row[];columns:string[]}){return <><Header title={title} subtitle={subtitle}/><DataTable rows={rows} columns={columns}/></>}
-function statusClass(s:string){const x=s.toLowerCase();if(x.includes('ativo')||x.includes('publicado')||x.includes('concluído')||x.includes('resolvida')||x.includes('ok')||x.includes('verificado')||x.includes('encerrada'))return'active';if(x.includes('revis')||x.includes('análise')||x.includes('process'))return'review';if(x.includes('bloque')||x.includes('remov'))return'blocked';if(x.includes('vivo'))return'live';return''}

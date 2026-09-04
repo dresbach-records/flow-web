@@ -1,0 +1,115 @@
+/* FLOW — RightRail Component Styles */
+.flow-right-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.flow-rail-card {
+  background: var(--flow-surface, #FFFFFF);
+  border: 1px solid var(--flow-border, #E2E8F0);
+  border-radius: var(--flow-radius-lg, 16px);
+  padding: 16px;
+  box-shadow: var(--flow-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.04));
+}
+
+.flow-rail-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.flow-rail-title h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--flow-text, #0F172A);
+  margin: 0;
+}
+
+.flow-rail-title button {
+  font-size: 12px;
+  color: var(--flow-blue, #3B82F6);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.flow-rail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.flow-rail-user-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.flow-rail-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.flow-rail-user-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-rail-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--flow-text, #0F172A);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.flow-rail-handle {
+  font-size: 11px;
+  color: var(--flow-text-muted, #64748B);
+}
+
+.flow-rail-follow-btn {
+  padding: 6px 14px;
+  border-radius: var(--flow-radius-full, 999px);
+  border: 1px solid var(--flow-blue, #3B82F6);
+  background: #FFFFFF;
+  color: var(--flow-blue, #3B82F6);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.flow-rail-follow-btn:hover {
+  background: var(--flow-blue, #3B82F6);
+  color: #FFFFFF;
+}
+
+.flow-rail-trend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.flow-rail-trend-item strong {
+  font-size: 13px;
+  color: var(--flow-text, #0F172A);
+}
+
+.flow-rail-trend-item span {
+  font-size: 11px;
+  color: var(--flow-text-muted, #64748B);
+}

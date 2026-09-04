@@ -1,0 +1,914 @@
+FLOW — CATÁLOGO VISUAL DE TELAS — DESKTOP / LIGHT UI
+======================================================================
+Total de telas no inventário: 350
+Regra visual desta entrega: somente tema claro; desktop 1440+; sem Dark Mode.
+
+#001 | Autenticação | Login | /login
+#002 | Autenticação | Criar conta | /cadastro
+#003 | Autenticação | Recuperar senha | /recuperar-senha
+#004 | Autenticação | Redefinir senha | /redefinir-senha
+#005 | Autenticação | Verificar e-mail | /verificar-email
+#006 | Autenticação | Verificar telefone | /verificar-telefone
+#007 | Autenticação | Código de confirmação | /confirmacao
+#008 | Autenticação | Autenticação 2FA | /seguranca/2fa
+#009 | Autenticação | Escolher método 2FA | /seguranca/2fa/metodo
+#010 | Autenticação | Códigos de backup | /seguranca/2fa/backup
+#011 | Autenticação | Sessões e dispositivos | /seguranca/sessoes
+#012 | Autenticação | Conta bloqueada | /conta/bloqueada
+#013 | Autenticação | Conta desativada | /conta/desativada
+#014 | Autenticação | Conta suspensa | /conta/suspensa
+#015 | Autenticação | Central de Contas | /central-contas
+#016 | Autenticação | Preferências da conta | /configuracoes/conta
+#017 | Autenticação | Confirmação de identidade | /seguranca/identidade
+#018 | Autenticação | Termos e privacidade | /legal/termos
+#019 | Autenticação | Consentimentos | /legal/consentimentos
+#020 | Autenticação | Preferências de cookies | /configuracoes/cookies
+#021 | Feed e publicações | Feed — Para você | /app?feed=for-you
+#022 | Feed e publicações | Feed — Seguindo | /app?feed=following
+#023 | Feed e publicações | Feed principal | /app
+#024 | Feed e publicações | Criar publicação | /app/criar
+#025 | Feed e publicações | Publicação de texto | /app/criar/texto
+#026 | Feed e publicações | Publicação com foto | /app/criar/foto
+#027 | Feed e publicações | Publicação com vídeo | /app/criar/video
+#028 | Feed e publicações | Enquete | /app/criar/enquete
+#029 | Feed e publicações | Sentimento e atividade | /app/criar/sentimento
+#030 | Feed e publicações | Adicionar localização | /app/criar/localizacao
+#031 | Feed e publicações | Marcar pessoas | /app/criar/marcar
+#032 | Feed e publicações | Selecionar público | /app/criar/publico
+#033 | Feed e publicações | Agendar publicação | /app/criar/agendar
+#034 | Feed e publicações | Rascunhos | /app/rascunhos
+#035 | Feed e publicações | Editar publicação | /app/publicacao/:id/editar
+#036 | Feed e publicações | Excluir publicação | /app/publicacao/:id/excluir
+#037 | Feed e publicações | Ocultar publicação | /app/publicacao/:id/ocultar
+#038 | Feed e publicações | Salvar publicação | /app/publicacao/:id/salvar
+#039 | Feed e publicações | Publicações salvas | /app/salvos/publicacoes
+#040 | Feed e publicações | Compartilhar publicação | /app/publicacao/:id/compartilhar
+#041 | Feed e publicações | Copiar link | /app/publicacao/:id/link
+#042 | Feed e publicações | Denunciar conteúdo | /app/publicacao/:id/denunciar
+#043 | Feed e publicações | Bloquear usuário | /app/usuario/:id/bloquear
+#044 | Feed e publicações | Silenciar usuário | /app/usuario/:id/silenciar
+#045 | Feed e publicações | Ver menos conteúdo | /app/publicacao/:id/preferencias
+#046 | Feed e publicações | Por que estou vendo isso? | /app/publicacao/:id/contexto
+#047 | Feed e publicações | Comentários da publicação | /app/publicacao/:id/comentarios
+#048 | Feed e publicações | Respostas de comentário | /app/comentario/:id
+#049 | Feed e publicações | Curtidas da publicação | /app/publicacao/:id/curtidas
+#050 | Feed e publicações | Compartilhamento da publicação | /app/publicacao/:id/compartilhamentos
+#051 | Feed e publicações | Visualizador de mídia | /app/midia/:id
+#052 | Feed e publicações | Galeria de mídia | /app/midia
+#053 | Feed e publicações | Editar foto | /app/editor/foto
+#054 | Feed e publicações | Editor de vídeo | /app/editor/video
+#055 | Feed e publicações | Prévia da publicação | /app/criar/preview
+#056 | Stories | Stories | /app/stories
+#057 | Stories | Criar Story | /app/stories/criar
+#058 | Stories | Câmera do Story | /app/stories/camera
+#059 | Stories | Upload de foto para Story | /app/stories/foto
+#060 | Stories | Upload de vídeo para Story | /app/stories/video
+#061 | Stories | Story com texto | /app/stories/texto
+#062 | Stories | Story com música | /app/stories/musica
+#063 | Stories | Story com figurinha | /app/stories/figurinha
+#064 | Stories | Story com enquete | /app/stories/enquete
+#065 | Stories | Story com perguntas | /app/stories/perguntas
+#066 | Stories | Story com localização | /app/stories/localizacao
+#067 | Stories | Story com menção | /app/stories/mencao
+#068 | Stories | Story com GIF | /app/stories/gif
+#069 | Stories | Editor de Story | /app/stories/editor
+#070 | Stories | Privacidade do Story | /app/stories/privacidade
+#071 | Stories | Arquivo de Stories | /app/stories/arquivo
+#072 | Stories | Visualizadores do Story | /app/stories/:id/visualizadores
+#073 | Stories | Story destacado | /app/stories/destaque/:id
+#074 | Stories | Criar destaque | /app/stories/destaques/criar
+#075 | Stories | Editar destaque | /app/stories/destaques/:id/editar
+#076 | Shorts | Shorts | /app/shorts
+#077 | Shorts | Criar Short | /app/shorts/criar
+#078 | Shorts | Upload de vídeo Short | /app/shorts/criar/upload
+#079 | Shorts | Câmera do Short | /app/shorts/criar/camera
+#080 | Shorts | Cortar vídeo | /app/shorts/editor/corte
+#081 | Shorts | Áudio do vídeo | /app/shorts/editor/audio
+#082 | Shorts | Controle de volume | /app/shorts/editor/volume
+#083 | Shorts | Adicionar música | /app/shorts/editor/musica
+#084 | Shorts | Adicionar texto | /app/shorts/editor/texto
+#085 | Shorts | Efeitos | /app/shorts/editor/efeitos
+#086 | Shorts | Figurinhas | /app/shorts/editor/figurinhas
+#087 | Shorts | Selecionar capa | /app/shorts/editor/capa
+#088 | Shorts | Editar legenda | /app/shorts/editor/legenda
+#089 | Shorts | Adicionar hashtags | /app/shorts/editor/hashtags
+#090 | Shorts | Selecionar público do Short | /app/shorts/editor/publico
+#091 | Shorts | Agendar Short | /app/shorts/agendar
+#092 | Shorts | Rascunhos de Shorts | /app/shorts/rascunhos
+#093 | Shorts | Estatísticas do Short | /app/shorts/:id/insights
+#094 | Shorts | Comentários do Short | /app/shorts/:id/comentarios
+#095 | Shorts | Compartilhamento do Short | /app/shorts/:id/compartilhar
+#096 | Perfil | Meu perfil | /app/perfil
+#097 | Perfil | Perfil de outro usuário | /app/perfil/:id
+#098 | Perfil | Editar perfil | /app/perfil/editar
+#099 | Perfil | Editar foto do perfil | /app/perfil/editar/foto
+#100 | Perfil | Editar capa | /app/perfil/editar/capa
+#101 | Perfil | Editar bio | /app/perfil/editar/bio
+#102 | Perfil | Informações pessoais | /app/perfil/informacoes
+#103 | Perfil | Publicações do perfil | /app/perfil/publicacoes
+#104 | Perfil | Fotos do perfil | /app/perfil/fotos
+#105 | Perfil | Vídeos do perfil | /app/perfil/videos
+#106 | Perfil | Reels do perfil | /app/perfil/reels
+#107 | Perfil | Stories destacados do perfil | /app/perfil/destaques
+#108 | Perfil | Seguidores | /app/perfil/seguidores
+#109 | Perfil | Seguindo | /app/perfil/seguindo
+#110 | Perfil | Amigos e conexões | /app/perfil/amigos
+#111 | Perfil | Sobre | /app/perfil/sobre
+#112 | Perfil | Atividade do perfil | /app/perfil/atividade
+#113 | Perfil | Menções | /app/perfil/mencoes
+#114 | Perfil | Curtidas | /app/perfil/curtidas
+#115 | Perfil | Itens salvos | /app/perfil/salvos
+#116 | Perfil | Configurações do perfil | /app/perfil/configuracoes
+#117 | Explorar e pesquisa | Explorar | /app/explorar/explorar
+#118 | Explorar e pesquisa | Pesquisa geral | /app/explorar/pesquisa-geral
+#119 | Explorar e pesquisa | Resultados de pessoas | /app/explorar/resultados-de-pessoas
+#120 | Explorar e pesquisa | Resultados de publicações | /app/explorar/resultados-de-publicações
+#121 | Explorar e pesquisa | Resultados de vídeos | /app/explorar/resultados-de-vídeos
+#122 | Explorar e pesquisa | Resultados de Shorts | /app/explorar/resultados-de-shorts
+#123 | Explorar e pesquisa | Resultados de fotos | /app/explorar/resultados-de-fotos
+#124 | Explorar e pesquisa | Resultados de grupos | /app/explorar/resultados-de-grupos
+#125 | Explorar e pesquisa | Resultados de Páginas | /app/explorar/resultados-de-páginas
+#126 | Explorar e pesquisa | Resultados de comunidades | /app/explorar/resultados-de-comunidades
+#127 | Explorar e pesquisa | Resultados do Marketplace | /app/explorar/resultados-do-marketplace
+#128 | Explorar e pesquisa | Tendências | /app/explorar/tendências
+#129 | Explorar e pesquisa | Hashtag | /app/explorar/hashtag
+#130 | Explorar e pesquisa | Página de hashtag | /app/explorar/página-de-hashtag
+#131 | Explorar e pesquisa | Histórico de pesquisa | /app/explorar/histórico-de-pesquisa
+#132 | Explorar e pesquisa | Sugestões de pesquisa | /app/explorar/sugestões-de-pesquisa
+#133 | Explorar e pesquisa | Busca avançada | /app/explorar/busca-avançada
+#134 | Explorar e pesquisa | Resultados recentes | /app/explorar/resultados-recentes
+#135 | Explorar e pesquisa | Conteúdo recomendado | /app/explorar/conteúdo-recomendado
+#136 | Mensagens | Caixa de entrada | /app/mensagens/caixa-de-entrada
+#137 | Mensagens | Conversa aberta | /app/mensagens/conversa-aberta
+#138 | Mensagens | Nova conversa | /app/mensagens/nova-conversa
+#139 | Mensagens | Solicitações de mensagem | /app/mensagens/solicitações-de-mensagem
+#140 | Mensagens | Conversas arquivadas | /app/mensagens/conversas-arquivadas
+#141 | Mensagens | Mensagens não lidas | /app/mensagens/mensagens-não-lidas
+#142 | Mensagens | Pesquisar mensagens | /app/mensagens/pesquisar-mensagens
+#143 | Mensagens | Enviar foto | /app/mensagens/enviar-foto
+#144 | Mensagens | Enviar vídeo | /app/mensagens/enviar-vídeo
+#145 | Mensagens | Enviar arquivo | /app/mensagens/enviar-arquivo
+#146 | Mensagens | Enviar figurinha | /app/mensagens/enviar-figurinha
+#147 | Mensagens | Enviar GIF | /app/mensagens/enviar-gif
+#148 | Mensagens | Enviar áudio | /app/mensagens/enviar-áudio
+#149 | Mensagens | Reagir à mensagem | /app/mensagens/reagir-à-mensagem
+#150 | Mensagens | Responder mensagem | /app/mensagens/responder-mensagem
+#151 | Mensagens | Encaminhar mensagem | /app/mensagens/encaminhar-mensagem
+#152 | Mensagens | Apagar mensagem | /app/mensagens/apagar-mensagem
+#153 | Mensagens | Silenciar conversa | /app/mensagens/silenciar-conversa
+#154 | Mensagens | Bloquear conversa | /app/mensagens/bloquear-conversa
+#155 | Mensagens | Denunciar conversa | /app/mensagens/denunciar-conversa
+#156 | Notificações | Notificações | /app/notificacoes
+#157 | Notificações | Curtidas | /app/notificacoes/curtidas
+#158 | Notificações | Comentários | /app/notificacoes/comentários
+#159 | Notificações | Menções | /app/notificacoes/menções
+#160 | Notificações | Novos seguidores | /app/notificacoes/novos-seguidores
+#161 | Notificações | Solicitações de amizade | /app/notificacoes/solicitações-de-amizade
+#162 | Notificações | Mensagens | /app/notificacoes/mensagens
+#163 | Notificações | Stories | /app/notificacoes/stories
+#164 | Notificações | Shorts | /app/notificacoes/shorts
+#165 | Notificações | Grupos | /app/notificacoes/grupos
+#166 | Notificações | Páginas | /app/notificacoes/páginas
+#167 | Notificações | Marketplace | /app/notificacoes/marketplace
+#168 | Notificações | Segurança | /app/notificacoes/segurança
+#169 | Notificações | Notificações push | /app/notificacoes/notificações-push
+#170 | Notificações | Preferências de notificações | /app/notificacoes/preferências-de-notificações
+#171 | Comunidades e grupos | Comunidades | /app/comunidades/comunidades
+#172 | Comunidades e grupos | Descobrir comunidades | /app/comunidades/descobrir-comunidades
+#173 | Comunidades e grupos | Minhas comunidades | /app/comunidades/minhas-comunidades
+#174 | Comunidades e grupos | Criar comunidade | /app/comunidades/criar-comunidade
+#175 | Comunidades e grupos | Página da comunidade | /app/comunidades/página-da-comunidade
+#176 | Comunidades e grupos | Feed da comunidade | /app/comunidades/feed-da-comunidade
+#177 | Comunidades e grupos | Membros | /app/comunidades/membros
+#178 | Comunidades e grupos | Administradores | /app/comunidades/administradores
+#179 | Comunidades e grupos | Solicitações | /app/comunidades/solicitações
+#180 | Comunidades e grupos | Convites | /app/comunidades/convites
+#181 | Comunidades e grupos | Eventos da comunidade | /app/comunidades/eventos-da-comunidade
+#182 | Comunidades e grupos | Arquivos da comunidade | /app/comunidades/arquivos-da-comunidade
+#183 | Comunidades e grupos | Perguntas | /app/comunidades/perguntas
+#184 | Comunidades e grupos | Regras | /app/comunidades/regras
+#185 | Comunidades e grupos | Moderação | /app/comunidades/moderação
+#186 | Comunidades e grupos | Denúncias da comunidade | /app/comunidades/denúncias-da-comunidade
+#187 | Comunidades e grupos | Banimentos | /app/comunidades/banimentos
+#188 | Comunidades e grupos | Configurações da comunidade | /app/comunidades/configurações-da-comunidade
+#189 | Comunidades e grupos | Editar comunidade | /app/comunidades/editar-comunidade
+#190 | Comunidades e grupos | Insights da comunidade | /app/comunidades/insights-da-comunidade
+#191 | Salvos e eventos | Salvos | /app/salvos/salvos
+#192 | Salvos e eventos | Publicações salvas | /app/salvos/publicações-salvas
+#193 | Salvos e eventos | Vídeos salvos | /app/salvos/vídeos-salvos
+#194 | Salvos e eventos | Shorts salvos | /app/salvos/shorts-salvos
+#195 | Salvos e eventos | Links salvos | /app/salvos/links-salvos
+#196 | Salvos e eventos | Coleções | /app/salvos/coleções
+#197 | Salvos e eventos | Criar coleção | /app/salvos/criar-coleção
+#198 | Salvos e eventos | Editar coleção | /app/salvos/editar-coleção
+#199 | Salvos e eventos | Excluir coleção | /app/salvos/excluir-coleção
+#200 | Salvos e eventos | Eventos | /app/salvos/eventos
+#201 | Salvos e eventos | Descobrir eventos | /app/salvos/descobrir-eventos
+#202 | Salvos e eventos | Meus eventos | /app/salvos/meus-eventos
+#203 | Salvos e eventos | Criar evento | /app/salvos/criar-evento
+#204 | Salvos e eventos | Página do evento | /app/salvos/página-do-evento
+#205 | Salvos e eventos | Participantes | /app/salvos/participantes
+#206 | Salvos e eventos | Convites do evento | /app/salvos/convites-do-evento
+#207 | Salvos e eventos | Agenda do evento | /app/salvos/agenda-do-evento
+#208 | Salvos e eventos | Localização do evento | /app/salvos/localização-do-evento
+#209 | Salvos e eventos | Editar evento | /app/salvos/editar-evento
+#210 | Salvos e eventos | Configurações do evento | /app/salvos/configurações-do-evento
+#211 | Marketplace | Marketplace | /app/marketplace
+#212 | Marketplace | Pesquisa do Marketplace | /app/marketplace/pesquisa-do-marketplace
+#213 | Marketplace | Categorias | /app/marketplace/categorias
+#214 | Marketplace | Detalhes do produto | /app/marketplace/detalhes-do-produto
+#215 | Marketplace | Criar anúncio | /app/marketplace/criar-anúncio
+#216 | Marketplace | Editar anúncio | /app/marketplace/editar-anúncio
+#217 | Marketplace | Fotos do produto | /app/marketplace/fotos-do-produto
+#218 | Marketplace | Preço do produto | /app/marketplace/preço-do-produto
+#219 | Marketplace | Localização do anúncio | /app/marketplace/localização-do-anúncio
+#220 | Marketplace | Mensagens do comprador | /app/marketplace/mensagens-do-comprador
+#221 | Marketplace | Meus anúncios | /app/marketplace/meus-anúncios
+#222 | Marketplace | Anúncios vendidos | /app/marketplace/anúncios-vendidos
+#223 | Marketplace | Itens salvos | /app/marketplace/itens-salvos
+#224 | Marketplace | Compras | /app/marketplace/compras
+#225 | Marketplace | Avaliações | /app/marketplace/avaliações
+#226 | Marketplace | Entrega | /app/marketplace/entrega
+#227 | Marketplace | Pagamento | /app/marketplace/pagamento
+#228 | Marketplace | Relatório de anúncio | /app/marketplace/relatório-de-anúncio
+#229 | Marketplace | Denunciar anúncio | /app/marketplace/denunciar-anúncio
+#230 | Marketplace | Configurações do Marketplace | /app/marketplace/configurações-do-marketplace
+#231 | Páginas | Criar Página | /app/paginas/criar-página
+#232 | Páginas | Escolher tipo de Página | /app/paginas/escolher-tipo-de-página
+#233 | Páginas | Informações da Página | /app/paginas/informações-da-página
+#234 | Páginas | Categoria da Página | /app/paginas/categoria-da-página
+#235 | Páginas | Descrição da Página | /app/paginas/descrição-da-página
+#236 | Páginas | Site da Página | /app/paginas/site-da-página
+#237 | Páginas | Telefone da Página | /app/paginas/telefone-da-página
+#238 | Páginas | E-mail da Página | /app/paginas/e-mail-da-página
+#239 | Páginas | Endereço da Página | /app/paginas/endereço-da-página
+#240 | Páginas | Foto da Página | /app/paginas/foto-da-página
+#241 | Páginas | Capa da Página | /app/paginas/capa-da-página
+#242 | Páginas | Nome de usuário da Página | /app/paginas/nome-de-usuário-da-página
+#243 | Páginas | Página publicada | /app/paginas/página-publicada
+#244 | Páginas | Feed da Página | /app/paginas/feed-da-página
+#245 | Páginas | Sobre da Página | /app/paginas/sobre-da-página
+#246 | Páginas | Fotos da Página | /app/paginas/fotos-da-página
+#247 | Páginas | Vídeos da Página | /app/paginas/vídeos-da-página
+#248 | Páginas | Shorts da Página | /app/paginas/shorts-da-página
+#249 | Páginas | Stories da Página | /app/paginas/stories-da-página
+#250 | Páginas | Eventos da Página | /app/paginas/eventos-da-página
+#251 | Páginas | Serviços da Página | /app/paginas/serviços-da-página
+#252 | Páginas | Produtos da Página | /app/paginas/produtos-da-página
+#253 | Páginas | Avaliações da Página | /app/paginas/avaliações-da-página
+#254 | Páginas | Seguidores da Página | /app/paginas/seguidores-da-página
+#255 | Páginas | Caixa de entrada da Página | /app/paginas/caixa-de-entrada-da-página
+#256 | Business Suite | Business Suite — Visão geral | /app/business/business-suite---visão-geral
+#257 | Business Suite | Business Suite — Início | /app/business/business-suite---início
+#258 | Business Suite | Calendário | /app/business/calendário
+#259 | Business Suite | Planejador de conteúdo | /app/business/planejador-de-conteúdo
+#260 | Business Suite | Publicações | /app/business/publicações
+#261 | Business Suite | Stories publicados | /app/business/stories-publicados
+#262 | Business Suite | Shorts publicados | /app/business/shorts-publicados
+#263 | Business Suite | Rascunhos | /app/business/rascunhos
+#264 | Business Suite | Agendados | /app/business/agendados
+#265 | Business Suite | Publicados | /app/business/publicados
+#266 | Business Suite | Caixa de entrada | /app/business/caixa-de-entrada
+#267 | Business Suite | Comentários | /app/business/comentários
+#268 | Business Suite | Mensagens | /app/business/mensagens
+#269 | Business Suite | Leads | /app/business/leads
+#270 | Business Suite | Notificações | /app/business/notificações
+#271 | Business Suite | Insights | /app/business/insights
+#272 | Business Suite | Visão diária | /app/business/visão-diária
+#273 | Business Suite | Visão semanal | /app/business/visão-semanal
+#274 | Business Suite | Visão mensal | /app/business/visão-mensal
+#275 | Business Suite | Alcance | /app/business/alcance
+#276 | Business Suite | Engajamento | /app/business/engajamento
+#277 | Business Suite | Seguidores | /app/business/seguidores
+#278 | Business Suite | Crescimento | /app/business/crescimento
+#279 | Business Suite | Conteúdo com melhor desempenho | /app/business/conteúdo-com-melhor-desempenho
+#280 | Business Suite | Público | /app/business/público
+#281 | Business Suite | Monetização | /app/business/monetização
+#282 | Business Suite | Configurações comerciais | /app/business/configurações-comerciais
+#283 | Business Suite | Biblioteca de conteúdo | /app/business/biblioteca-de-conteúdo
+#284 | Business Suite | Tarefas | /app/business/tarefas
+#285 | Business Suite | Colaboradores | /app/business/colaboradores
+#286 | Ads | Gerenciador de Anúncios | /app/ads/gerenciador-de-anúncios
+#287 | Ads | Campanhas | /app/ads/campanhas
+#288 | Ads | Conjuntos de anúncios | /app/ads/conjuntos-de-anúncios
+#289 | Ads | Anúncios | /app/ads/anúncios
+#290 | Ads | Criar campanha | /app/ads/criar-campanha
+#291 | Ads | Objetivo da campanha | /app/ads/objetivo-da-campanha
+#292 | Ads | Orçamento | /app/ads/orçamento
+#293 | Ads | Programação | /app/ads/programação
+#294 | Ads | Público | /app/ads/público
+#295 | Ads | Localização | /app/ads/localização
+#296 | Ads | Idade e gênero | /app/ads/idade-e-gênero
+#297 | Ads | Segmentação detalhada | /app/ads/segmentação-detalhada
+#298 | Ads | Posicionamentos | /app/ads/posicionamentos
+#299 | Ads | Criativo | /app/ads/criativo
+#300 | Ads | Texto do anúncio | /app/ads/texto-do-anúncio
+#301 | Ads | Título do anúncio | /app/ads/título-do-anúncio
+#302 | Ads | CTA | /app/ads/cta
+#303 | Ads | URL de destino | /app/ads/url-de-destino
+#304 | Ads | Prévia do anúncio | /app/ads/prévia-do-anúncio
+#305 | Ads | Publicar anúncio | /app/ads/publicar-anúncio
+#306 | Ads | Revisão do anúncio | /app/ads/revisão-do-anúncio
+#307 | Ads | Anúncio aprovado | /app/ads/anúncio-aprovado
+#308 | Ads | Anúncio rejeitado | /app/ads/anúncio-rejeitado
+#309 | Ads | Relatórios | /app/ads/relatórios
+#310 | Ads | Métricas | /app/ads/métricas
+#311 | Ads | Colunas personalizadas | /app/ads/colunas-personalizadas
+#312 | Ads | Filtros | /app/ads/filtros
+#313 | Ads | Comparação | /app/ads/comparação
+#314 | Ads | Exportação | /app/ads/exportação
+#315 | Ads | Biblioteca de anúncios | /app/ads/biblioteca-de-anúncios
+#316 | Configurações | Configurações gerais | /app/configuracoes/configurações-gerais
+#317 | Configurações | Conta | /app/configuracoes/conta
+#318 | Configurações | Perfil | /app/configuracoes/perfil
+#319 | Configurações | Privacidade | /app/configuracoes/privacidade
+#320 | Configurações | Segurança | /app/configuracoes/segurança
+#321 | Configurações | Senha | /app/configuracoes/senha
+#322 | Configurações | Login | /app/configuracoes/login
+#323 | Configurações | Autenticação 2FA | /app/configuracoes/autenticação-2fa
+#324 | Configurações | Dispositivos conectados | /app/configuracoes/dispositivos-conectados
+#325 | Configurações | Bloqueios | /app/configuracoes/bloqueios
+#326 | Configurações | Silenciamentos | /app/configuracoes/silenciamentos
+#327 | Configurações | Preferências do Feed | /app/configuracoes/preferências-do-feed
+#328 | Configurações | Preferências de conteúdo | /app/configuracoes/preferências-de-conteúdo
+#329 | Configurações | Idioma | /app/configuracoes/idioma
+#330 | Configurações | Acessibilidade | /app/configuracoes/acessibilidade
+#331 | Configurações | Tema claro | /app/configuracoes/tema-claro
+#332 | Configurações | Tema escuro | /app/configuracoes/tema-escuro
+#333 | Configurações | Notificações | /app/configuracoes/notificações
+#334 | Configurações | E-mail | /app/configuracoes/e-mail
+#335 | Configurações | SMS | /app/configuracoes/sms
+#336 | Configurações | Push | /app/configuracoes/push
+#337 | Configurações | Dados pessoais | /app/configuracoes/dados-pessoais
+#338 | Configurações | Baixar seus dados | /app/configuracoes/baixar-seus-dados
+#339 | Configurações | Transferência de dados | /app/configuracoes/transferência-de-dados
+#340 | Configurações | Excluir conta | /app/configuracoes/excluir-conta
+#341 | Configurações | Desativar conta | /app/configuracoes/desativar-conta
+#342 | Configurações | Publicidade | /app/configuracoes/publicidade
+#343 | Configurações | Preferências de anúncios | /app/configuracoes/preferências-de-anúncios
+#344 | Configurações | Atividade fora da plataforma | /app/configuracoes/atividade-fora-da-plataforma
+#345 | Configurações | Cookies | /app/configuracoes/cookies
+#346 | Segurança e moderação | Central de segurança | /app/seguranca/central-de-segurança
+#347 | Segurança e moderação | Denúncias | /app/seguranca/denúncias
+#348 | Segurança e moderação | Conteúdo denunciado | /app/seguranca/conteúdo-denunciado
+#349 | Segurança e moderação | Contas bloqueadas | /app/seguranca/contas-bloqueadas
+#350 | Segurança e moderação | Palavras ocultas | /app/seguranca/palavras-ocultas
+
+FLOW_CATALOGO_15MEMORIAL
+======================================================================
+MEMORIAL DO USUÁRIO — TELAS 351–365
+Extensão oficial do catálogo visual Desktop / Light UI (1440+)
+Asset de referência: FLOW_CATALOGO_15memorial.png
+Total de telas adicionadas: 15 (Inventário estendido para 365 telas)
+Regra visual: somente tema claro; desktop 1440+; sem Dark Mode; identidade visual FLOW.
+
+#351 | Memorial do Usuário | Memorial do Usuário (Início) | /memorial (alias: /app/memorial)
+#352 | Memorial do Usuário | Perfil Memorial (público) | /memorial/:username (alias: /app/memorial/:id)
+#353 | Memorial do Usuário | Homenagens | /memorial/homenagens (alias: /app/memorial/:id/homenagens)
+#354 | Memorial do Usuário | Criar Homenagem | /memorial/homenagem/criar (alias: /app/memorial/:id/homenagem/criar)
+#355 | Memorial do Usuário | Solicitar Memorial | /memorial/solicitar (alias: /app/memorial/solicitar)
+#356 | Memorial do Usuário | Verificação da Solicitação | /memorial/verificacao (alias: /app/memorial/verificacao)
+#357 | Memorial do Usuário | Acompanhamento da Solicitação | /memorial/acompanhamento (alias: /app/memorial/acompanhamento)
+#358 | Memorial do Usuário | Configurações de Legado (em vida) | /configuracoes/memorial (alias: /app/configuracoes/memorial)
+#359 | Memorial do Usuário | Representante / Contato de Legado | /memorial/representante (alias: /app/memorial/representante)
+#360 | Memorial do Usuário | Administração do Memorial | /memorial/administracao (alias: /app/memorial/administracao)
+#361 | Memorial do Usuário | Denunciar Memorial | /memorial/denunciar (alias: /app/memorial/denunciar)
+#362 | Memorial do Usuário | Solicitar Remoção | /memorial/remocao (alias: /app/memorial/remocao)
+#363 | Memorial do Usuário | Confirmação da Memorialização | /memorial/confirmacao (alias: /app/memorial/confirmacao)
+#364 | Memorial do Usuário | Ajuda e Orientações | /memorial/ajuda (alias: /app/memorial/ajuda)
+#365 | Memorial do Usuário | Mensagem Final | /memorial/mensagem-final (alias: /app/memorial/mensagem-final)
+
+----------------------------------------------------------------------
+DETALHAMENTO TÉCNICO DAS TELAS — FLOW_CATALOGO_15MEMORIAL
+----------------------------------------------------------------------
+
+----------------------------------------------------------------------
+TELA #351
+----------------------------------------------------------------------
+ID: 351
+NOME: Memorial do Usuário (Início)
+ROTA: /memorial (alias: /app/memorial)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Apresentar o espaço institucional do Memorial FLOW, esclarecer seus pilares de preservação de memórias e direcionar o usuário para saiba mais ou para o início da solicitação de memorial.
+COMPONENTES:
+- Sidebar desktop persistente com logotipo FLOW e item "Memorial" em destaque ativo na navegação.
+- Topbar global com campo de pesquisa, atalhos de ações e avatar do usuário.
+- Card principal (Hero) centralizado em fundo claro com ilustração conceitual e tipografia acolhedora.
+- Título institucional: "Memorial do Usuário".
+- Subtítulo: "Preserve memórias. Mantenha histórias vivas."
+- Texto de apresentação: "O Memorial da Flow é um espaço para homenagear pessoas que fizeram parte da nossa comunidade."
+- Lista de benefícios e garantias com ícones temáticos:
+  * "Mantém o perfil como homenagem" (ícone de escudo protetor/coração)
+  * "Preserva publicações autorizadas" (ícone de mídia/foto)
+  * "Permite mensagens de amigos e familiares" (ícone de mensagens/conversa)
+  * "Mantém viva a história de quem fez parte da Flow" (ícone de flor/estrela memorial)
+- Bloco de ações (CTAs):
+  * Botão secundário (outline/neutro): "Saiba mais"
+  * Botão primário com destaque gradiente FLOW: "Solicitar memorial"
+- Citação memorial de rodapé: "Algumas pessoas nunca se vão, elas apenas vivem para sempre nas nossas memórias."
+AÇÕES:
+- Clicar em "Solicitar memorial": redireciona para a tela #355 (/memorial/solicitar).
+- Clicar em "Saiba mais": redireciona para a central de orientações #364 (/memorial/ajuda).
+- Navegar pelos links institucionais da sidebar e topbar.
+ESTADOS:
+- Padrão (inicial desktop 1440+); hover nos botões de ação e itens de menu.
+NAVEGAÇÃO:
+- Entrada via item "Memorial" da Sidebar; transita para #355 ou #364.
+PERMISSÕES:
+- Acesso público e para qualquer usuário autenticado da comunidade.
+SEGURANÇA E PRIVACIDADE:
+- Conteúdo puramente expositivo e explicativo; sem formulários de entrada de dados nesta tela; não expõe nenhuma conta ou informação privada.
+OBSERVAÇÕES:
+- Interface 100% Light UI com fundo claro, tipografia sem serifa contemporânea e gradientes suaves de apoio da marca.
+
+----------------------------------------------------------------------
+TELA #352
+----------------------------------------------------------------------
+ID: 352
+NOME: Perfil Memorial (público)
+ROTA: /memorial/:username (alias: /app/memorial/:id)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Exibir a página memorial consolidada de um membro falecido, congelando publicações autorizadas, celebrando sua trajetória e permitindo homenagens públicas de amigos e familiares.
+COMPONENTES:
+- Cabeçalho memorial de perfil:
+  * Foto de capa panorâmica de homenagem.
+  * Avatar circular com moldura dourada memorial e distintivo solene.
+  * Selo identificador: "Em memória de".
+  * Nome do usuário em destaque: "Carlos Eduardo".
+  * Datas de nascimento e falecimento com símbolos universais: "★ 12/03/1965  † 20/06/2026".
+  * Frase comemorativa em itálico: "Viverá para sempre em nossos corações."
+- Barra de abas de conteúdo: "Publicações" (ativa), "Fotos", "Vídeos", "Homenagens", "Sobre".
+- Coluna central:
+  * Publicação comemorativa/fixada: "Carlos Eduardo - 10/05/2026 09:12 - Gratidão por tudo que vivi aqui. ❤️" com imagem e contadores de interação (1.2K curtidas, 326 comentários).
+- Coluna lateral direita:
+  * Card "Homenagens": indicador "1,2k mensagens" e botão de ação rápida "Deixar homenagem".
+  * Card "Amigos": indicador "318 amigos" com mosaico de avatares sobrepostos de amigos mútuos.
+AÇÕES:
+- Alternar entre abas (Publicações, Fotos, Vídeos, Homenagens, Sobre).
+- Clicar em "Deixar homenagem": abre o fluxo de criação de homenagem #354.
+- Visualizar postagens, fotos e mensagens públicas deixadas por familiares.
+ESTADOS:
+- Carregado com publicações; alternância de abas ativas; estado sem novas homenagens (placeholder solene).
+NAVEGAÇÃO:
+- Acessível por busca, link direto ou menções; conecta a #353 (Homenagens) e #354 (Criar Homenagem).
+PERMISSÕES:
+- Visualização pública respeitando as preferências de legado estipuladas pelo usuário em vida (#358).
+SEGURANÇA E PRIVACIDADE:
+- PERFIL CONGELADO: login convencional bloqueado em definitivo para as credenciais da conta memorializada.
+- Não exibe nem permite envio de mensagens privadas via chat/DM.
+- Contato de legado possui poderes estritos de curadoria, sem acesso a dados confidenciais do falecido.
+OBSERVAÇÕES:
+- No catálogo visual, Carlos Eduardo é apresentado como caso concreto de exibição.
+
+----------------------------------------------------------------------
+TELA #353
+----------------------------------------------------------------------
+ID: 353
+NOME: Homenagens
+ROTA: /memorial/homenagens (alias: /app/memorial/:id/homenagens)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Apresentar o mural aberto de depoimentos, fotografias, vídeos e manifestações de carinho enviadas pela rede de amigos, familiares e colegas de comunidade em memória do usuário falecido.
+COMPONENTES:
+- Cabeçalho de seção:
+  * Título: "Homenagens".
+  * Subtítulo: "Deixe aqui sua mensagem, foto ou vídeo em memória de Carlos Eduardo."
+- Mural/feed de cartões de homenagens:
+  * Cartão Mariana Silva (20/06/2026): depoimento com emojis de respeito, coração e pomba branca ("Você sempre será lembrado pela sua alegria e generosidade. Saudades eternas! ❤️🕊️"), contador "254 curtidas".
+  * Cartão João Pereira (19/06/2026): depoimento ("Obrigado por todos os momentos. Você fez a diferença na vida de muitos de nós."), contador "126 curtidas".
+  * Cartão Fernanda Lima (18/06/2026): depoimento ("Que sua luz continue inspirando a todos nós. ✨"), contador "96 curtidas".
+  * Cartão Ricardo Alves (17/06/2026): depoimento ("Amigo para sempre! 🤝🕊️").
+- Botão/ícone de apoio com coração em cada depoimento.
+AÇÕES:
+- Rolar mensagens recebidas; curtir/apoiar homenagens; acionar botão de publicação de nova mensagem.
+ESTADOS:
+- Lista ativa com homenagens; lista vazia caso seja memorial recém-criado; carregamento assíncrono.
+NAVEGAÇÃO:
+- Acessível a partir da aba "Homenagens" da tela #352 ou botão de atalho da sidebar.
+PERMISSÕES:
+- Leitura pública (ou restrita a amigos se configurado); envio restrito a usuários autenticados da Flow.
+SEGURANÇA E PRIVACIDADE:
+- Homenagens sujeitas a moderação prévia ou posterior pelo Contato de Legado (#360) para prevenir desrespeito ou assédio.
+- Opção de denúncia disponível em cada mensagem.
+OBSERVAÇÕES:
+- Interface acolhedora com tipografia legível e cartões com bordas arredondadas e sombras suaves.
+
+----------------------------------------------------------------------
+TELA #354
+----------------------------------------------------------------------
+ID: 354
+NOME: Criar Homenagem
+ROTA: /memorial/homenagem/criar (alias: /app/memorial/:id/homenagem/criar)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Fornecer interface estruturada para elaboração e envio de mensagens memoriais, permitindo anexar mídias de recordação e selecionar o nível de privacidade da homenagem.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Criar homenagem".
+  * Subtítulo: "Compartilhe uma mensagem especial."
+- Campo de mensagem:
+  * Label: "Sua mensagem".
+  * Textarea com placeholder "Escreva aqui sua homenagem...".
+  * Contador regressivo de caracteres: "0/500".
+- Seção de upload de mídia opcional:
+  * Label: "Adicionar mídia (opcional)".
+  * Botão de upload de foto com ícone: "[Foto]".
+  * Botão de upload de vídeo com ícone: "[Vídeo]".
+  * Botão de anexo de arquivo com ícone: "[Arquivo]".
+- Campo de controle de privacidade:
+  * Label: "Privacidade".
+  * Dropdown seletor exibindo opção: "Pública (visível para todos)".
+- Botão de publicação:
+  * Botão em largura total: "Publicar homenagem" com gradiente institucional roxo/azul.
+AÇÕES:
+- Digitar texto da homenagem (até 500 caracteres).
+- Anexar imagem, vídeo ou documento de recordação.
+- Configurar visibilidade da homenagem no dropdown.
+- Clicar em "Publicar homenagem".
+ESTADOS:
+- Inicial vazio (contador 0/500); em digitação; com mídia anexada; enviando (loading); erro de validação (mensagem vazia ou caracteres excedidos).
+NAVEGAÇÃO:
+- Aberta a partir do card de homenagens (#352 ou #353); retorna ao mural #353 após publicação.
+PERMISSÕES:
+- Requer login ativo e conta verificada na Flow.
+SEGURANÇA E PRIVACIDADE:
+- Filtro automatizado contra termos ofensivos, spam e discurso de ódio.
+- Mensagens podem ser encaminhadas para a fila de moderação do Representante de Legado antes de se tornarem públicas.
+OBSERVAÇÕES:
+- Limite estrito de 500 caracteres para priorizar mensagens concisas e tocantes.
+
+----------------------------------------------------------------------
+TELA #355
+----------------------------------------------------------------------
+ID: 355
+NOME: Solicitar Memorial
+ROTA: /memorial/solicitar (alias: /app/memorial/solicitar)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Instruir e orientar o solicitante sobre as regras e o fluxo de 4 passos para transformar a conta de um membro falecido em perfil memorial verificado.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Solicitar transformação em Memorial".
+  * Subtítulo: "Solicite a transformação da conta de um membro falecido em um perfil memorial."
+- Stepper gráfico de 4 passos orientadores:
+  * 1. "Preencha o formulário"
+  * 2. "Envie a documentação comprobatória"
+  * 3. "Nossa equipe analisará a solicitação"
+  * 4. "Você será informado sobre o resultado"
+- Botão de ação:
+  * "Iniciar solicitação" em destaque com gradiente FLOW.
+- Caixa de aviso de conformidade jurídica/segurança:
+  * "A conta só será transformada em memorial depois da análise e aprovação da nossa equipe."
+AÇÕES:
+- Clicar em "Iniciar solicitação": avança para o formulário de verificação #356.
+- Cancelar ou voltar para a home do Memorial #351.
+ESTADOS:
+- Exibição padrão das instruções de abertura.
+NAVEGAÇÃO:
+- Entrada via #351; transita para #356 (/memorial/verificacao).
+PERMISSÕES:
+- Disponível para familiares, representantes legais ou pessoas próximas com conta autenticada.
+SEGURANÇA E PRIVACIDADE:
+- Salienta expressamente a política de segurança da FLOW: nenhuma memorialização é automática; todas demandam crivo documental e validação humana.
+OBSERVAÇÕES:
+- Textos claros para evitar falsas solicitações e dar conforto emocional ao solicitante.
+
+----------------------------------------------------------------------
+TELA #356
+----------------------------------------------------------------------
+ID: 356
+NOME: Verificação da Solicitação
+ROTA: /memorial/verificacao (alias: /app/memorial/verificacao)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Coletar formalmente os dados de qualificação do solicitante, o grau de parentesco/relação com o usuário falecido, a data do falecimento e o upload de documentos legais comprobatórios.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Verificação da solicitação".
+  * Instrução de segurança: "Para garantir a segurança, precisamos de algumas informações."
+- Formulário cadastral:
+  * Campo "Nome do solicitante": input textual ("Seu nome completo").
+  * Campo "Relação com o usuário falecido": select dropdown ("Selecione...").
+  * Campo "Data do falecimento": input com máscara de data "DD / MM / AAAA" e ícone de calendário.
+  * Seção "Documentação comprobatória":
+    - Texto explicativo: "Certidão de óbito, notícia, obituário ou documento oficial."
+    - Botão de upload: "[Selecionar arquivo]" com ícone de clipe/arquivo.
+- Botão de submissão:
+  * "Enviar para análise" com fundo gradiente institucional.
+AÇÕES:
+- Preencher nome completo, selecionar grau de parentesco e inserir data do óbito.
+- Anexar arquivo comprobatório (PDF, JPG, PNG de certidão ou documento idôneo).
+- Clicar em "Enviar para análise".
+ESTADOS:
+- Formulário limpo; preenchido; arquivo carregado; estado de envio; validação de campos obrigatórios não preenchidos.
+NAVEGAÇÃO:
+- Sucessora de #355; ao enviar com sucesso, avança para #357 (/memorial/acompanhamento).
+PERMISSÕES:
+- Usuário autenticado na Flow.
+SEGURANÇA E PRIVACIDADE:
+- Documentos armazenados em bucket seguro com criptografia em repouso e acesso exclusivo aos analistas de segurança da FLOW.
+- Proibição estrita de acesso público a certidões ou dados pessoais anexados.
+OBSERVAÇÕES:
+- Suporta múltiplos tipos de comprovação documental (certidão de óbito, obituário ou registro governamental).
+
+----------------------------------------------------------------------
+TELA #357
+----------------------------------------------------------------------
+ID: 357
+NOME: Acompanhamento da Solicitação
+ROTA: /memorial/acompanhamento (alias: /app/memorial/acompanhamento)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Disponibilizar painel transparente para o solicitante acompanhar o status, prazos e etapas de conferência dos documentos enviados até o veredito final da equipe.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Acompanhamento da Solicitação".
+  * Subtítulo: "Veja o status da sua solicitação."
+- Linha do tempo (Stepper de auditoria com 5 estados):
+  * Etapa 1 [Concluída - Check verde]: "Solicitação enviada" — 20/06/2026 14:32
+  * Etapa 2 [Concluída - Check verde]: "Documentação recebida" — 20/06/2026 14:35
+  * Etapa 3 [Em andamento - Marcador azul ativo]: "Em análise" com descrição de prazo: "Nossa equipe está analisando os documentos. Prazo médio: até 3 dias úteis."
+  * Etapa 4 [Aguardando - Marcador neutro]: "Aguardando aprovação"
+  * Etapa 5 [Aguardando - Marcador neutro]: "Conclusão"
+- Card informativo de contato:
+  * Ícone informativo (i) e aviso: "Você será notificado por e-mail e na Flow sobre o resultado da análise."
+AÇÕES:
+- Acompanhar atualização das fases; consultar prazo remanescente; atualizar página.
+ESTADOS:
+- Em análise (apresentado no catálogo); documentos aceitos; pendência documental; solicitação aprovada (#363).
+NAVEGAÇÃO:
+- Acessível por link direto enviado por e-mail, notificação push ou menu memorial; conduz para #363 na aprovação.
+PERMISSÕES:
+- Restrito ao solicitante autenticado associado ao número do protocolo.
+SEGURANÇA E PRIVACIDADE:
+- Visualização restrita ao titular do protocolo; impede que terceiros bisbilhotem o status de análise de contas alheias.
+OBSERVAÇÕES:
+- Prazo médio explícito no design do catálogo: até 3 dias úteis.
+
+----------------------------------------------------------------------
+TELA #358
+----------------------------------------------------------------------
+ID: 358
+NOME: Configurações de Legado (em vida)
+ROTA: /configuracoes/memorial (alias: /app/configuracoes/memorial)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Permitir que o titular da conta decida antecipadamente, em vida, o destino digital do seu perfil, publicações, mídias, conversas privadas e indique um Contato de Legado de confiança.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Configurações de Legado".
+  * Subtítulo: "Defina o que deve acontecer com sua conta no futuro."
+- Lista de opções com chaves de alternância (Toggle switches):
+  * 1. "Desejo que minha conta seja memorializada" [Toggle ON / Ativo]
+  * 2. "Indicar um contato de legado" [Toggle ON / Ativo]
+  * 3. "Permitir que minhas publicações permaneçam" [Toggle ON / Ativo]
+  * 4. "Permitir fotos e vídeos" [Toggle ON / Ativo]
+  * 5. "Remover minhas mensagens privadas" [Toggle ON / Ativo]
+  * 6. "Remover meus dados após determinado período" [Toggle OFF / Inativo]
+- Seção de indicação de Representante:
+  * Label: "Contato de legado".
+  * Campo de busca/input: "Nome e e-mail do contato".
+  * Botão de inclusão: "Adicionar" (estilo sólido azul).
+- Botão de salvamento:
+  * "Salvar configurações" com gradiente institucional.
+AÇÕES:
+- Ligar/desligar cada uma das 6 opções de legado digital.
+- Inserir nome e e-mail do contato escolhido e clicar em "Adicionar".
+- Clicar em "Salvar configurações" para persistir as diretrizes no perfil.
+ESTADOS:
+- Configuração padrão carregada; opções modificadas; contato adicionado à lista; salvamento concluído com notificação toast.
+NAVEGAÇÃO:
+- Acessível pelo menu lateral em Configurações > Conta > Memorial (#317 / #358).
+PERMISSÕES:
+- Estritamente exclusivo do titular em vida devidamente autenticado com sessão segura.
+SEGURANÇA E PRIVACIDADE:
+- AUTODETERMINAÇÃO DIGITAL: a opção "Remover minhas mensagens privadas" garante que nenhuma correspondência confidencial seja legada ou exposta a terceiros após a morte.
+- Nenhuma senha, token ou chave é repassada ao contato de legado.
+OBSERVAÇÕES:
+- Na opção 6 ("Remover meus dados após determinado período"), o período exato em dias/meses está categorizado como "Não especificado no catálogo visual".
+
+----------------------------------------------------------------------
+TELA #359
+----------------------------------------------------------------------
+ID: 359
+NOME: Representante / Contato de Legado
+ROTA: /memorial/representante (alias: /app/memorial/representante)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Notificar e esclarecer ao usuário indicado quais são as suas funções, responsabilidades e limites de atuação como Contato de Legado de uma conta na FLOW.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Meu papel como representante".
+  * Subtítulo: "Você foi indicado como contato de legado de Carlos Eduardo."
+- Card de identificação do Representante:
+  * Foto de perfil circular de Mariana Silva.
+  * Nome do contato: "Mariana Silva".
+  * Badge/etiqueta: "Contato de legado".
+  * E-mail verificado: "mariana.silva@email.com".
+- Lista de atribuições e permissões com checks verdes circulares:
+  * "Solicitar transformação em memorial"
+  * "Gerenciar homenagens"
+  * "Manter publicações autorizadas"
+  * "Solicitar remoção de conteúdo"
+  * "Receber comunicados da Flow"
+- Botão de ação:
+  * "Ver orientações" em largura total com gradiente FLOW.
+AÇÕES:
+- Clicar em "Ver orientações" para acessar o manual de apoio e conduta ética; aceitar ou declinar do encargo de representante.
+ESTADOS:
+- Representante ativo; diretrizes exibidas.
+NAVEGAÇÃO:
+- Acessível através de convite por e-mail ou notificação interna da Flow; conduz à central de orientações #364.
+PERMISSÕES:
+- Exclusivo do usuário registrado como Contato de Legado da conta em questão.
+SEGURANÇA E PRIVACIDADE:
+- LIMITES ESTRITOS DO REPRESENTANTE:
+  * NÃO tem permissão de login com a identidade do falecido.
+  * NÃO tem acesso às mensagens privadas de chat/DM.
+  * NÃO tem acesso a credenciais, histórico de pesquisas ou senhas.
+  * Papel focado exclusivamente em curadoria de homenagens e respeito à memória.
+OBSERVAÇÕES:
+- Mariana Silva exemplifica visualmente o papel de representante no catálogo.
+
+----------------------------------------------------------------------
+TELA #360
+----------------------------------------------------------------------
+ID: 360
+NOME: Administração do Memorial
+ROTA: /memorial/administracao (alias: /app/memorial/administracao)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Fornecer painel centralizado de governança e moderação para que o contato de legado gerencie as homenagens recebidas, fotos, vídeos, relatórios e privacidade do perfil memorial.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Administração do Memorial".
+  * Subtítulo: "Gerencie o perfil memorial de Carlos Eduardo."
+- Menu modular de ferramentas administrativas (cards horizontais com ícones temáticos e setas chevron '>'):
+  * 1. "[Ícone chat] Gerenciar homenagens  >"
+  * 2. "[Ícone escudo] Aprovar publicações  >"
+  * 3. "[Ícone foto] Gerenciar fotos e vídeos  >"
+  * 4. "[Ícone engrenagem] Configurar privacidade  >"
+  * 5. "[Ícone lixeira] Solicitar remoção de conteúdo  >"
+  * 6. "[Ícone gráfico] Visualizar relatórios  >"
+- Botão principal:
+  * "Acessar painel" em destaque inferior.
+AÇÕES:
+- Clicar em cada módulo para abrir as ferramentas específicas de moderação; acionar "Acessar painel" para o dashboard completo.
+ESTADOS:
+- Painel ativo; itens com badges numéricos de itens pendentes de aprovação quando houver.
+NAVEGAÇÃO:
+- Acessível pelo perfil memorial (#352) ou pelo painel do representante (#359).
+PERMISSÕES:
+- Apenas o Contato de Legado autenticado ou moderadores institucionais autorizados da FLOW.
+SEGURANÇA E PRIVACIDADE:
+- Todas as exclusões ou aprovações de conteúdo geram log de auditoria no sistema.
+- Impede modificação de postagens originais feitas pelo usuário em vida.
+OBSERVAÇÕES:
+- Interface minimalista e limpa, facilitando ações sem sobrecarga emocional ao responsável.
+
+----------------------------------------------------------------------
+TELA #361
+----------------------------------------------------------------------
+ID: 361
+NOME: Denunciar Memorial
+ROTA: /memorial/denunciar (alias: /app/memorial/denunciar)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Oferecer canal de denúncia rápido para que qualquer membro reporte perfis memoriais indevidos, dados incorretos, homenagens ofensivas ou tentativas de golpe.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Denunciar memorial".
+  * Subtítulo: "Ajude-nos a manter um ambiente seguro e respeitoso."
+- Formulário de denúncia:
+  * Campo "Motivo da denúncia": dropdown ("Selecione o motivo...").
+  * Campo "Descrição (opcional)": textarea com placeholder "Descreva o motivo da denúncia...".
+  * Seção "Adicionar evidências (opcional)": botões rápidos para anexar provas: "[Foto]", "[Vídeo]", "[Arquivo]".
+- Botão de envio:
+  * "Enviar denúncia" em largura total com gradiente FLOW.
+AÇÕES:
+- Escolher a categoria da denúncia; descrever o ocorrido; anexar capturas de tela/evidências; enviar denúncia.
+ESTADOS:
+- Inicial; preenchido; anexos carregados; submetido com confirmação e número de ticket gerado.
+NAVEGAÇÃO:
+- Acessível via menu de opções de três pontos do perfil memorial (#352).
+PERMISSÕES:
+- Aberto a qualquer usuário autenticado da Flow.
+SEGURANÇA E PRIVACIDADE:
+- Sigilo absoluto do denunciante; a identidade de quem denunciou não é revelada ao representante do memorial.
+- Notificação imediata para a fila de moderação de urgência da FLOW.
+OBSERVAÇÕES:
+- Integrado às regras globais da Central de Segurança da Flow.
+
+----------------------------------------------------------------------
+TELA #362
+----------------------------------------------------------------------
+ID: 362
+NOME: Solicitar Remoção
+ROTA: /memorial/remocao (alias: /app/memorial/remocao)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Canal formal para solicitação de desativação e remoção integral de uma conta memorializada caso a família assim decida ou por decisão judicial fundamentada.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Solicitar remoção do memorial".
+  * Subtítulo: "Se você acredita que este memorial deve ser removido, solicite uma análise."
+- Campos de formulário:
+  * Campo "Motivo da solicitação": select dropdown ("Selecione o motivo...").
+  * Campo "Descrição": textarea ("Explique o motivo da solicitação...").
+- Box de alerta com ícone de triângulo de aviso (⚠️):
+  * "Todas as solicitações serão analisadas pela nossa equipe."
+- Botão de submissão:
+  * "Enviar solicitação" (estilo sólido gradiente azul/ciano).
+AÇÕES:
+- Selecionar motivação da remoção; redigir justificativa; submeter pedido.
+ESTADOS:
+- Formulário vazio; campos preenchidos; submetendo; confirmação de abertura de processo de revisão legal.
+NAVEGAÇÃO:
+- Acessível a partir da administração do memorial (#360) ou da central de ajuda (#364).
+PERMISSÕES:
+- Familiares imediatos com comprovação documental, herdeiros ou representante de legado.
+SEGURANÇA E PRIVACIDADE:
+- Procedimento com dupla checagem para evitar exclusões maliciosas ou perda irreversível de memórias legítimas.
+OBSERVAÇÕES:
+- Alerta visual em tom avermelhado/âmbar para destacar a seriedade do pedido.
+
+----------------------------------------------------------------------
+TELA #363
+----------------------------------------------------------------------
+ID: 363
+NOME: Confirmação da Memorialização
+ROTA: /memorial/confirmacao (alias: /app/memorial/confirmacao)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Notificar o solicitante e a família de que a verificação dos documentos foi concluída com sucesso e a conta foi oficialmente convertida em perfil memorial.
+COMPONENTES:
+- Ícone circular verde de sucesso com checkmark estilizado [✔️].
+- Título de destaque: "Conta transformada em Memorial".
+- Subtítulo confirmatório: "O perfil de Carlos Eduardo agora é um memorial."
+- Mensagem de gratidão e consideração: "Suas memórias continuarão vivas na Flow. Agradecemos por fazer parte dessa história."
+- Botão principal:
+  * "Ver memorial" em gradiente azul institucional.
+AÇÕES:
+- Clicar em "Ver memorial": redireciona para a página oficial memorial #352 (/memorial/carlos.eduardo).
+ESTADOS:
+- Tela de estado final de sucesso da jornada de memorialização.
+NAVEGAÇÃO:
+- Conclusão do fluxo iniciado na tela #355 e acompanhado na #357; conduz diretamente a #352.
+PERMISSÕES:
+- Apresentada ao solicitante após a validação da equipe Flow.
+SEGURANÇA E PRIVACIDADE:
+- Ponto em que ocorre o bloqueio definitivo do login com as senhas anteriores do titular; emissão do certificado digital de memorialização.
+OBSERVAÇÕES:
+- Design limpo, solene e reconfortante, evitando elementos visuais festivos incompatíveis com o momento.
+
+----------------------------------------------------------------------
+TELA #364
+----------------------------------------------------------------------
+ID: 364
+NOME: Ajuda e Orientações
+ROTA: /memorial/ajuda (alias: /app/memorial/ajuda)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Esclarecer dúvidas legais, técnicas e éticas frequentes sobre o funcionamento do Memorial da Flow e oferecer contato direto com a equipe de suporte ao luto.
+COMPONENTES:
+- Cabeçalho:
+  * Título: "Ajuda sobre o Memorial".
+  * Subtítulo: "Tire suas dúvidas sobre o processo de memorialização."
+- Lista de sanfonas/acordeões de Perguntas Frequentes (FAQs com ícone de documento e seta ▼):
+  * 1. "O que é o Memorial da Flow?"
+  * 2. "Quem pode solicitar?"
+  * 3. "Quais documentos são necessários?"
+  * 4. "O que acontece com os dados do usuário?"
+  * 5. "É possível remover o memorial?"
+  * 6. "Como indicar um contato de legado?"
+- Botão de atendimento humano:
+  * "Falar com o suporte" em largura total com gradiente roxo/azul.
+AÇÕES:
+- Expandir/recolher tópicos de dúvidas; clicar em "Falar com o suporte" para iniciar atendimento especializado.
+ESTADOS:
+- Tópicos colapsados; tópico aberto exibindo texto explicativo; direcionamento para atendimento.
+NAVEGAÇÃO:
+- Acessível pelo rodapé, pela tela #351 ou pela Central de Ajuda global da Flow.
+PERMISSÕES:
+- Acesso público irrestrito a qualquer visitante ou membro.
+SEGURANÇA E PRIVACIDADE:
+- Orientações detalhadas sobre as leis de proteção de dados (LGPD / GDPR) e respeito à privacidade pós-vida.
+OBSERVAÇÕES:
+- 6 perguntas fundamentais visíveis com precisão na interface gráfica de referência.
+
+----------------------------------------------------------------------
+TELA #365
+----------------------------------------------------------------------
+ID: 365
+NOME: Mensagem Final
+ROTA: /memorial/mensagem-final (alias: /app/memorial/mensagem-final)
+MÓDULO: Memorial do Usuário
+OBJETIVO: Prover tela de encerramento institucional, sintetizando a filosofia humana e o compromisso da plataforma FLOW com a perenidade das memórias e histórias de sua comunidade.
+COMPONENTES:
+- Fundo atmosférico em estilo fotográfico de nascer do sol dourado / luz suave.
+- Headline de abertura: "Mais que uma rede. Uma lembrança que permanece."
+- Logotipo oficial FLOW com símbolo e tipografia em destaque.
+- Texto manifesto institucional: "Na Flow, acreditamos que boas histórias nunca terminam. Elas continuam inspirando pessoas, mesmo quando a presença física se vai."
+- Ícone de coração violeta/magenta estilizado "💜".
+- Botão de ação (CTA):
+  * "Conheça o Memorial" com gradiente da marca.
+AÇÕES:
+- Clicar em "Conheça o Memorial": retorna à página inicial do Memorial #351.
+ESTADOS:
+- Exibição visual estática e contemplativa.
+NAVEGAÇÃO:
+- Tela de fechamento do catálogo; conecta-se de volta a #351 (/memorial).
+PERMISSÕES:
+- Acesso público.
+SEGURANÇA E PRIVACIDADE:
+- Tela exclusivamente institucional e comemorativa; nenhum dado é requisitado ou retido.
+OBSERVAÇÕES:
+- Encerra o catálogo oficial FLOW_CATALOGO_15MEMORIAL (telas 351 a 365) com selo "FLOW | Catálogo de Telas | 351 - 365 ♡".

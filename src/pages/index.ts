@@ -6,3 +6,4 @@ export { default as PlatformModules } from '../app/PlatformModules';
 export { default as AdminApp } from '../admin/AdminApp';
 export { default as ModuleCenter } from '../admin/ModuleCenter';
 export { default as SiteEditor } from '../admin/SiteEditor';
+export { default as MemorialModule } from '../app/memorial/MemorialModule';

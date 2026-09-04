@@ -1,0 +1,132 @@
+/* FLOW — TopBar Component Styles */
+.flow-topbar {
+  height: var(--flow-topbar-height, 64px);
+  background: var(--flow-surface, #FFFFFF);
+  border-bottom: 1px solid var(--flow-border, #E2E8F0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: var(--flow-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.04));
+}
+
+.flow-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  max-width: 460px;
+}
+
+.flow-topbar-search-form {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.flow-topbar-search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--flow-text-muted, #64748B);
+  pointer-events: none;
+}
+
+.flow-topbar-search-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 16px 0 42px;
+  border-radius: var(--flow-radius-full, 999px);
+  border: 1px solid var(--flow-border, #E2E8F0);
+  background: var(--flow-background, #F8FAFC);
+  color: var(--flow-text, #0F172A);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.flow-topbar-search-input:focus {
+  border-color: var(--flow-blue, #3B82F6);
+  background: var(--flow-surface, #FFFFFF);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.flow-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flow-topbar-icon-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--flow-text-secondary, #475569);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.flow-topbar-icon-btn:hover {
+  background: var(--flow-color-surface-hover, #F8FAFC);
+  color: var(--flow-blue, #3B82F6);
+}
+
+.flow-topbar-create-btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--flow-radius-full, 999px);
+  background: var(--flow-blue, #3B82F6);
+  color: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.flow-topbar-create-btn:hover {
+  background: #2563EB;
+}
+
+.flow-topbar-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 4px 4px;
+  border-radius: var(--flow-radius-full, 999px);
+  border: 1px solid var(--flow-border, #E2E8F0);
+  background: var(--flow-surface, #FFFFFF);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.flow-topbar-user-chip:hover {
+  background: var(--flow-background, #F8FAFC);
+}
+
+.flow-topbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.flow-topbar-badge-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F43F5E;
+  border: 2px solid #FFFFFF;
+}

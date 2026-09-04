@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" role="img" aria-hidden="true">
+<defs>
+  <linearGradient id="fg" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#4F7FFF"/>
+    <stop offset="33%" stop-color="#8B5CF6"/>
+    <stop offset="66%" stop-color="#D946EF"/>
+    <stop offset="100%" stop-color="#EC4899"/>
+  </linearGradient>
+  <linearGradient id="fgH" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#4F7FFF"/>
+    <stop offset="50%" stop-color="#8B5CF6"/>
+    <stop offset="100%" stop-color="#EC4899"/>
+  </linearGradient>
+  <radialGradient id="rg" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#D946EF"/>
+    <stop offset="100%" stop-color="#4F7FFF"/>
+  </radialGradient>
+</defs>
+<path d="M20.5 7.5 L3.5 7.5 C2.7 7.5 2 8.2 2 9 L2 11 C2.8 11 3.5 11.7 3.5 12.5 C3.5 13.3 2.8 14 2 14 L2 16 C2 16.8 2.7 17.5 3.5 17.5 L20.5 17.5 C21.3 17.5 22 16.8 22 16 L22 14 C21.2 14 20.5 13.3 20.5 12.5 C20.5 11.7 21.2 11 22 11 L22 9 C22 8.2 21.3 7.5 20.5 7.5Z" stroke="url(#fg)" stroke-width="2" stroke-linejoin="round"/><path d="M9 12.5 L15 12.5" stroke="url(#fg)" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 2"/>
+</svg>

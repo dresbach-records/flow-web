@@ -146,18 +146,12 @@
 	.flow-post-caption { overflow-wrap: anywhere; }
 }
 
-:root[data-theme="light"] .flow-social {
-	--bg: #f5f8fb;
-	--panel: #ffffff;
-	--panel-raised: #f0f5f8;
-	--line: #dfe7ef;
-	--text: #172334;
-	--muted: #64748b;
-	--accent: #08aeb4;
+.flow-social {
+	--bg: var(--flow-color-bg, #F8FAFC);
+	--panel: var(--flow-color-surface, #FFFFFF);
+	--panel-raised: var(--flow-color-surface-hover, #F1F5F9);
+	--line: var(--flow-color-border, #E2E8F0);
+	--text: var(--flow-color-text, #0F172A);
+	--muted: var(--flow-color-text-secondary, #64748B);
+	--accent: var(--flow-color-primary, #3B82F6);
 }
-:root[data-theme="light"] .flow-social-header { background: rgba(255,255,255,.94); }
-:root[data-theme="light"] .flow-social .flow-search,
-:root[data-theme="light"] .flow-social .flow-composer textarea,
-:root[data-theme="light"] .flow-social .flow-comments-panel input { background: var(--panel-raised); color: var(--text); }
-:root[data-theme="light"] .flow-social .flow-header-nav button:hover,
-:root[data-theme="light"] .flow-social .flow-header-nav .is-active { background: #e7f7f7; }

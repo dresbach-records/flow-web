@@ -1,0 +1,77 @@
+/**
+ * FLOW Master Design System — Official Visual Tokens (Reference Clone)
+ * LIGHT UI ONLY (Desktop 1440+)
+ */
+
+:root {
+  /* ── Tokens Oficiais FLOW Light UI ── */
+  --flow-background: #F8FAFC;
+  --flow-surface: #FFFFFF;
+  --flow-border: #E2E8F0;
+  --flow-border-soft: #EDF2F7;
+
+  --flow-text: #0F172A;
+  --flow-text-secondary: #475569;
+  --flow-text-muted: #64748B;
+
+  --flow-blue: #3B82F6;
+  --flow-blue-primary: #4F7FFF;
+
+  --flow-cyan: #06B6D4;
+  --flow-cyan-bright: #20D9D2;
+
+  --flow-gradient: linear-gradient(
+    135deg,
+    #4F7FFF 0%,
+    #8B5CF6 50%,
+    #D946EF 100%
+  );
+
+  /* ── Variáveis Compatíveis ── */
+  --flow-color-primary: var(--flow-blue);
+  --flow-color-primary-hover: #1D4ED8;
+  --flow-color-primary-light: #EBF3FF;
+  --flow-color-primary-focus: rgba(37, 99, 235, 0.18);
+
+  --flow-color-secondary: #8B5CF6;
+  --flow-color-pink: #EC4899;
+  --flow-color-accent: var(--flow-cyan);
+
+  --flow-color-bg: var(--flow-background);
+  --flow-color-surface: var(--flow-surface);
+  --flow-color-surface-hover: #F8FAFC;
+  --flow-color-surface-subtle: #F1F5F9;
+  --flow-color-border: var(--flow-border);
+  --flow-color-border-subtle: var(--flow-border-soft);
+  --flow-color-border-strong: #CBD5E1;
+
+  --flow-color-text: var(--flow-text);
+  --flow-color-text-secondary: var(--flow-text-secondary);
+  --flow-color-text-muted: var(--flow-text-muted);
+  --flow-color-text-inverse: #FFFFFF;
+
+  --flow-color-badge: #F43F5E;
+  --flow-color-success: #10B981;
+
+  --flow-gradient-brand: var(--flow-gradient);
+  --flow-gradient-subtle: linear-gradient(135deg, rgba(79, 127, 255, 0.08) 0%, rgba(217, 70, 239, 0.08) 100%);
+
+  /* ── Layout Dimensões Canônicas ── */
+  --flow-topbar-height: 64px;
+  --flow-sidebar-width: 260px;
+  --flow-right-rail-width: 320px;
+  --flow-content-max-width: 720px;
+
+  /* ── Raios e Sombras ── */
+  --flow-radius-sm: 8px;
+  --flow-radius-md: 12px;
+  --flow-radius-lg: 16px;
+  --flow-radius-xl: 20px;
+  --flow-radius-full: 999px;
+
+  --flow-shadow-card: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
+  --flow-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.05);
+  --flow-shadow-float: 0 12px 32px rgba(15, 23, 42, 0.10);
+
+  --flow-font-sans: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
