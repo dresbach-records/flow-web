@@ -73,16 +73,12 @@ export async function registerUser(input: RegisterInput): Promise<FlowUser> {
     createdAt: serverTimestamp(),
   });
   await sendEmailVerification(credential.user).catch(() => undefined);
-  const flowUser = await toFlowUser(credential.user);
-  localStorage.setItem('flow.auth', '1');
-  return flowUser;
+  return toFlowUser(credential.user);
 }
 
 export async function loginUser(email: string, password: string): Promise<FlowUser> {
   const credential = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
-  const flowUser = await toFlowUser(credential.user);
-  localStorage.setItem('flow.auth', '1');
-  return flowUser;
+  return toFlowUser(credential.user);
 }
 
 const googleSignupStorageKey = 'flow-google-signup';
@@ -117,9 +113,7 @@ export async function completeGoogleSignIn(): Promise<FlowUser | null> {
     });
   }
 
-  const flowUser = await toFlowUser(credential.user);
-  localStorage.setItem('flow.auth', '1');
-  return flowUser;
+  return toFlowUser(credential.user);
 }
 
 export async function loginAdmin(email: string, password: string): Promise<FlowUser> {
@@ -127,16 +121,13 @@ export async function loginAdmin(email: string, password: string): Promise<FlowU
   const flowUser = await toFlowUser(credential.user);
   if (flowUser.role !== 'admin' && flowUser.role !== 'moderator') {
     await signOut(firebaseAuth);
-    localStorage.removeItem('flow.auth');
     throw new Error('Esta conta não tem permissão administrativa.');
   }
-  localStorage.setItem('flow.auth', '1');
   return flowUser;
 }
 
 export async function logout(): Promise<void> {
   await signOut(firebaseAuth);
-  localStorage.removeItem('flow.auth');
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
@@ -150,11 +141,9 @@ export async function resendVerification(): Promise<void> {
 export function onFlowAuthChanged(callback: (user: FlowUser | null) => void): () => void {
   return onAuthStateChanged(firebaseAuth, async (user) => {
     if (!user) {
-      localStorage.removeItem('flow.auth');
       callback(null);
       return;
     }
-    localStorage.setItem('flow.auth', '1');
     callback(await toFlowUser(user));
   });
 }
