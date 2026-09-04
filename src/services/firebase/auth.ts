@@ -12,7 +12,7 @@ import {
   type User,
 } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { firebaseAuth, firestore } from './config';
+import { firebaseAuth, requireFirebaseAuth, requireFirestore } from './config';
 
 export type AccountType = 'individual' | 'business';
 
@@ -41,6 +41,7 @@ export type RegisterInput = {
 };
 
 export async function toFlowUser(user: User): Promise<FlowUser> {
+  const firestore = requireFirestore();
   const snapshot = await getDoc(doc(firestore, 'users', user.uid));
   const profile = snapshot.exists() ? snapshot.data() : {};
   return {
@@ -56,7 +57,9 @@ export async function toFlowUser(user: User): Promise<FlowUser> {
 
 export async function registerUser(input: RegisterInput): Promise<FlowUser> {
   if (!input.acceptedTerms) throw new Error('É necessário aceitar os termos para criar a conta.');
-  const credential = await createUserWithEmailAndPassword(firebaseAuth, input.email.trim(), input.password);
+  const auth = requireFirebaseAuth();
+  const firestore = requireFirestore();
+  const credential = await createUserWithEmailAndPassword(auth, input.email.trim(), input.password);
   await updateProfile(credential.user, { displayName: input.name.trim() });
   await setDoc(doc(firestore, 'users', credential.user.uid), {
     name: input.name.trim(),
@@ -79,7 +82,8 @@ export async function registerUser(input: RegisterInput): Promise<FlowUser> {
 }
 
 export async function loginUser(email: string, password: string): Promise<FlowUser> {
-  const credential = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+  const auth = requireFirebaseAuth();
+  const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
   const flowUser = await toFlowUser(credential.user);
   localStorage.setItem('flow.auth', '1');
   return flowUser;
@@ -88,13 +92,16 @@ export async function loginUser(email: string, password: string): Promise<FlowUs
 const googleSignupStorageKey = 'flow-google-signup';
 
 export async function loginWithGoogle(accountType: AccountType = 'individual', acceptedTerms = false): Promise<void> {
+  const auth = requireFirebaseAuth();
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   sessionStorage.setItem(googleSignupStorageKey, JSON.stringify({ accountType, acceptedTerms }));
-  await signInWithRedirect(firebaseAuth, provider);
+  await signInWithRedirect(auth, provider);
 }
 
 export async function completeGoogleSignIn(): Promise<FlowUser | null> {
+  if (!firebaseAuth) return null;
+  const firestore = requireFirestore();
   const credential = await getRedirectResult(firebaseAuth);
   if (!credential) return null;
 
@@ -110,6 +117,7 @@ export async function completeGoogleSignIn(): Promise<FlowUser | null> {
     await setDoc(userRef, {
       name: credential.user.displayName ?? null,
       email: credential.user.email,
+      photoURL: credential.user.photoURL ?? null,
       accountType,
       role: 'user',
       acceptedTermsAt: acceptedTerms ? serverTimestamp() : null,
@@ -123,10 +131,11 @@ export async function completeGoogleSignIn(): Promise<FlowUser | null> {
 }
 
 export async function loginAdmin(email: string, password: string): Promise<FlowUser> {
-  const credential = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+  const auth = requireFirebaseAuth();
+  const credential = await signInWithEmailAndPassword(auth, email.trim(), password);
   const flowUser = await toFlowUser(credential.user);
   if (flowUser.role !== 'admin' && flowUser.role !== 'moderator') {
-    await signOut(firebaseAuth);
+    await signOut(auth);
     localStorage.removeItem('flow.auth');
     throw new Error('Esta conta não tem permissão administrativa.');
   }
@@ -135,26 +144,40 @@ export async function loginAdmin(email: string, password: string): Promise<FlowU
 }
 
 export async function logout(): Promise<void> {
-  await signOut(firebaseAuth);
+  const auth = requireFirebaseAuth();
+  await signOut(auth);
   localStorage.removeItem('flow.auth');
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
-  await sendPasswordResetEmail(firebaseAuth, email.trim());
+  const auth = requireFirebaseAuth();
+  await sendPasswordResetEmail(auth, email.trim());
 }
 
 export async function resendVerification(): Promise<void> {
-  if (firebaseAuth.currentUser) await sendEmailVerification(firebaseAuth.currentUser);
+  const auth = requireFirebaseAuth();
+  if (auth.currentUser) await sendEmailVerification(auth.currentUser);
 }
 
 export function onFlowAuthChanged(callback: (user: FlowUser | null) => void): () => void {
+  if (!firebaseAuth) {
+    localStorage.removeItem('flow.auth');
+    callback(null);
+    return () => undefined;
+  }
+
   return onAuthStateChanged(firebaseAuth, async (user) => {
     if (!user) {
       localStorage.removeItem('flow.auth');
       callback(null);
       return;
     }
-    localStorage.setItem('flow.auth', '1');
-    callback(await toFlowUser(user));
+    try {
+      localStorage.setItem('flow.auth', '1');
+      callback(await toFlowUser(user));
+    } catch (error) {
+      console.error('[FLOW] Falha ao carregar perfil autenticado.', error);
+      callback(null);
+    }
   });
 }
