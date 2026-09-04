@@ -11,15 +11,19 @@ export type FlowAssetName =
   | 'video' | 'volume';
 
 export function getFlowTheme(): FlowTheme {
-  return document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+  return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
 }
 
 export function getFlowAsset(name: FlowAssetName, theme: FlowTheme = getFlowTheme()): string {
   return `/flow-assets-svg/icons/${theme}/${name}.svg`;
 }
 
-export function getFlowLogo(theme: FlowTheme = getFlowTheme()): string {
-  return `/flow-assets-svg/brand/${theme}/flow-logo.svg`;
+/**
+ * The official Flow logo is theme-safe and uses the current brand gradient.
+ * Keep the URL centralized so headers, auth, PWA and profile surfaces never drift.
+ */
+export function getFlowLogo(_theme: FlowTheme = getFlowTheme()): string {
+  return '/flow-logo.svg';
 }
 
 type FlowIconProps = Omit<ComponentPropsWithoutRef<'img'>, 'src' | 'alt'> & { name: FlowAssetName; size?: number; alt?: string };

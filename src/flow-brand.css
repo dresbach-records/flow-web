@@ -1,0 +1,245 @@
+/* FLOW Brand System — Light-first visual foundation */
+:root {
+  color-scheme: light;
+  --flow-primary: #2563eb;
+  --flow-primary-hover: #1d4ed8;
+  --flow-secondary: #7c3aed;
+  --flow-accent: #ec0ab7;
+  --flow-purple: #8b5cf6;
+  --flow-violet: #6d28d9;
+  --flow-magenta: #d946ef;
+  --flow-pink: #f72585;
+  --flow-blue: #0ea5ff;
+  --flow-cyan: #06b6d4;
+  --flow-gradient: linear-gradient(135deg, #0ea5ff 0%, #2563eb 30%, #7c3aed 62%, #ec0ab7 100%);
+  --flow-gradient-soft: linear-gradient(135deg, #eaf4ff 0%, #f4edff 52%, #fff0fa 100%);
+  --flow-background: #f7f9fc;
+  --flow-surface: #ffffff;
+  --flow-surface-secondary: #f4f7fb;
+  --flow-border: #e2e8f0;
+  --flow-text: #111827;
+  --flow-text-secondary: #5f6f85;
+  --flow-muted: #8a97aa;
+  --flow-success: #16a34a;
+  --flow-warning: #d97706;
+  --flow-danger: #dc2626;
+  --flow-radius-sm: 10px;
+  --flow-radius-md: 14px;
+  --flow-radius-lg: 18px;
+  --flow-radius-xl: 24px;
+  --flow-shadow-card: 0 8px 30px rgba(31, 50, 81, .07);
+  --flow-shadow-float: 0 18px 55px rgba(31, 50, 81, .13);
+  --flow-focus: 0 0 0 4px rgba(124, 58, 237, .14);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --flow-background: #080b14;
+  --flow-surface: #101522;
+  --flow-surface-secondary: #151b2a;
+  --flow-border: #273047;
+  --flow-text: #f7f9ff;
+  --flow-text-secondary: #aab5c9;
+  --flow-muted: #7f8ba3;
+  --flow-shadow-card: 0 10px 35px rgba(0,0,0,.24);
+  --flow-shadow-float: 0 24px 70px rgba(0,0,0,.35);
+}
+
+html, body, #root { min-height: 100%; }
+html { background: var(--flow-background); }
+body {
+  background: var(--flow-background);
+  color: var(--flow-text);
+  overflow-x: hidden;
+}
+button, input, textarea, select { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: none;
+  box-shadow: var(--flow-focus);
+}
+
+/* Shared Flow logo treatment */
+.flow-brand img,
+.flow-auth-logo img,
+.flow-auth-card-logo {
+  object-fit: contain;
+  max-width: 100%;
+}
+.flow-brand img { filter: none; }
+
+/* Social shell */
+.flow-social {
+  --bg: var(--flow-background);
+  --panel: var(--flow-surface);
+  --panel-raised: var(--flow-surface-secondary);
+  --line: var(--flow-border);
+  --text: var(--flow-text);
+  --muted: var(--flow-text-secondary);
+  --accent: var(--flow-primary);
+  background: var(--flow-background);
+  color: var(--flow-text);
+}
+.flow-social-header {
+  background: rgba(255,255,255,.88);
+  border-bottom-color: var(--flow-border);
+  box-shadow: 0 1px 18px rgba(31,50,81,.04);
+}
+:root[data-theme="dark"] .flow-social-header {
+  background: rgba(8,11,20,.88);
+}
+.flow-social .flow-search {
+  background: var(--flow-surface-secondary);
+  border-color: var(--flow-border);
+  border-radius: 999px;
+}
+.flow-social .flow-search:focus-within {
+  border-color: var(--flow-secondary);
+  box-shadow: var(--flow-focus);
+}
+.flow-social .flow-create-top,
+.flow-social .flow-post-actions .flow-publish,
+.flow-social .flow-follow-primary {
+  background: var(--flow-gradient) !important;
+  color: #fff !important;
+}
+.flow-social .flow-sidebar-item.active,
+.flow-social .flow-sidebar-item:hover {
+  background: var(--flow-gradient-soft);
+  color: var(--flow-secondary);
+}
+:root[data-theme="dark"] .flow-social .flow-sidebar-item.active,
+:root[data-theme="dark"] .flow-social .flow-sidebar-item:hover {
+  background: rgba(124,58,237,.14);
+  color: #c4b5fd;
+}
+.flow-social .flow-feed-tabs button.active {
+  background: var(--flow-gradient);
+  color: #fff;
+}
+.flow-social .flow-story-ring {
+  background: conic-gradient(#0ea5ff, #7c3aed, #ec0ab7, #f72585, #0ea5ff);
+}
+.flow-social .flow-post-card,
+.flow-social .flow-composer,
+.flow-social .flow-right-card,
+.flow-social .flow-feed-tabs {
+  border-color: var(--flow-border);
+  box-shadow: var(--flow-shadow-card);
+}
+.flow-social .flow-post-card { border-radius: var(--flow-radius-lg); }
+.flow-social .flow-composer { border-radius: var(--flow-radius-lg); }
+.flow-social .flow-avatar-small,
+.flow-social .flow-user-trigger,
+.flow-social .flow-avatar {
+  background: var(--flow-gradient);
+}
+.flow-social .flow-post-actions .liked { color: var(--flow-pink); }
+.flow-social .flow-right-title button,
+.flow-social .flow-follow { color: var(--flow-secondary) !important; }
+
+/* Public site */
+.head {
+  background: rgba(255,255,255,.9);
+  border-bottom-color: var(--flow-border);
+}
+:root[data-theme="dark"] .head { background: rgba(8,11,20,.9); }
+.gradient { background: var(--flow-gradient); }
+.eyebrow { color: var(--flow-secondary); }
+.hero h1 em, .landing h1 em, .center h2 em, .page-hero h1 em {
+  background: var(--flow-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+/* Authentication — reference-aligned, light-first */
+.flow-auth-page {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(420px, .95fr);
+  background: var(--flow-background);
+}
+.flow-auth-showcase {
+  position: relative;
+  min-height: 100dvh;
+  padding: clamp(28px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  background: var(--flow-gradient-soft);
+}
+.flow-auth-showcase::after {
+  content: "";
+  position: absolute;
+  width: min(58vw, 700px);
+  height: min(58vw, 700px);
+  right: -12%;
+  top: 15%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236,10,183,.18), rgba(37,99,235,.10) 45%, transparent 72%);
+  pointer-events: none;
+}
+.flow-auth-logo { width: 150px; height: 48px; padding: 0; position: relative; z-index: 1; }
+.flow-auth-showcase-copy { position: relative; z-index: 1; max-width: 620px; }
+.flow-auth-showcase-copy > span { display: inline-flex; gap: 8px; align-items: center; color: var(--flow-secondary); font-size: 11px; font-weight: 900; letter-spacing: 1.6px; }
+.flow-auth-showcase-copy h1 { margin: 18px 0; font-size: clamp(44px, 5.4vw, 78px); line-height: .98; letter-spacing: -4px; color: var(--flow-text); }
+.flow-auth-showcase-copy h1 em { font-style: normal; background: var(--flow-gradient); background-clip: text; -webkit-background-clip: text; color: transparent; }
+.flow-auth-showcase-copy p { max-width: 520px; color: var(--flow-text-secondary); font-size: 18px; line-height: 1.65; }
+.flow-auth-points { display: grid; gap: 12px; margin-top: 28px; color: var(--flow-text-secondary); font-weight: 700; font-size: 13px; }
+.flow-auth-points div { display: flex; align-items: center; gap: 10px; }
+.flow-auth-points svg { color: var(--flow-secondary); }
+.flow-auth-showcase > small { position: relative; z-index: 1; color: var(--flow-muted); font-size: 10px; letter-spacing: 1.2px; }
+.flow-auth-content { min-width: 0; display: grid; place-items: center; padding: 32px clamp(18px, 5vw, 70px); position: relative; }
+.flow-auth-back { position: absolute; top: 26px; left: 32px; display: inline-flex; align-items: center; gap: 7px; color: var(--flow-text-secondary); font-size: 12px; font-weight: 800; }
+.flow-auth-card { width: min(470px, 100%); padding: clamp(26px, 4vw, 42px); border: 1px solid var(--flow-border); border-radius: var(--flow-radius-xl); background: var(--flow-surface); box-shadow: var(--flow-shadow-float); }
+.flow-auth-card-logo { display: block; width: 126px; height: 44px; margin: 0 auto 20px; }
+.flow-auth-heading { text-align: center; margin-bottom: 22px; }
+.flow-auth-heading h2 { margin: 0 0 6px; color: var(--flow-text); font-size: 29px; letter-spacing: -.9px; }
+.flow-auth-heading p { margin: 0; color: var(--flow-text-secondary); font-size: 13px; }
+.flow-auth-card label { display: grid; gap: 7px; margin: 14px 0; color: var(--flow-text); font-size: 12px; font-weight: 800; }
+.flow-auth-card input { width: 100%; min-height: 48px; border: 1px solid var(--flow-border); border-radius: 12px; padding: 0 14px; background: var(--flow-surface); color: var(--flow-text); }
+.flow-auth-card input:focus { border-color: var(--flow-secondary); box-shadow: var(--flow-focus); outline: none; }
+.flow-auth-input-icon { display: flex; align-items: center; gap: 9px; min-height: 48px; padding: 0 14px; border: 1px solid var(--flow-border); border-radius: 12px; color: var(--flow-muted); }
+.flow-auth-input-icon input { min-height: 44px; border: 0; padding: 0; box-shadow: none !important; }
+.flow-auth-password { display: flex; align-items: center; border: 1px solid var(--flow-border); border-radius: 12px; overflow: hidden; }
+.flow-auth-password input { min-height: 48px; border: 0; border-radius: 0; box-shadow: none !important; }
+.flow-auth-password button { width: 48px; min-height: 48px; display: grid; place-items: center; color: var(--flow-muted); }
+.flow-auth-primary { width: 100%; min-height: 50px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; border-radius: 12px; background: var(--flow-gradient); color: #fff; font-weight: 900; box-shadow: 0 12px 25px rgba(124,58,237,.18); }
+.flow-auth-primary:disabled { opacity: .62; cursor: wait; }
+.flow-auth-google { width: 100%; min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--flow-border); border-radius: 12px; background: var(--flow-surface); color: var(--flow-text); font-weight: 800; }
+.flow-auth-google strong { color: #4285f4; font-size: 19px; }
+.flow-auth-switch { margin-top: 20px; text-align: center; color: var(--flow-text-secondary); font-size: 12px; }
+.flow-auth-switch button, .flow-auth-forgot button { color: var(--flow-secondary); font-weight: 900; }
+.flow-auth-note { display: block; margin-top: 18px; text-align: center; color: var(--flow-muted); font-size: 10px; }
+
+/* Responsive contract */
+@media (max-width: 900px) {
+  .flow-auth-page { grid-template-columns: 1fr; }
+  .flow-auth-showcase { display: none; }
+  .flow-auth-content { min-height: 100dvh; padding: 72px 16px 24px; }
+  .flow-auth-back { left: 18px; top: 20px; }
+  .flow-auth-card { box-shadow: 0 10px 35px rgba(31,50,81,.08); }
+}
+@media (max-width: 767px) {
+  .flow-social-shell { padding-left: 10px; padding-right: 10px; }
+  .flow-social-header .flow-brand { width: 92px; flex-basis: 92px; }
+  .flow-feed-column { max-width: none; }
+  .flow-post-card, .flow-composer { border-radius: 15px; }
+  .flow-post-media img, .flow-post-media video { aspect-ratio: 4 / 5; max-height: none; }
+  .flow-composer { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .flow-composer > button:not(.flow-publish) { display: none; }
+  .flow-composer .flow-publish { display: inline-flex; }
+}
+@media (max-width: 430px) {
+  .flow-social-header .flow-search input { font-size: 11px; }
+  .flow-social-header .flow-brand { width: 82px; flex-basis: 82px; }
+  .flow-header-nav button { width: 32px; }
+  .flow-post-actions { gap: 10px; }
+  .flow-post-actions button { font-size: 11px; }
+  .flow-auth-card { padding: 22px 18px; border-radius: 20px; }
+  .flow-auth-card-logo { width: 112px; }
+}
+
+/* Never allow accidental horizontal layout overflow */
+.flow-social, .flow-social-shell, .flow-feed-column, .flow-social-sidebar, .flow-social-right,
+.flow-auth-page, .flow-auth-content { min-width: 0; }
