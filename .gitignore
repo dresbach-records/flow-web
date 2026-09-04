@@ -25,6 +25,7 @@ pnpm-debug.log*
 dist/
 build/
 .vite/
+*.tsbuildinfo
 
 # Dependencies
 node_modules/
