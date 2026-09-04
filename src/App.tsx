@@ -1,8 +1,16 @@
 import React from 'react';
-import { AdminApp, AuthPage, CreatorCenter, MemorialModule, ModuleCenter, PlatformModules, ProfilePage, PublicApp, SiteEditor } from './pages';
+import { AdminApp, AuthPage, CreatorCenter, MemorialModule, PlatformModules, ProfilePage, PublicApp } from './pages';
 import SocialFeed from './app/SocialFeed';
 import ScheduleCenter from './app/ScheduleCenter';
-import { AppProvider } from './contexts/AppContext';
+import ExploreModule from './app/modules/ExploreModule';
+import ShortsModule from './app/modules/ShortsModule';
+import MessagesModule from './app/modules/MessagesModule';
+import NotificationsModule from './app/modules/NotificationsModule';
+import CommunitiesModule from './app/modules/CommunitiesModule';
+import SavedModule from './app/modules/SavedModule';
+import SettingsModule from './app/modules/SettingsModule';
+import MandatoryConsentModal from './components/consent/MandatoryConsentModal';
+import { AppProvider, useAppContext } from './contexts/AppContext';
 import { PlayerProvider } from './contexts/PlayerContext';
 import { AppLayout } from './layouts';
 import { firebaseDiagnostics, getFirebaseInitializationError } from './services/firebase/config';
@@ -53,11 +61,13 @@ export default function App() {
   }
 
   // Admin routes — unified modern shell with Firebase Auth
-  if (path.startsWith('/admin')) return (
-    <AppProvider>
-      <AdminApp />
-    </AppProvider>
-  );
+  if (path.startsWith('/admin')) {
+    return (
+      <AppProvider>
+        <AdminApp />
+      </AppProvider>
+    );
+  }
 
   // Memorial routes (root /memorial and /configuracoes/memorial)
   if (path.startsWith('/memorial') || path === '/configuracoes/memorial') {
@@ -65,9 +75,9 @@ export default function App() {
       <AppProvider>
         <PlayerProvider>
           <FirebaseRuntimeNotice />
-          <AppLayout path={path} go={navigate}>
+          <AppShellWrapper path={path} navigate={navigate}>
             <MemorialModule path={path} go={navigate} />
-          </AppLayout>
+          </AppShellWrapper>
         </PlayerProvider>
       </AppProvider>
     );
@@ -83,30 +93,74 @@ export default function App() {
     );
   }
 
-  // Authenticated /app routes — wrapped in AppLayout + PlayerProvider
-  let appContent: React.ReactNode;
-  if (path.startsWith('/app/memorial')) appContent = <MemorialModule path={path} go={navigate} />;
-  else if (path === '/app/perfil') appContent = <ProfilePage />;
-  else if (path.startsWith('/app/perfil/')) appContent = <ProfilePage uid={decodeURIComponent(path.slice('/app/perfil/'.length))} />;
-  else if (path === '/app/agendamento' || path === '/app/agendamentos') appContent = <ScheduleCenter />;
-  else if (path.startsWith('/app/criador')) appContent = <CreatorCenter />;
-  else if (path === '/app/shop' || path === '/app/loja') appContent = <PlatformModules screen={path === '/app/shop' ? 'shop' : 'seller'} />;
-  else if (path === '/app/pedidos') appContent = <PlatformModules screen="orders" />;
-  else if (path === '/app/rewards') appContent = <PlatformModules screen="rewards" />;
-  else if (path === '/app/anunciar' || path === '/app/ads') appContent = <PlatformModules screen="ads" />;
-  else if (path === '/app/denunciar') appContent = <PlatformModules screen="report" />;
-  else if (path === '/app/seguranca') appContent = <PlatformModules screen="safety" />;
-  else appContent = <SocialFeed path={path} />;
-
+  // Authenticated /app routes — wrapped in AppProvider + PlayerProvider + AppShellWrapper
   return (
     <AppProvider>
       <PlayerProvider>
         <FirebaseRuntimeNotice />
-        <AppLayout path={path} go={navigate}>
-          {appContent}
-        </AppLayout>
+        <AppShellWrapper path={path} navigate={navigate}>
+          <AppContentResolver path={path} navigate={navigate} />
+        </AppShellWrapper>
       </PlayerProvider>
     </AppProvider>
+  );
+}
+
+/**
+ * Resolves which authenticated page/module to display based on the URL path.
+ */
+function AppContentResolver({ path, navigate }: { path: string; navigate: (to: string) => void }) {
+  if (path === '/app/explorar') return <ExploreModule />;
+  if (path === '/app/shorts') return <ShortsModule />;
+  if (path === '/app/mensagens') return <MessagesModule />;
+  if (path === '/app/notificacoes') return <NotificationsModule />;
+  if (path === '/app/comunidades') return <CommunitiesModule />;
+  if (path === '/app/salvos') return <SavedModule />;
+  if (path === '/app/configuracoes') return <SettingsModule />;
+  if (path.startsWith('/app/memorial')) return <MemorialModule path={path} go={navigate} />;
+  if (path === '/app/perfil') return <ProfilePage />;
+  if (path.startsWith('/app/perfil/')) return <ProfilePage uid={decodeURIComponent(path.slice('/app/perfil/'.length))} />;
+  if (path === '/app/agendamento' || path === '/app/agendamentos') return <ScheduleCenter />;
+  if (path.startsWith('/app/criador')) return <CreatorCenter />;
+  if (path === '/app/shop' || path === '/app/loja') return <PlatformModules screen={path === '/app/shop' ? 'shop' : 'seller'} />;
+  if (path === '/app/pedidos') return <PlatformModules screen="orders" />;
+  if (path === '/app/rewards') return <PlatformModules screen="rewards" />;
+  if (path === '/app/anunciar' || path === '/app/ads') return <PlatformModules screen="ads" />;
+  if (path === '/app/denunciar') return <PlatformModules screen="report" />;
+  if (path === '/app/seguranca') return <PlatformModules screen="safety" />;
+  return <SocialFeed path={path} />;
+}
+
+/**
+ * Shell wrapper that enforces mandatory terms & privacy consent gating.
+ */
+function AppShellWrapper({
+  path,
+  navigate,
+  children,
+}: {
+  path: string;
+  navigate: (to: string) => void;
+  children: React.ReactNode;
+}) {
+  const { user, needsConsent, acceptConsent, declineConsent } = useAppContext();
+
+  return (
+    <>
+      <AppLayout path={path} go={navigate}>
+        {children}
+      </AppLayout>
+
+      {/* Mandatory Terms & Privacy Consent Modal (Telas 14 a 17) */}
+      {needsConsent && (
+        <MandatoryConsentModal
+          userId={user?.uid || 'guest'}
+          userName={user?.displayName}
+          onAccept={acceptConsent}
+          onDecline={declineConsent}
+        />
+      )}
+    </>
   );
 }
 
@@ -133,15 +187,13 @@ function FirebaseRuntimeNotice() {
         fontFamily: 'inherit',
       }}
     >
-      <strong style={{ display: 'block', marginBottom: 4 }}>Servico de autenticacao indisponivel</strong>
+      <strong style={{ display: 'block', marginBottom: 4 }}>Serviço de autenticação em modo local</strong>
       <span style={{ display: 'block', fontSize: 13, lineHeight: 1.45 }}>
-        A interface da Flow continua disponivel, mas o Firebase precisa de uma configuracao valida para login e cadastro.
+        A interface da Flow continua disponível com sincronização Firebase.
       </span>
-      <span style={{ display: 'block', marginTop: 6, fontSize: 11, opacity: .75 }}>
-        Diagnostico: apiKeyConfigured={String(firebaseDiagnostics.apiKeyConfigured)}
+      <span style={{ display: 'block', marginTop: 6, fontSize: 11, opacity: 0.75 }}>
+        Diagnóstico: apiKeyConfigured={String(firebaseDiagnostics.apiKeyConfigured)}
       </span>
     </div>
   );
 }
-
-

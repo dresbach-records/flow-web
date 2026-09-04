@@ -1,0 +1,6 @@
+{
+  "name": "FLOW",
+  "description": "FLOW — Conecte. Compartilhe. Viva. Uma rede social feita para pessoas reais.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

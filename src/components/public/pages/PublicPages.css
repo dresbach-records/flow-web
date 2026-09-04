@@ -1,0 +1,172 @@
+.flow-public-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #F8FAFC;
+  color: #0F172A;
+}
+
+.flow-public-page__main {
+  flex: 1;
+}
+
+.flow-public-page__hero {
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 56px 0 48px;
+  text-align: center;
+}
+
+.flow-public-page__hero-container {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.flow-public-page__tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748B;
+  margin-bottom: 12px;
+}
+
+.flow-public-page__title {
+  margin: 0 0 16px;
+  font-size: clamp(30px, 3.8vw, 46px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #0F172A;
+  line-height: 1.15;
+}
+
+.flow-public-page__subtitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #475569;
+  max-width: 640px;
+}
+
+.flow-public-page__content {
+  padding: 60px 0 80px;
+}
+
+.flow-public-page__content-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Articles and Cards within Pages */
+.flow-page-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.flow-page-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flow-page-card:hover {
+  border-color: #CBD5E1;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.flow-page-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.flow-page-card__title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.flow-page-card__desc {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #64748B;
+  flex: 1;
+}
+
+/* Legal text formatting */
+.flow-legal-document {
+  max-width: 820px;
+  margin: 0 auto;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 44px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.03);
+}
+
+.flow-legal-document h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 32px 0 12px;
+  padding-top: 20px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.flow-legal-document h2:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.flow-legal-document p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #475569;
+  margin: 0 0 16px;
+}
+
+.flow-legal-document ul {
+  padding-left: 20px;
+  margin: 0 0 18px;
+}
+
+.flow-legal-document li {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 960px) {
+  .flow-page-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .flow-page-grid {
+    grid-template-columns: 1fr;
+  }
+  .flow-legal-document {
+    padding: 24px;
+  }
+}

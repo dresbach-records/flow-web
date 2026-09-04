@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { useEffect, useMemo, useState, useCallback, type ReactElement } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { getDocument, listDocuments, type WithId } from '../services/firebase/firestore';
 import { createPost, hasLiked, listComments, toggleFollow, toggleLike, toggleSaved, uploadPostMedia, type CommentRecord } from '../services/firebase/social';
+import CreatePostModal from './modules/CreatePostModal';
 import {
   Bookmark,
   CheckCircle2,
@@ -72,50 +73,57 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
   const [liked, setLiked] = useState<Set<string>>(new Set(['canonical-post-1']));
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [commentsPost, setCommentsPost] = useState<SocialPost | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(path === '/app/criar');
+
+  const fetchPosts = useCallback(async () => {
+    try {
+      const loadedPosts = await listDocuments<RawRecord>('posts', { orderByField: 'createdAt', direction: 'desc', max: 25 });
+      if (loadedPosts.length > 0) {
+        const enrich = async (items: WithId<RawRecord>[]) => Promise.all(items.map(async item => {
+          const authorId = typeof item.authorId === 'string' ? item.authorId : '';
+          const inlineAuthor = item.author && typeof item.author === 'object' ? item.author as RawRecord : null;
+          if (inlineAuthor || !authorId) return { ...item, author: inlineAuthor };
+          return { ...item, author: await getDocument<RawRecord>('users', authorId).catch(() => null) };
+        }));
+        const enriched = await enrich(loadedPosts);
+        setPosts([CANONICAL_POST, ...enriched]);
+      }
+    } catch {
+      // Fallback to canonical mock
+    }
+  }, []);
+
+  useEffect(() => {
+    if (path === '/app/criar') {
+      setCreateModalOpen(true);
+    }
+  }, [path]);
 
   useEffect(() => {
     if (!user) return;
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const loadedPosts = await listDocuments<RawRecord>('posts', { orderByField: 'createdAt', direction: 'desc', max: 20 });
-        if (cancelled) return;
-        if (loadedPosts.length > 0) {
-          const enrich = async (items: WithId<RawRecord>[]) => Promise.all(items.map(async item => {
-            const authorId = typeof item.authorId === 'string' ? item.authorId : '';
-            const inlineAuthor = item.author && typeof item.author === 'object' ? item.author as RawRecord : null;
-            if (inlineAuthor || !authorId) return { ...item, author: inlineAuthor };
-            return { ...item, author: await getDocument<RawRecord>('users', authorId).catch(() => null) };
-          }));
-          const enriched = await enrich(loadedPosts);
-          if (!cancelled) {
-            setPosts([CANONICAL_POST, ...enriched]);
-          }
-        }
-      } catch {
-        // Fallback to canonical mock if firestore fails
-      }
-    };
-    void load();
-    return () => { cancelled = true; };
-  }, [user]);
+    void fetchPosts();
+  }, [user, fetchPosts]);
 
   const handleLike = (postId: string) => {
+    const isCurrentlyLiked = liked.has(postId);
     setLiked(prev => {
       const next = new Set(prev);
       if (next.has(postId)) next.delete(postId);
       else next.add(postId);
       return next;
     });
+    void toggleLike(postId, !isCurrentlyLiked).catch(() => {});
   };
 
   const handleSave = (postId: string) => {
+    const isCurrentlySaved = saved.has(postId);
     setSaved(prev => {
       const next = new Set(prev);
       if (next.has(postId)) next.delete(postId);
       else next.add(postId);
       return next;
     });
+    void toggleSaved(postId, !isCurrentlySaved).catch(() => {});
   };
 
   const userAvatar = user?.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80';
@@ -150,37 +158,37 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
               type="text"
               className="flow-composer-input"
               placeholder="No que você está pensando hoje?"
-              onClick={() => go('/app/criar')}
+              onClick={() => setCreateModalOpen(true)}
               readOnly
             />
           </div>
           <div className="flow-composer-bottom">
             <div className="flow-composer-actions">
-              <button type="button" className="flow-composer-btn btn-foto" onClick={() => go('/app/criar')}>
+              <button type="button" className="flow-composer-btn btn-foto" onClick={() => setCreateModalOpen(true)}>
                 <ImageIcon size={18} color="#2563EB" />
                 <span>Foto</span>
               </button>
-              <button type="button" className="flow-composer-btn btn-video" onClick={() => go('/app/criar')}>
+              <button type="button" className="flow-composer-btn btn-video" onClick={() => setCreateModalOpen(true)}>
                 <Video size={18} color="#EA580C" />
                 <span>Vídeo</span>
               </button>
-              <button type="button" className="flow-composer-btn btn-enquete" onClick={() => go('/app/criar')}>
+              <button type="button" className="flow-composer-btn btn-enquete" onClick={() => setCreateModalOpen(true)}>
                 <BarChart2 size={18} color="#9333EA" />
                 <span>Enquete</span>
               </button>
-              <button type="button" className="flow-composer-btn btn-sentimento" onClick={() => go('/app/criar')}>
+              <button type="button" className="flow-composer-btn btn-sentimento" onClick={() => setCreateModalOpen(true)}>
                 <Smile size={18} color="#D97706" />
                 <span>Sentimento</span>
               </button>
-              <button type="button" className="flow-composer-btn btn-localizacao" onClick={() => go('/app/criar')}>
+              <button type="button" className="flow-composer-btn btn-localizacao" onClick={() => setCreateModalOpen(true)}>
                 <MapPin size={18} color="#EC4899" />
                 <span>Localização</span>
               </button>
-              <button type="button" className="flow-composer-btn btn-more" onClick={() => go('/app/criar')}>
+              <button type="button" className="flow-composer-btn btn-more" onClick={() => setCreateModalOpen(true)}>
                 <MoreHorizontal size={18} color="#64748B" />
               </button>
             </div>
-            <button type="button" className="flow-composer-publish-btn" onClick={() => go('/app/criar')}>
+            <button type="button" className="flow-composer-publish-btn" onClick={() => setCreateModalOpen(true)}>
               Publicar
             </button>
           </div>
@@ -239,6 +247,18 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
       {commentsPost && (
         <CommentsPanel post={commentsPost} onClose={() => setCommentsPost(null)} />
       )}
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={createModalOpen}
+        onClose={() => {
+          setCreateModalOpen(false);
+          if (path === '/app/criar') {
+            history.replaceState({}, '', '/app');
+          }
+        }}
+        onCreated={fetchPosts}
+      />
     </div>
   );
 }

@@ -2,14 +2,14 @@
  * FLOW — AppLayout
  * Shell principal para todas as telas autenticadas.
  *
- * Estrutura:
- *   .flow-app-shell
- *     ├── .flow-sidebar          (position: fixed, left)
- *     ├── .flow-topbar           (position: fixed, top)
- *     ├── .flow-app-content      (margin offsets, body scrolls)
- *     ├── .flow-right-rail-column (position: fixed, right)
- *     ├── .flow-bottom-nav       (position: fixed, mobile)
- *     └── .flow-floating-player  (position: fixed, bottom-right)
+ * Estrutura CSS Grid:
+ *   .flow-app-shell (grid: 260px minmax(0, 1fr) 320px)
+ *     ├── .flow-topbar           (grid-area: topbar, sticky 64px)
+ *     ├── .flow-sidebar          (grid-area: sidebar, sticky)
+ *     ├── .flow-app-content      (grid-area: main, natural scroll)
+ *     ├── .flow-right-rail-column (grid-area: rail, sticky)
+ *     ├── .flow-bottom-nav       (mobile fixed)
+ *     └── .flow-floating-player  (floating player)
  */
 import React, { useState, useCallback } from 'react';
 import RightRail from '../components/layout/RightRail';
@@ -45,7 +45,14 @@ export default function AppLayout({ path, go, children }: AppLayoutProps) {
 
   return (
     <div className={`flow-app-shell${collapsed ? ' sidebar-collapsed' : ''}`}>
-      {/* Left sidebar — position: fixed */}
+      {/* Top bar — across full width */}
+      <Topbar
+        go={go}
+        onMenuClick={openMobile}
+        collapsed={collapsed}
+      />
+
+      {/* Left sidebar */}
       <Sidebar
         path={path}
         go={go}
@@ -55,22 +62,15 @@ export default function AppLayout({ path, go, children }: AppLayoutProps) {
         onCloseMobile={closeMobile}
       />
 
-      {/* Top bar — position: fixed, full width */}
-      <Topbar
-        go={go}
-        onMenuClick={openMobile}
-        collapsed={collapsed}
-      />
-
-      {/* Main scrollable content */}
+      {/* Main content */}
       <main className="flow-app-content" id="main-content" tabIndex={-1}>
         {children}
       </main>
 
-      {/* Right rail — position: fixed */}
-      <div className="flow-right-rail-column" aria-label="Painel lateral direito">
+      {/* Right rail */}
+      <aside className="flow-right-rail-column" aria-label="Painel lateral direito">
         <RightRail go={go} />
-      </div>
+      </aside>
 
       {/* Mobile bottom navigation */}
       <BottomNav path={path} go={go} />

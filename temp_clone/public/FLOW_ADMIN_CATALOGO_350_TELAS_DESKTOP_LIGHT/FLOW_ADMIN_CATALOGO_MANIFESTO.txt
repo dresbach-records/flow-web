@@ -1,0 +1,360 @@
+FLOW — CATÁLOGO MASTER DO PAINEL ADMINISTRATIVO
+350 telas • Desktop • Light UI
+
+Este pacote contém 350 arquivos SVG individuais, numerados de 001 a 350.
+As telas seguem uma base visual administrativa consistente, com sidebar, topbar,
+cards, registros, estados e ações em Light UI. As imagens devem ser refinadas
+progressivamente conforme as telas reais do projeto forem implementadas.
+
+REGRA: não utilizar Dark Mode, janelas pretas ou SVG vazio.
+
+001 — Login Administrativo
+002 — Recuperação de senha
+003 — Redefinição de senha
+004 — Verificação de e-mail administrativo
+005 — Autenticação 2FA
+006 — Escolha do método 2FA
+007 — Códigos de backup
+008 — Sessões administrativas
+009 — Dispositivos autorizados
+010 — Conta administrativa bloqueada
+011 — Dashboard Geral
+012 — Visão geral da plataforma
+013 — Usuários ativos
+014 — Novos usuários
+015 — Crescimento de usuários
+016 — Publicações recentes
+017 — Engajamento
+018 — Denúncias pendentes
+019 — Atividades recentes
+020 — Alertas administrativos
+021 — Lista de usuários
+022 — Pesquisa de usuários
+023 — Filtros de usuários
+024 — Perfil administrativo do usuário
+025 — Dados cadastrais
+026 — Dados de contato
+027 — Histórico de atividade
+028 — Publicações do usuário
+029 — Seguidores e seguindo
+030 — Comunidades do usuário
+031 — Mensagens / atividade social
+032 — Denúncias recebidas
+033 — Denúncias realizadas
+034 — Advertências
+035 — Suspensão de usuário
+036 — Bloqueio de usuário
+037 — Desativação de conta
+038 — Reativação de conta
+039 — Exclusão de conta
+040 — Histórico de alterações
+041 — Central de conteúdo
+042 — Todas as publicações
+043 — Publicações pendentes
+044 — Publicações denunciadas
+045 — Publicações removidas
+046 — Vídeos
+047 — Shorts
+048 — Stories
+049 — Comentários
+050 — Curtidas
+051 — Compartilhamentos
+052 — Conteúdo em destaque
+053 — Conteúdo restrito
+054 — Conteúdo sinalizado
+055 — Conteúdo por categoria
+056 — Detalhes da publicação
+057 — Histórico da publicação
+058 — Moderação da publicação
+059 — Remover conteúdo
+060 — Restaurar conteúdo
+061 — Central de Moderação
+062 — Fila de moderação
+063 — Denúncias
+064 — Denúncia detalhada
+065 — Denúncias de usuários
+066 — Denúncias de publicações
+067 — Denúncias de comentários
+068 — Denúncias de comunidades
+069 — Denúncias de mensagens
+070 — Casos prioritários
+071 — Casos críticos
+072 — Conteúdo potencialmente ilegal
+073 — Conteúdo inadequado
+074 — Spam
+075 — Fraude
+076 — Assédio
+077 — Discurso de ódio
+078 — Violação de direitos autorais
+079 — Histórico de decisões
+080 — Regras de moderação
+081 — Central de comunidades
+082 — Todas as comunidades
+083 — Comunidades pendentes
+084 — Comunidades denunciadas
+085 — Comunidade detalhada
+086 — Membros
+087 — Administradores
+088 — Moderadores
+089 — Publicações da comunidade
+090 — Denúncias da comunidade
+091 — Aprovar comunidade
+092 — Rejeitar comunidade
+093 — Suspender comunidade
+094 — Bloquear comunidade
+095 — Restaurar comunidade
+096 — Categorias
+097 — Tags
+098 — Comunidades em destaque
+099 — Comunidades populares
+100 — Histórico de comunidades
+101 — Central de mensagens
+102 — Conversas sinalizadas
+103 — Denúncias de mensagens
+104 — Mensagens suspeitas
+105 — Usuários bloqueados
+106 — Contas suspeitas
+107 — Atividades suspeitas
+108 — Alertas de segurança
+109 — Incidentes
+110 — Sessões ativas
+111 — Dispositivos
+112 — IPs / acessos
+113 — Eventos de autenticação
+114 — Auditoria de segurança
+115 — Central de segurança
+116 — Analytics geral
+117 — Usuários
+118 — Aquisição
+119 — Retenção
+120 — Usuários ativos
+121 — Engajamento
+122 — Publicações
+123 — Vídeos
+124 — Shorts
+125 — Stories
+126 — Comunidades
+127 — Mensagens
+128 — Crescimento
+129 — Conversão
+130 — Funil da plataforma
+131 — Horários de acesso
+132 — Localização dos usuários
+133 — Dispositivos
+134 — Navegadores
+135 — Relatórios analíticos
+136 — Central de auditoria
+137 — Logs do sistema
+138 — Logs administrativos
+139 — Logs de autenticação
+140 — Logs de usuários
+141 — Logs de conteúdo
+142 — Logs de moderação
+143 — Logs de segurança
+144 — Alterações de permissões
+145 — Alterações de configurações
+146 — Eventos críticos
+147 — Histórico de ações
+148 — Pesquisa de logs
+149 — Detalhes do evento
+150 — Exportação de auditoria
+151 — Administradores
+152 — Criar administrador
+153 — Editar administrador
+154 — Perfis administrativos
+155 — Funções
+156 — Permissões
+157 — Grupos administrativos
+158 — Controle de acesso
+159 — Convites administrativos
+160 — Sessões administrativas
+161 — Aprovações
+162 — Fluxos de aprovação
+163 — Ações críticas
+164 — Confirmações administrativas
+165 — Histórico administrativo
+166 — Configurações gerais
+167 — Configurações da plataforma
+168 — Configurações de usuários
+169 — Configurações de conteúdo
+170 — Configurações de comunidades
+171 — Configurações de mensagens
+172 — Configurações de notificações
+173 — Configurações de segurança
+174 — Configurações de privacidade
+175 — Configurações de moderação
+176 — Configurações de armazenamento
+177 — Configurações de autenticação
+178 — Configurações Google/Firebase
+179 — Configurações de e-mail
+180 — Configurações de sistema
+181 — Status da plataforma
+182 — Saúde dos serviços
+183 — Firebase
+184 — Firestore
+185 — Storage
+186 — Autenticação
+187 — Jobs
+188 — Filas
+189 — Erros do sistema
+190 — Exceptions
+191 — Performance
+192 — Monitoramento
+193 — Integrações
+194 — Webhooks
+195 — Manutenção
+196 — Central de relatórios
+197 — Relatório de usuários
+198 — Relatório de conteúdo
+199 — Relatório de moderação
+200 — Relatório de denúncias
+201 — Relatório de comunidades
+202 — Relatório de engajamento
+203 — Relatório de crescimento
+204 — Relatório de segurança
+205 — Relatório de auditoria
+206 — Relatório financeiro/comercial
+207 — Relatório de anúncios
+208 — Relatório de criadores
+209 — Relatório personalizado
+210 — Exportar relatório
+211 — Central de suporte
+212 — Tickets
+213 — Tickets pendentes
+214 — Tickets em atendimento
+215 — Tickets encerrados
+216 — Ticket detalhado
+217 — Usuários com problemas
+218 — Solicitações de conta
+219 — Solicitações de exclusão
+220 — Solicitações de recuperação
+221 — Recursos de moderação
+222 — Apelações
+223 — Respostas automáticas
+224 — Base de conhecimento
+225 — FAQ administrativo
+226 — Editor do site
+227 — Página inicial
+228 — Páginas institucionais
+229 — Páginas legais
+230 — Termos de uso
+231 — Política de privacidade
+232 — Cookies
+233 — Central de ajuda
+234 — Banners
+235 — Comunicados
+236 — Notificações globais
+237 — Avisos da plataforma
+238 — Destaques
+239 — Conteúdo promocional
+240 — Pré-visualização
+241 — Marketplace
+242 — Produtos
+243 — Categorias
+244 — Vendedores
+245 — Anúncios
+246 — Ofertas
+247 — Transações
+248 — Pedidos
+249 — Disputas
+250 — Produtos denunciados
+251 — Vendedores denunciados
+252 — Comissões
+253 — Relatórios comerciais
+254 — Configurações comerciais
+255 — Auditoria comercial
+256 — Central de criadores
+257 — Criadores
+258 — Perfis de criadores
+259 — Conteúdo de criadores
+260 — Monetização
+261 — Elegibilidade
+262 — Desempenho
+263 — Engajamento
+264 — Conteúdo patrocinado
+265 — Solicitações
+266 — Aprovações
+267 — Restrições
+268 — Penalidades
+269 — Relatórios
+270 — Configurações
+271 — Central de Ads
+272 — Campanhas
+273 — Criar campanha
+274 — Campanhas ativas
+275 — Campanhas encerradas
+276 — Anunciantes
+277 — Anúncios
+278 — Criativos
+279 — Segmentações
+280 — Aprovação de anúncios
+281 — Anúncios rejeitados
+282 — Denúncias de anúncios
+283 — Desempenho
+284 — Relatórios
+285 — Configurações de Ads
+286 — Central de Rewards
+287 — Usuários
+288 — Pontos
+289 — Recompensas
+290 — Resgates
+291 — Histórico
+292 — Campanhas
+293 — Missões
+294 — Ranking
+295 — Benefícios
+296 — Regras
+297 — Fraudes
+298 — Usuários bloqueados
+299 — Relatórios
+300 — Configurações
+301 — Central de notificações
+302 — Notificações do sistema
+303 — Notificações para usuários
+304 — Notificações administrativas
+305 — Templates
+306 — Criar notificação
+307 — Notificações programadas
+308 — Histórico de envio
+309 — Entregas
+310 — Falhas
+311 — Push
+312 — E-mail
+313 — Alertas críticos
+314 — Segmentação
+315 — Configurações
+316 — Central de dados
+317 — Exportação de dados
+318 — Solicitações LGPD
+319 — Dados pessoais
+320 — Consentimentos
+321 — Preferências de privacidade
+322 — Solicitações de acesso
+323 — Solicitações de correção
+324 — Solicitações de exclusão
+325 — Retenção de dados
+326 — Histórico de consentimentos
+327 — Dados anonimizados
+328 — Incidentes de dados
+329 — Auditoria LGPD
+330 — Configurações de governança
+331 — Central de tarefas
+332 — Tarefas pendentes
+333 — Aprovações pendentes
+334 — Processamentos
+335 — Operações em andamento
+336 — Operações concluídas
+337 — Falhas operacionais
+338 — Alertas
+339 — Incidentes
+340 — Central de emergência
+341 — Modo manutenção
+342 — Backup
+343 — Restauração
+344 — Importação
+345 — Exportação
+346 — Central de integrações
+347 — API
+348 — Chaves e credenciais
+349 — Configurações avançadas
+350 — Central administrativa

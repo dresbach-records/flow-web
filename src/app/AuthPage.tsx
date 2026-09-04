@@ -130,6 +130,11 @@ export default function AuthPage({ path, go }: AuthPageProps) {
     setError('');
     setMessage('');
 
+    const queryParams = new URLSearchParams(window.location.search);
+    if (queryParams.get('reason') === 'consent_declined') {
+      setError('Sua sessão foi encerrada. Para acessar a FLOW, é necessário aceitar os termos e condições.');
+    }
+
     if (mode === '2fa-backup') {
       void getBackupCodes().then((codes) => {
         if (codes.length > 0) setBackupCodes(codes);

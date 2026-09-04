@@ -1,0 +1,226 @@
+.flow-download-section {
+  background: #F8FAFC;
+  padding: 80px 0;
+  border-bottom: 1px solid #EDF2F7;
+}
+
+.flow-download-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.flow-download-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 28px;
+  padding: 48px 56px;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  align-items: center;
+  gap: 40px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.04);
+}
+
+.flow-download-card__glow {
+  position: absolute;
+  right: -50px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 420px;
+  height: 340px;
+  background: radial-gradient(
+    ellipse,
+    rgba(79, 127, 255, 0.14) 0%,
+    rgba(217, 70, 239, 0.1) 50%,
+    transparent 75%
+  );
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.flow-download-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  z-index: 2;
+}
+
+.flow-download-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748B;
+  margin-bottom: 12px;
+}
+
+.flow-download-title {
+  margin: 0 0 16px;
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #0F172A;
+  line-height: 1.15;
+}
+
+.flow-download-subtitle {
+  margin: 0 0 32px;
+  font-size: 15px;
+  color: #475569;
+  line-height: 1.6;
+  max-width: 520px;
+}
+
+.flow-download-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.flow-download-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #0F172A;
+  color: #FFFFFF;
+  padding: 10px 18px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+.flow-download-badge:hover {
+  background: #1E293B;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+}
+
+.flow-download-badge--pwa {
+  background: #FFFFFF;
+  color: #0F172A;
+  border-color: #CBD5E1;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.flow-download-badge--pwa:hover {
+  background: #F8FAFC;
+  border-color: #3B82F6;
+  color: #3B82F6;
+}
+
+.flow-download-badge__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flow-download-badge__text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.flow-download-badge__sub {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.8;
+  line-height: 1.2;
+}
+
+.flow-download-badge__main {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.flow-download-visual {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flow-download-visual__img {
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 15px 30px rgba(15, 23, 42, 0.12));
+}
+
+/* PWA guide */
+.flow-pwa-guide__intro {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.flow-pwa-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flow-pwa-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+}
+
+.flow-pwa-step__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #EFF6FF;
+  color: #3B82F6;
+  flex-shrink: 0;
+}
+
+.flow-pwa-step__body {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  gap: 3px;
+  color: #475569;
+}
+
+.flow-pwa-step__body strong {
+  color: #0F172A;
+}
+
+@media (max-width: 960px) {
+  .flow-download-card {
+    grid-template-columns: 1fr;
+    padding: 36px 28px;
+    text-align: center;
+  }
+
+  .flow-download-copy {
+    align-items: center;
+  }
+
+  .flow-download-subtitle {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .flow-download-badges {
+    justify-content: center;
+  }
+}
