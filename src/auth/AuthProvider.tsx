@@ -1,22 +1,18 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { completeGoogleSignIn, onFlowAuthChanged, logout as firebaseLogout, type FlowUser } from '../services/firebase/auth';
 
-type AppContextValue = {
-  authenticated: boolean;
+type AuthContextValue = {
   user: FlowUser | null;
   loading: boolean;
-  adminAuthenticated: boolean;
-  adminUser: FlowUser | null;
-  setAdminUser: (user: FlowUser | null) => void;
+  authenticated: boolean;
   logout: () => Promise<void>;
 };
 
-const AppContext = createContext<AppContextValue | null>(null);
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AppProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FlowUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [adminUser, setAdminUser] = useState<FlowUser | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -25,7 +21,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!mounted) return;
       setUser(next);
       setLoading(false);
-      if (!next) setAdminUser(null);
     });
     return () => {
       mounted = false;
@@ -33,25 +28,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const value = useMemo<AppContextValue>(() => ({
-    authenticated: Boolean(user),
+  const value = useMemo<AuthContextValue>(() => ({
     user,
     loading,
-    adminAuthenticated: Boolean(adminUser),
-    adminUser,
-    setAdminUser,
+    authenticated: Boolean(user),
     logout: async () => {
       await firebaseLogout();
       setUser(null);
-      setAdminUser(null);
     },
-  }), [user, loading, adminUser]);
+  }), [user, loading]);
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAppContext() {
-  const value = useContext(AppContext);
-  if (!value) throw new Error('useAppContext must be used inside AppProvider');
+export function useAuth() {
+  const value = useContext(AuthContext);
+  if (!value) throw new Error('useAuth must be used within AuthProvider');
   return value;
 }

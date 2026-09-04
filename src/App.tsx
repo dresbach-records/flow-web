@@ -1,41 +1,10 @@
 import React from 'react';
-import { AdminApp, AuthPage, CreatorCenter, ModuleCenter, PlatformModules, ProfilePage, PublicApp, SiteEditor } from './pages';
+import { AdminApp, AuthPage, CompleteProfilePage, CreatorCenter, ModuleCenter, PlatformModules, ProfileEditPage, ProfilePage, PublicApp, SiteEditor } from './pages';
 import SocialFeed from './app/SocialFeed';
 import ScheduleCenter from './app/ScheduleCenter';
-import { AppProvider } from './contexts/AppContext';
-
-const AUTH_ROUTES = ['/auth/login', '/login', '/cadastro', '/recuperar-senha', '/redefinir-senha', '/verificar-conta'];
-const SOCIAL_ROUTES = new Set(['/app', '/app/', '/app/for-you', '/app/seguindo', '/app/explorar', '/app/shorts', '/app/criar', '/app/mensagens', '/app/notificacoes', '/app/comunidades', '/app/perfil', '/app/salvos', '/app/configuracoes', '/app/agendamento', '/app/agendamentos']);
-
-export default function App() {
-  const [path, setPath] = React.useState(() => window.location.pathname);
-  React.useEffect(() => { const onPopState = () => setPath(window.location.pathname); window.addEventListener('popstate', onPopState); return () => window.removeEventListener('popstate', onPopState); }, []);
-  const go = React.useCallback((next: string) => { history.pushState({}, '', next); window.dispatchEvent(new PopStateEvent('popstate')); window.scrollTo(0, 0); }, []);
-
-  let content: React.ReactNode;
-  if (path === '/admin/modulos') content = <AdminAppShell><ModuleCenter /></AdminAppShell>;
-  else if (path === '/admin/site') content = <AdminAppShell><SiteEditor /></AdminAppShell>;
-  else if (path.startsWith('/admin')) content = <AdminApp />;
-  else if (AUTH_ROUTES.includes(path)) content = <AuthPage path={path} go={go} />;
-  else if (path === '/app/perfil') content = <ProfilePage />;
-  else if (path.startsWith('/app/perfil/')) content = <ProfilePage uid={decodeURIComponent(path.slice('/app/perfil/'.length))} />;
-  else if (path === '/app/agendamento' || path === '/app/agendamentos') content = <ScheduleCenter />;
-  else if (SOCIAL_ROUTES.has(path)) content = <SocialFeed path={path} />;
-  else if (path.startsWith('/app/criador')) content = <CreatorCenter />;
-  else if (path === '/app/shop' || path === '/app/loja') content = <PlatformModules screen={path === '/app/shop' ? 'shop' : 'seller'} />;
-  else if (path === '/app/pedidos') content = <PlatformModules screen="orders" />;
-  else if (path === '/app/rewards') content = <PlatformModules screen="rewards" />;
-  else if (path === '/app/anunciar' || path === '/app/ads') content = <PlatformModules screen="ads" />;
-  else if (path === '/app/denunciar') content = <PlatformModules screen="report" />;
-  else if (path === '/app/seguranca') content = <PlatformModules screen="safety" />;
-  else content = <PublicApp />;
-  return <AppProvider>{content}</AppProvider>;
-}
-
-function AdminAppShell({ children }: { children: React.ReactNode }) {
-  const [auth, setAuth] = React.useState(() => localStorage.getItem('flow.admin.session') === '1');
-  const [email, setEmail] = React.useState('');
-  const [pass, setPass] = React.useState('');
-  if (!auth) return <div className="admin-login"><div className="admin-login-card"><div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW" /><span className="admin-badge">ADMIN</span></div><h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p><input value={email} onChange={e => setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" /><input value={pass} onChange={e => setPass(e.target.value)} placeholder="Senha" type="password" /><button className="admin-btn primary" onClick={() => { if (email && pass) { localStorage.setItem('flow.admin.session', '1'); setAuth(true); } }}>Entrar no painel</button></div></div>;
-  return <>{children}</>;
-}
+import { AppProvider, useAppContext } from './contexts/AppContext';
+const AUTH_ROUTES=['/auth/login','/login','/cadastro','/recuperar-senha','/redefinir-senha','/verificar-conta'];
+const SOCIAL_ROUTES=new Set(['/app','/app/','/app/for-you','/app/seguindo','/app/explorar','/app/shorts','/app/criar','/app/mensagens','/app/notificacoes','/app/comunidades','/app/perfil','/app/salvos','/app/configuracoes','/app/agendamento','/app/agendamentos']);
+export default function App(){const[path,setPath]=React.useState(()=>window.location.pathname);React.useEffect(()=>{const f=()=>setPath(window.location.pathname);window.addEventListener('popstate',f);return()=>window.removeEventListener('popstate',f)},[]);React.useEffect(()=>{const f=(e:MouseEvent)=>{const el=(e.target as HTMLElement)?.closest('.flow-profile-outline');if(el){e.preventDefault();history.pushState({},'','/app/perfil/editar');window.dispatchEvent(new PopStateEvent('popstate'));}};document.addEventListener('click',f);return()=>document.removeEventListener('click',f)},[]);const go=React.useCallback((next:string)=>{history.pushState({},'',next);window.dispatchEvent(new PopStateEvent('popstate'));window.scrollTo(0,0)},[]);let content:React.ReactNode;if(path==='/admin/modulos')content=<AdminAppShell><ModuleCenter/></AdminAppShell>;else if(path==='/admin/site')content=<AdminAppShell><SiteEditor/></AdminAppShell>;else if(path.startsWith('/admin'))content=<AdminApp/>;else if(AUTH_ROUTES.includes(path))content=<AuthPage path={path} go={go}/>;else if(path==='/app/perfil/completar')content=<ProtectedApp><CompleteProfilePage/></ProtectedApp>;else if(path==='/app/perfil/editar')content=<ProtectedApp><ProfileEditPage/></ProtectedApp>;else if(path==='/app/perfil')content=<ProtectedApp><ProfilePage/></ProtectedApp>;else if(path.startsWith('/app/perfil/'))content=<ProtectedApp><ProfilePage uid={decodeURIComponent(path.slice('/app/perfil/'.length))}/></ProtectedApp>;else if(path==='/app/agendamento'||path==='/app/agendamentos')content=<ProtectedApp><ScheduleCenter/></ProtectedApp>;else if(SOCIAL_ROUTES.has(path))content=<ProtectedApp><SocialFeed path={path}/></ProtectedApp>;else if(path.startsWith('/app/criador'))content=<ProtectedApp><CreatorCenter/></ProtectedApp>;else if(path==='/app/shop'||path==='/app/loja')content=<ProtectedApp><PlatformModules screen={path==='/app/shop'?'shop':'seller'}/></ProtectedApp>;else if(path==='/app/pedidos')content=<ProtectedApp><PlatformModules screen="orders"/></ProtectedApp>;else if(path==='/app/rewards')content=<ProtectedApp><PlatformModules screen="rewards"/></ProtectedApp>;else if(path==='/app/anunciar'||path==='/app/ads')content=<ProtectedApp><PlatformModules screen="ads"/></ProtectedApp>;else if(path==='/app/denunciar')content=<ProtectedApp><PlatformModules screen="report"/></ProtectedApp>;else if(path==='/app/seguranca')content=<ProtectedApp><PlatformModules screen="safety"/></ProtectedApp>;else content=<PublicApp/>;return <AppProvider>{content}</AppProvider>}
+function ProtectedApp({children}:{children:React.ReactNode}){const{authenticated,loading,user}=useAppContext();const r=React.useRef(false);React.useEffect(()=>{if(loading)return;if(!authenticated&&!r.current){r.current=true;history.replaceState({},'','/auth/login');window.dispatchEvent(new PopStateEvent('popstate'));return}if(authenticated&&user&&!user.profileComplete&&window.location.pathname!=='/app/perfil/completar'){history.replaceState({},'','/app/perfil/completar');window.dispatchEvent(new PopStateEvent('popstate'))}},[authenticated,loading,user]);if(loading||!authenticated)return <div style={{minHeight:'100vh',display:'grid',placeItems:'center'}}>Carregando FLOW…</div>;if(!user?.profileComplete&&window.location.pathname!=='/app/perfil/completar')return <div style={{minHeight:'100vh',display:'grid',placeItems:'center'}}>Preparando seu perfil…</div>;return <>{children}</>}
+function AdminAppShell({children}:{children:React.ReactNode}){const[email,setEmail]=React.useState('');const[pass,setPass]=React.useState('');const[error,setError]=React.useState('');const{adminUser,setAdminUser}=useAppContext();if(!adminUser)return <div className="admin-login"><div className="admin-login-card"><div className="admin-login-brand"><img src="/flow-logo.svg" alt="FLOW"/><span className="admin-badge">ADMIN</span></div><h1>Acesso administrativo</h1><p>Área exclusiva do FLOW Control Center.</p>{error&&<div className="admin-error">{error}</div>}<input value={email} onChange={e=>setEmail(e.target.value)} placeholder="E-mail administrativo" type="email" autoComplete="username"/><input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Senha" type="password" autoComplete="current-password"/><button className="admin-btn primary" onClick={async()=>{try{setError('');const u=await(await import('./services/firebase/auth')).loginAdmin(email,pass);setAdminUser(u)}catch(err){setError(err instanceof Error?err.message:'Não foi possível entrar no painel.')}}}>Entrar no painel</button></div></div>;return <>{children}</>}

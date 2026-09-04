@@ -1,160 +1,21 @@
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  getRedirectResult,
-  signInWithRedirect,
-  signOut,
-  updateProfile,
-  type User,
-} from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, getRedirectResult, signInWithRedirect, signOut, updateProfile, type User } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { firebaseAuth, firestore } from './config';
 
 export type AccountType = 'individual' | 'business';
+export type AuthProviderId = 'password' | 'google.com' | string;
+export type FlowUser = { uid:string; email:string|null; displayName:string|null; photoURL:string|null; role:'user'|'creator'|'seller'|'moderator'|'admin'; accountType:AccountType; emailVerified:boolean; providerId:AuthProviderId; profileComplete:boolean };
+export type RegisterInput = { name:string; email:string; password:string; accountType?:AccountType; phone?:string; birthDate?:string; cpf?:string; cnpj?:string; legalName?:string; tradeName?:string; acceptedTerms:boolean };
 
-export type FlowUser = {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-  role: 'user' | 'creator' | 'seller' | 'moderator' | 'admin';
-  accountType: AccountType;
-  emailVerified: boolean;
-};
-
-export type RegisterInput = {
-  name: string;
-  email: string;
-  password: string;
-  accountType?: AccountType;
-  phone?: string;
-  birthDate?: string;
-  cpf?: string;
-  cnpj?: string;
-  legalName?: string;
-  tradeName?: string;
-  acceptedTerms: boolean;
-};
-
-export async function toFlowUser(user: User): Promise<FlowUser> {
-  const snapshot = await getDoc(doc(firestore, 'users', user.uid));
-  const profile = snapshot.exists() ? snapshot.data() : {};
-  return {
-    uid: user.uid,
-    email: user.email,
-    displayName: user.displayName ?? (profile.name as string) ?? null,
-    photoURL: user.photoURL,
-    role: (profile.role as FlowUser['role']) ?? 'user',
-    accountType: (profile.accountType as AccountType) ?? 'individual',
-    emailVerified: user.emailVerified,
-  };
-}
-
-export async function registerUser(input: RegisterInput): Promise<FlowUser> {
-  if (!input.acceptedTerms) throw new Error('É necessário aceitar os termos para criar a conta.');
-  const credential = await createUserWithEmailAndPassword(firebaseAuth, input.email.trim(), input.password);
-  await updateProfile(credential.user, { displayName: input.name.trim() });
-  await setDoc(doc(firestore, 'users', credential.user.uid), {
-    name: input.name.trim(),
-    email: input.email.trim(),
-    accountType: input.accountType ?? 'individual',
-    phone: input.phone ?? null,
-    birthDate: input.birthDate ?? null,
-    cpf: input.cpf ?? null,
-    cnpj: input.cnpj ?? null,
-    legalName: input.legalName ?? null,
-    tradeName: input.tradeName ?? null,
-    role: 'user',
-    acceptedTermsAt: serverTimestamp(),
-    createdAt: serverTimestamp(),
-  });
-  await sendEmailVerification(credential.user).catch(() => undefined);
-  const flowUser = await toFlowUser(credential.user);
-  localStorage.setItem('flow.auth', '1');
-  return flowUser;
-}
-
-export async function loginUser(email: string, password: string): Promise<FlowUser> {
-  const credential = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
-  const flowUser = await toFlowUser(credential.user);
-  localStorage.setItem('flow.auth', '1');
-  return flowUser;
-}
-
-const googleSignupStorageKey = 'flow-google-signup';
-
-export async function loginWithGoogle(accountType: AccountType = 'individual', acceptedTerms = false): Promise<void> {
-  const provider = new GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-  sessionStorage.setItem(googleSignupStorageKey, JSON.stringify({ accountType, acceptedTerms }));
-  await signInWithRedirect(firebaseAuth, provider);
-}
-
-export async function completeGoogleSignIn(): Promise<FlowUser | null> {
-  const credential = await getRedirectResult(firebaseAuth);
-  if (!credential) return null;
-
-  const signupData = sessionStorage.getItem(googleSignupStorageKey);
-  sessionStorage.removeItem(googleSignupStorageKey);
-  const { accountType = 'individual', acceptedTerms = false } = signupData
-    ? JSON.parse(signupData) as { accountType?: AccountType; acceptedTerms?: boolean }
-    : {};
-  const userRef = doc(firestore, 'users', credential.user.uid);
-  const snapshot = await getDoc(userRef);
-
-  if (!snapshot.exists()) {
-    await setDoc(userRef, {
-      name: credential.user.displayName ?? null,
-      email: credential.user.email,
-      accountType,
-      role: 'user',
-      acceptedTermsAt: acceptedTerms ? serverTimestamp() : null,
-      createdAt: serverTimestamp(),
-    });
-  }
-
-  const flowUser = await toFlowUser(credential.user);
-  localStorage.setItem('flow.auth', '1');
-  return flowUser;
-}
-
-export async function loginAdmin(email: string, password: string): Promise<FlowUser> {
-  const credential = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
-  const flowUser = await toFlowUser(credential.user);
-  if (flowUser.role !== 'admin' && flowUser.role !== 'moderator') {
-    await signOut(firebaseAuth);
-    localStorage.removeItem('flow.auth');
-    throw new Error('Esta conta não tem permissão administrativa.');
-  }
-  localStorage.setItem('flow.auth', '1');
-  return flowUser;
-}
-
-export async function logout(): Promise<void> {
-  await signOut(firebaseAuth);
-  localStorage.removeItem('flow.auth');
-}
-
-export async function requestPasswordReset(email: string): Promise<void> {
-  await sendPasswordResetEmail(firebaseAuth, email.trim());
-}
-
-export async function resendVerification(): Promise<void> {
-  if (firebaseAuth.currentUser) await sendEmailVerification(firebaseAuth.currentUser);
-}
-
-export function onFlowAuthChanged(callback: (user: FlowUser | null) => void): () => void {
-  return onAuthStateChanged(firebaseAuth, async (user) => {
-    if (!user) {
-      localStorage.removeItem('flow.auth');
-      callback(null);
-      return;
-    }
-    localStorage.setItem('flow.auth', '1');
-    callback(await toFlowUser(user));
-  });
-}
+function isProfileComplete(profile: Record<string, unknown>): boolean { if (typeof profile.profileComplete === 'boolean') return profile.profileComplete; return profile.accountType === 'business' ? Boolean(profile.cnpj && profile.legalName) : Boolean(profile.cpf); }
+export async function toFlowUser(user:User):Promise<FlowUser>{ const s=await getDoc(doc(firestore,'users',user.uid)); const p=s.exists()?s.data():{}; return {uid:user.uid,email:user.email,displayName:user.displayName??(p.name as string)??null,photoURL:user.photoURL??(p.photoURL as string)??null,role:(p.role as FlowUser['role'])??'user',accountType:(p.accountType as AccountType)??'individual',emailVerified:user.emailVerified,providerId:user.providerData[0]?.providerId??'password',profileComplete:isProfileComplete(p)}; }
+export async function registerUser(input:RegisterInput):Promise<FlowUser>{ if(!input.acceptedTerms) throw new Error('É necessário aceitar os termos para criar a conta.'); const c=await createUserWithEmailAndPassword(firebaseAuth,input.email.trim(),input.password); await updateProfile(c.user,{displayName:input.name.trim()}); await setDoc(doc(firestore,'users',c.user.uid),{name:input.name.trim(),email:input.email.trim(),accountType:input.accountType??'individual',phone:input.phone??null,birthDate:input.birthDate??null,cpf:input.cpf??null,cnpj:input.cnpj??null,legalName:input.legalName??null,tradeName:input.tradeName??null,photoURL:c.user.photoURL??null,role:'user',profileComplete:true,acceptedTermsAt:serverTimestamp(),createdAt:serverTimestamp()}); await sendEmailVerification(c.user).catch(()=>undefined); return toFlowUser(c.user); }
+export async function loginUser(email:string,password:string):Promise<FlowUser>{const c=await signInWithEmailAndPassword(firebaseAuth,email.trim(),password);return toFlowUser(c.user);}
+const googleSignupStorageKey='flow-google-signup';
+export async function loginWithGoogle(accountType:AccountType='individual',acceptedTerms=false):Promise<void>{const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});sessionStorage.setItem(googleSignupStorageKey,JSON.stringify({accountType,acceptedTerms}));await signInWithRedirect(firebaseAuth,provider);}
+export async function completeGoogleSignIn():Promise<FlowUser|null>{const c=await getRedirectResult(firebaseAuth);if(!c)return null;const raw=sessionStorage.getItem(googleSignupStorageKey);sessionStorage.removeItem(googleSignupStorageKey);const {accountType='individual',acceptedTerms=false}=raw?JSON.parse(raw) as {accountType?:AccountType;acceptedTerms?:boolean}:{};const ref=doc(firestore,'users',c.user.uid);const s=await getDoc(ref);if(!s.exists()) await setDoc(ref,{name:c.user.displayName??null,email:c.user.email,photoURL:c.user.photoURL??null,accountType,role:'user',profileComplete:false,acceptedTermsAt:acceptedTerms?serverTimestamp():null,createdAt:serverTimestamp()});else {const p=s.data();await setDoc(ref,{name:p.name??c.user.displayName??null,email:p.email??c.user.email,photoURL:p.photoURL??c.user.photoURL??null,updatedAt:serverTimestamp()},{merge:true});}return toFlowUser(c.user);}
+export async function loginAdmin(email:string,password:string):Promise<FlowUser>{const c=await signInWithEmailAndPassword(firebaseAuth,email.trim(),password);const u=await toFlowUser(c.user);if(u.role!=='admin'&&u.role!=='moderator'){await signOut(firebaseAuth);throw new Error('Esta conta não tem permissão administrativa.');}return u;}
+export async function logout():Promise<void>{await signOut(firebaseAuth);}
+export async function requestPasswordReset(email:string):Promise<void>{await sendPasswordResetEmail(firebaseAuth,email.trim());}
+export async function resendVerification():Promise<void>{if(firebaseAuth.currentUser)await sendEmailVerification(firebaseAuth.currentUser);}
+export function onFlowAuthChanged(callback:(user:FlowUser|null)=>void):()=>void{return onAuthStateChanged(firebaseAuth,async user=>{if(!user){callback(null);return;}callback(await toFlowUser(user));});}
