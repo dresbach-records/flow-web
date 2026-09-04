@@ -6,36 +6,66 @@ import { getAnalytics, isSupported, type Analytics } from 'firebase/analytics';
 
 /**
  * Firebase Web configuration.
- *
- * The Firebase Web API key is a public client identifier, not an admin secret.
- * It must nevertheless be the active key belonging to the configured Firebase
- * Web App. A missing/placeholder key must never be sent to Firebase Auth.
+ * Only VITE_* public Web App identifiers are read by the Vite frontend.
+ * Administrative credentials must never be exposed here.
  */
 const env = import.meta.env;
-const apiKey = typeof env.VITE_FIREBASE_API_KEY === 'string' ? env.VITE_FIREBASE_API_KEY.trim() : '';
-const isPlaceholderApiKey = !apiKey || apiKey === 'cole_a_api_key_publica_do_app_web_aqui';
 
-const firebaseConfig: FirebaseOptions | null = isPlaceholderApiKey
-  ? null
-  : {
-      apiKey,
-      authDomain: env.VITE_FIREBASE_AUTH_DOMAIN?.trim() || 'flow-social-network-dc313.firebaseapp.com',
-      projectId: env.VITE_FIREBASE_PROJECT_ID?.trim() || 'flow-social-network-dc313',
-      storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET?.trim() || 'flow-social-network-dc313.firebasestorage.app',
-      messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID?.trim() || '44664124884',
-      appId: env.VITE_FIREBASE_APP_ID?.trim() || '1:44664124884:web:c7d30b5ff0f47a5bcd1241',
-      measurementId: env.VITE_FIREBASE_MEASUREMENT_ID?.trim() || 'G-3ENP4JSTJC',
-    };
-
-export const firebaseDiagnostics = {
-  apiKeyConfigured: Boolean(firebaseConfig?.apiKey),
-  projectIdConfigured: Boolean(firebaseConfig?.projectId),
-  appIdConfigured: Boolean(firebaseConfig?.appId),
+const readEnv = (name: string): string => {
+  const value = env[name];
+  return typeof value === 'string' ? value.trim() : '';
 };
 
-export const firebaseConfigError: Error | null = isPlaceholderApiKey
-  ? new Error('Firebase Web API key não configurada. Defina VITE_FIREBASE_API_KEY no ambiente de execução.')
-  : null;
+const apiKey = readEnv('VITE_FIREBASE_API_KEY');
+const authDomain = readEnv('VITE_FIREBASE_AUTH_DOMAIN');
+const projectId = readEnv('VITE_FIREBASE_PROJECT_ID');
+const storageBucket = readEnv('VITE_FIREBASE_STORAGE_BUCKET');
+const messagingSenderId = readEnv('VITE_FIREBASE_MESSAGING_SENDER_ID');
+const appId = readEnv('VITE_FIREBASE_APP_ID');
+const measurementId = readEnv('VITE_FIREBASE_MEASUREMENT_ID');
+
+const requiredConfig = {
+  apiKey,
+  authDomain,
+  projectId,
+  storageBucket,
+  messagingSenderId,
+  appId,
+};
+
+const missingConfigKeys = Object.entries(requiredConfig)
+  .filter(([, value]) => !value)
+  .map(([key]) => key);
+
+const isPlaceholderApiKey = apiKey === 'cole_a_api_key_publica_do_app_web_aqui';
+
+const firebaseConfig: FirebaseOptions | null =
+  missingConfigKeys.length > 0 || isPlaceholderApiKey
+    ? null
+    : {
+        apiKey,
+        authDomain,
+        projectId,
+        storageBucket,
+        messagingSenderId,
+        appId,
+        ...(measurementId ? { measurementId } : {}),
+      };
+
+export const firebaseDiagnostics = {
+  apiKeyConfigured: Boolean(apiKey && !isPlaceholderApiKey),
+  projectIdConfigured: Boolean(projectId),
+  appIdConfigured: Boolean(appId),
+  missingConfigKeys,
+};
+
+export const firebaseConfigError: Error | null = firebaseConfig
+  ? null
+  : new Error(
+      isPlaceholderApiKey
+        ? 'Firebase Web API key inválida ou ainda configurada como placeholder.'
+        : `Configuração do Firebase incompleta. Variáveis ausentes: ${missingConfigKeys.join(', ') || 'VITE_FIREBASE_API_KEY'}.`,
+    );
 
 let firebaseAppInstance: FirebaseApp | null = null;
 let firebaseAuthInstance: Auth | null = null;
@@ -50,11 +80,19 @@ if (firebaseConfig) {
     firestoreInstance = getFirestore(firebaseAppInstance);
     firebaseStorageInstance = getStorage(firebaseAppInstance);
   } catch (error) {
-    firebaseInitializationError = error instanceof Error ? error : new Error('Falha ao inicializar o Firebase.');
+    firebaseInitializationError = error instanceof Error
+      ? error
+      : new Error('Falha ao inicializar o Firebase.');
     firebaseAppInstance = null;
     firebaseAuthInstance = null;
     firestoreInstance = null;
     firebaseStorageInstance = null;
+    console.error('[FLOW] Firebase não pôde ser inicializado.', {
+      code: error instanceof Error ? (error as Error & { code?: string }).code : undefined,
+      apiKeyConfigured: firebaseDiagnostics.apiKeyConfigured,
+      projectIdConfigured: firebaseDiagnostics.projectIdConfigured,
+      appIdConfigured: firebaseDiagnostics.appIdConfigured,
+    });
   }
 }
 
@@ -68,7 +106,7 @@ export function requireFirebaseAuth(): Auth {
   if (!firebaseAuthInstance) {
     throw new Error(
       firebaseInitializationError?.message ??
-      'Firebase Authentication indisponível. Verifique a configuração do Firebase.',
+        'Firebase Authentication indisponível. Verifique a configuração do Firebase.',
     );
   }
   return firebaseAuthInstance;
@@ -78,7 +116,7 @@ export function requireFirestore(): Firestore {
   if (!firestoreInstance) {
     throw new Error(
       firebaseInitializationError?.message ??
-      'Cloud Firestore indisponível. Verifique a configuração do Firebase.',
+        'Cloud Firestore indisponível. Verifique a configuração do Firebase.',
     );
   }
   return firestoreInstance;
@@ -88,7 +126,7 @@ export function requireFirebaseStorage(): FirebaseStorage {
   if (!firebaseStorageInstance) {
     throw new Error(
       firebaseInitializationError?.message ??
-      'Firebase Storage indisponível. Verifique a configuração do Firebase.',
+        'Firebase Storage indisponível. Verifique a configuração do Firebase.',
     );
   }
   return firebaseStorageInstance;

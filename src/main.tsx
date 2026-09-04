@@ -1,16 +1,26 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import { AppErrorBoundary } from './components/system/AppErrorBoundary';
 import './styles/index.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('FLOW root element not found');
 
 document.documentElement.dataset.theme = localStorage.getItem('flow.theme') ?? 'light';
-if ('serviceWorker' in navigator) window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js'));
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.warn('[FLOW] Service Worker não pôde ser registrado.', error);
+    });
+  });
+}
 
 createRoot(rootElement).render(
   <React.StrictMode>
-    <App />
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
   </React.StrictMode>,
 );
