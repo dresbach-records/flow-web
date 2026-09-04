@@ -1,0 +1,391 @@
+FLOW em nível Facebook, eu montaria o inventário assim:
+
+1. Conta e autenticação
+Login
+Criar conta
+Recuperar senha
+Verificação de e-mail
+Verificação de telefone
+Código de confirmação
+Autenticação em dois fatores
+Sessões/dispositivos conectados
+Conta bloqueada
+Conta desativada
+Central de contas
+Preferências da conta
+2. Feed
+Para você
+Seguindo
+Feed principal
+Publicação de texto
+Publicação com foto
+Publicação com vídeo
+Enquete
+Sentimento/atividade
+Localização
+Marcação de pessoas
+Público da publicação
+Agendamento
+Rascunhos
+Edição da publicação
+Exclusão
+Ocultar publicação
+Salvar publicação
+Curtidas
+Comentários
+Compartilhamento
+Copiar link
+Denunciar
+Bloquear
+Silenciar
+Ver menos conteúdo
+“Por que estou vendo isso?”
+3. Stories
+Stories
+Criar Story
+Câmera
+Upload de foto
+Upload de vídeo
+Texto
+Música
+Figurinhas
+Enquete
+Perguntas
+Localização
+Menção
+GIF
+Edição
+Privacidade do Story
+Arquivo de Stories
+Visualizadores do Story
+4. Reels / Shorts
+Feed de Reels
+Criar Reel
+Upload de vídeo
+Câmera
+Cortar vídeo
+Áudio
+Volume
+Música
+Texto
+Efeitos
+Figurinhas
+Capa
+Legenda
+Hashtags
+Público
+Agendamento
+Rascunhos
+Estatísticas do Reel
+5. Perfil
+Meu perfil
+Perfil de outro usuário
+Editar perfil
+Foto do perfil
+Capa
+Bio
+Informações pessoais
+Publicações
+Fotos
+Vídeos
+Reels
+Stories destacados
+Seguidores
+Seguindo
+Amigos/conexões
+Sobre
+Atividade
+Publicações salvas
+Publicações curtidas
+Menções
+Configurações do perfil
+6. Pesquisa e Explorar
+Pesquisa
+Resultados gerais
+Pessoas
+Publicações
+Vídeos
+Reels
+Fotos
+Grupos
+Páginas
+Comunidades
+Marketplace
+Tendências
+Hashtags
+Histórico de pesquisa
+7. Mensagens
+Caixa de entrada
+Conversa
+Nova conversa
+Solicitações
+Conversas arquivadas
+Mensagens não lidas
+Pesquisa de mensagens
+Envio de foto
+Envio de vídeo
+Arquivo
+Figurinha
+GIF
+Áudio
+Reação
+Resposta
+Encaminhamento
+Apagar mensagem
+Silenciar conversa
+Bloquear conversa
+Denunciar conversa
+8. Notificações
+Todas
+Curtidas
+Comentários
+Menções
+Novos seguidores
+Solicitações
+Mensagens
+Stories
+Reels
+Grupos
+Páginas
+Marketplace
+Segurança
+Notificações push
+Preferências de notificações
+9. Comunidades / Grupos
+Descobrir grupos
+Meus grupos
+Criar grupo
+Página do grupo
+Feed do grupo
+Membros
+Administradores
+Solicitações
+Convites
+Eventos do grupo
+Arquivos
+Perguntas
+Regras
+Moderação
+Denúncias
+Banimentos
+Configurações do grupo
+10. Salvos
+Todos os salvos
+Publicações
+Vídeos
+Reels
+Links
+Coleções
+Criar coleção
+Editar coleção
+Excluir coleção
+11. Eventos
+Eventos
+Descobrir eventos
+Meus eventos
+Criar evento
+Página do evento
+Participantes
+Convites
+Agenda
+Localização
+Configurações do evento
+12. Marketplace
+Marketplace
+Pesquisa
+Categorias
+Produto
+Criar anúncio
+Editar anúncio
+Fotos do produto
+Preço
+Localização
+Mensagens do comprador
+Meus anúncios
+Vendidos
+Salvos
+Compras
+Avaliações
+13. Páginas
+Criar Página
+Escolher tipo
+Informações
+Categoria
+Descrição
+Foto
+Capa
+Nome de usuário
+Página publicada
+Feed da Página
+Sobre
+Fotos
+Vídeos
+Reels
+Stories
+Eventos
+Serviços
+Produtos
+Avaliações
+Seguidores
+Caixa de entrada
+Notificações
+Comentários
+Moderação
+Pessoas com acesso
+Funções
+Permissões
+Configurações da Página
+14. Meta Business Suite — parte essencial para o FLOW
+
+Aqui é onde o projeto de vocês precisa ficar muito mais completo.
+
+Visão geral
+Página inicial
+Calendário
+Planejador de conteúdo
+Publicações
+Stories
+Reels
+Rascunhos
+Agendados
+Publicados
+Caixa de entrada
+Comentários
+Mensagens
+Leads
+Notificações
+Insights
+Visão diária
+Visão semanal
+Visão mensal
+Alcance
+Engajamento
+Seguidores
+Crescimento
+Conteúdo com melhor desempenho
+Público
+Monetização
+Configurações comerciais
+15. Anúncios / Ads
+
+A parte de publicidade é outro conjunto enorme:
+
+Gerenciador de Anúncios
+Campanhas
+Conjuntos de anúncios
+Anúncios
+Criar campanha
+Objetivo da campanha
+Orçamento
+Programação
+Público
+Localização
+Idade
+Gênero
+Segmentação
+Posicionamentos
+Criativo
+Texto
+Título
+CTA
+URL
+Prévia
+Publicação
+Revisão
+Relatórios
+Métricas
+Colunas personalizadas
+Filtros
+Comparação
+Exportação
+Biblioteca de anúncios
+
+A Biblioteca de Anúncios da Meta permite pesquisar anúncios atualmente veiculados nas tecnologias da Meta e também possui relatório, API e pesquisa de conteúdo de marca.
+
+16. Configurações
+Configurações gerais
+Conta
+Perfil
+Privacidade
+Segurança
+Senha
+Login
+Autenticação 2FA
+Dispositivos
+Bloqueios
+Silenciamento
+Preferências do Feed
+Preferências de conteúdo
+Idioma
+Acessibilidade
+Tema claro
+Tema escuro
+Notificações
+E-mail
+SMS
+Push
+Dados pessoais
+Download dos dados
+Transferência de dados
+Exclusão da conta
+Desativação
+Publicidade
+Preferências de anúncios
+Atividade fora da plataforma
+Cookies
+Central de privacidade
+
+A própria Meta documenta ferramentas como gerenciamento/download/exclusão de dados, Central de Contas, Verificação de Privacidade, atividade fora do Facebook, preferências de anúncios e autenticação de dois fatores.
+
+17. Segurança e moderação
+Central de segurança
+Denúncias
+Conteúdo denunciado
+Contas bloqueadas
+Palavras ocultas
+Comentários ocultos
+Moderação automática
+Controle de conteúdo
+Violações
+Recursos/apelações
+Status da conta
+Histórico de ações
+18. Criador / profissional
+Painel profissional
+Visão geral
+Conteúdo
+Insights
+Público
+Monetização
+Ferramentas profissionais
+Parcerias
+Conteúdo de marca
+Colaborações
+Biblioteca de conteúdo
+Agendamento
+Desempenho
+19. Administração
+Administradores
+Equipes
+Permissões
+Contas vinculadas
+Páginas vinculadas
+Contas de anúncios
+Métodos de pagamento
+Faturamento
+Histórico financeiro
+Integrações
+APIs
+Webhooks
+Aplicativos
+Segurança empresarial
+
+Então, para o FLOW, eu não trabalharia com “29 telas”. Aquelas 29 que criamos são apenas o primeiro pacote visual.
+
+Para chegar realmente ao nível que você está pedindo, eu colocaria como meta aproximadamente 350 telas/estados funcionais, agrupados em cerca de 19 grandes módulos. E isso ainda é uma estimativa de engenharia, não um número oficial de telas do Facebook, porque a Meta gera páginas e estados dinamicamente conforme a conta e as permissões.
+
+E um detalhe importante: não devemos copiar literalmente o Facebook. Podemos usar a arquitetura funcional como referência — navegação, hierarquia, fluxos, calendário, criação, publicação, moderação, Business Suite etc. — mas o FLOW precisa ter seu próprio design system e identidade visual.
+
+Para o seu projeto, eu transformaria essa lista em uma matriz de implementação, com:
+
+Tela → Rota → Componente → API → Firestore → Permissão → Estado vazio → Loading → Erro → Mobile → Tablet → Desktop → Dark/Light → Teste

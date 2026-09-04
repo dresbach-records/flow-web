@@ -25,3 +25,7 @@ export const FLOW_MODULES:FlowModuleDefinition[]=[
 {key:'audit',name:'Auditoria e logs',area:['admin'],defaultState:'enabled',routes:['/admin/auditoria','/admin/logs']}
 ];
 export const DEFAULT_MODULE_STATES=Object.fromEntries(FLOW_MODULES.map(m=>[m.key,m.defaultState])) as Record<string,ModuleState>;
+export const moduleRegistry = FLOW_MODULES;
+export type PlatformModule = FlowModuleDefinition;
+export function getModule(key:string){return FLOW_MODULES.find(module=>module.key===key);}
+export function isModuleEnabled(key:string, states:Record<string,ModuleState>=DEFAULT_MODULE_STATES){return states[key]==='enabled';}

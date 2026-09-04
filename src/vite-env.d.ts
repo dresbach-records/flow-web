@@ -1,3 +1,4 @@
+ v0/flow-db-structure
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
@@ -7,3 +8,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/// <reference types="vite/client" />
+ main

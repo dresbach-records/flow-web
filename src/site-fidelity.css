@@ -1,0 +1,54 @@
+/* FLOW public website visual system — aligned to the approved reference screens. */
+:root{--flow-bg:#030508;--flow-text:#f7f8fb;--flow-muted:#9da3b2;--flow-line:rgba(255,255,255,.12);--flow-pink:#f000a8;--flow-purple:#8d3dff;--flow-cyan:#00d9ff}
+body:has(.head){background:var(--flow-bg);color:var(--flow-text)}
+body:has(.head) .head{background:rgba(3,5,8,.9);border-bottom:1px solid var(--flow-line);backdrop-filter:blur(18px)}
+body:has(.head) .head>div{max-width:1380px;height:60px;padding:0 28px}
+body:has(.head) .brand{width:112px;height:36px;padding:0;background:url('/flow-logo.svg') center/contain no-repeat;font-size:0;flex:none}
+body:has(.head) .brand span{display:none}
+body:has(.head) .head nav{justify-content:center;gap:4px}
+body:has(.head) .head nav button{color:#e9ebf1;padding:9px 13px;font-size:12px;font-weight:600;border-radius:0}
+body:has(.head) .head nav button:hover{background:transparent;color:#fff}
+body:has(.head) .head nav button:first-child{border-bottom:2px solid #fff}
+body:has(.head) .head nav:after{content:'Empresa ⌄';display:inline-flex;align-items:center;padding:9px 13px;color:#e9ebf1;font-size:12px;font-weight:600;white-space:nowrap}
+body:has(.head) .head aside{display:flex;align-items:center;gap:8px}
+body:has(.head) .head aside>svg{width:19px;color:#fff;margin-right:8px}
+body:has(.head) .head aside>button:not(.gradient){color:#fff;border:1px solid var(--flow-line);border-radius:9px;padding:9px 17px;font-size:12px;font-weight:700}
+body:has(.head) .head aside>.gradient{border-radius:9px;padding:10px 18px;font-size:12px;background:linear-gradient(110deg,#ef28b4,#8e3dff 48%,#00d7f2);box-shadow:none}
+body:has(.head) .hero{position:relative;max-width:none;width:100%;min-height:520px;padding:54px max(7vw,80px) 48px;display:grid;grid-template-columns:minmax(460px,.9fr) minmax(540px,1.1fr);gap:25px;align-items:center;overflow:hidden;background:radial-gradient(ellipse 430px 300px at 67% 35%,rgba(121,42,255,.33),transparent 68%),radial-gradient(ellipse 330px 250px at 77% 58%,rgba(255,0,168,.16),transparent 70%),linear-gradient(180deg,#05060a,#030508)}
+body:has(.head) .hero:before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 65% 25%,rgba(0,210,255,.09),transparent 28%),radial-gradient(circle at 81% 45%,rgba(255,0,170,.12),transparent 30%)}
+body:has(.head) .hero>div:first-child{position:relative;z-index:2;max-width:610px}
+body:has(.head) .hero .eyebrow{color:#fff;background:rgba(22,23,36,.72);border:1px solid rgba(255,255,255,.08);padding:9px 13px;border-radius:9px;font-size:11px;letter-spacing:.3px}
+body:has(.head) .hero .eyebrow svg{color:#ff31bd}
+body:has(.head) .hero h1{font-size:0;letter-spacing:-4px;line-height:.92;margin:20px 0 22px;color:#fff}
+body:has(.head) .hero h1:before{content:'Descubra.\\A Crie.';white-space:pre;display:block;color:#fff;font-size:clamp(58px,5.6vw,88px);line-height:.92}
+body:has(.head) .hero h1:after{content:'Conecte.';display:block;font-size:clamp(58px,5.6vw,88px);line-height:.92;background:linear-gradient(100deg,#f126b7,#9b3cff 47%,#00d9f5);background-clip:text;-webkit-background-clip:text;color:transparent}
+body:has(.head) .hero p{font-size:15px;line-height:1.65;color:#b8bdc8;max-width:520px;margin:0}
+body:has(.head) .hero .actions{margin:26px 0 0;gap:12px}
+body:has(.head) .hero .gradient{background:linear-gradient(105deg,#f21bad,#913cff 52%,#00d7f4);box-shadow:none;border-radius:8px;padding:13px 21px;font-size:12px}
+body:has(.head) .hero .outline{background:rgba(4,6,10,.55);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:12px 20px;font-size:12px}
+body:has(.head) .hero .proof{display:none}
+body:has(.head) .phones{height:470px;position:relative;z-index:2}
+body:has(.head) .phones:before{width:570px;height:420px;background:radial-gradient(ellipse,#5b1fcf55,#e5009c20 38%,transparent 72%);filter:blur(8px)}
+body:has(.head) .phone{width:210px;height:425px;border:5px solid #11141c;border-radius:28px;background:#080b12;box-shadow:0 30px 70px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08);opacity:1}
+body:has(.head) .phone.left{left:8%;top:42px;transform:rotate(-8deg)!important;z-index:1}
+body:has(.head) .phone.main{left:31%;top:0;z-index:3}
+body:has(.head) .phone.right{right:7%;top:35px;transform:rotate(8deg)!important;z-index:1}
+body:has(.head) .phone>img{filter:saturate(.82) brightness(.72);object-position:center}
+body:has(.head) .phone:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,6,12,.08) 30%,rgba(2,3,7,.72));pointer-events:none}
+body:has(.head) .phone>b,body:has(.head) .phone>span,body:has(.head) .phone>div,body:has(.head) .phone>aside{z-index:4}
+body:has(.head) .strip{max-width:none;width:100%;padding:21px max(7vw,80px);background:#04060a;border-top:1px solid var(--flow-line);border-bottom:1px solid var(--flow-line);grid-template-columns:repeat(4,1fr);gap:0}
+body:has(.head) .strip>div{min-height:54px;display:grid;grid-template-columns:36px 1fr;gap:2px 11px;padding:6px 24px;border-right:1px solid rgba(255,255,255,.16);color:#fff}
+body:has(.head) .strip>div b{font-size:12px;color:#f7f8fb}.strip>div small{font-size:10px;color:#8f96a5}
+body:has(.head) .strip>div svg{width:28px;height:28px;grid-row:span 2;filter:drop-shadow(0 0 7px currentColor)}
+body:has(.head) .strip:after{content:'Para criadores\\A Ferramentas completas';white-space:pre;display:flex;align-items:center;padding-left:24px;color:#fff;font-size:12px;line-height:1.5;font-weight:700}
+body:has(.head) .light{display:none}
+body:has(.head) .download{max-width:none;width:calc(100% - 14vw);margin:34px auto 0;padding:25px 32px;border:1px solid rgba(255,255,255,.13);border-radius:13px;background:linear-gradient(100deg,#090c13,#0a0d14);box-shadow:none}
+body:has(.head) .download h2{font-size:21px;margin:4px 0 7px;color:#fff}body:has(.head) .download p{font-size:12px;color:#8e96a5;margin:0;max-width:570px}
+body:has(.head) .stores a{min-width:135px;background:#080a0f;border:1px solid rgba(255,255,255,.17);border-radius:8px;padding:8px 12px;font-size:19px}
+body:has(.head) footer{margin-top:0;padding:35px max(7vw,80px) 18px;background:#05070c;border-top:1px solid var(--flow-line);color:#fff}
+body:has(.head) .footer-grid{max-width:none;display:grid;grid-template-columns:1.7fr repeat(3,1fr) 1.4fr;gap:38px}
+body:has(.head) footer p,body:has(.head) footer button{color:#8f96a4}body:has(.head) footer button{display:block;padding:4px 0;font-size:11px;text-align:left}body:has(.head) footer h4{font-size:12px;margin:4px 0 12px;color:#fff}
+body:has(.head) .footer-bottom{margin-top:27px;padding-top:16px;border-top:1px solid rgba(255,255,255,.09);font-size:10px;color:#697181}body:has(.head) .footer-bottom span{float:right}
+body:has(.head) .page-hero,body:has(.head) .landing,body:has(.head) .text{background:var(--flow-bg);color:#fff}body:has(.head) .page-hero p,body:has(.head) .landing p,body:has(.head) .text p{color:var(--flow-muted)}
+@media(max-width:1000px){body:has(.head) .head nav{display:none}body:has(.head) .head aside>button:not(.gradient){display:none}body:has(.head) .hamb{display:block;color:#fff!important}body:has(.head) .hero{grid-template-columns:1fr;padding:45px 28px 30px}body:has(.head) .phones{height:390px;margin-top:8px}body:has(.head) .phone{width:175px;height:355px}body:has(.head) .phone.left{left:4%}body:has(.head) .phone.main{left:30%}body:has(.head) .phone.right{right:2%}body:has(.head) .strip{grid-template-columns:repeat(2,1fr);padding:15px 20px}body:has(.head) .strip:after{display:none}body:has(.head) .strip>div:nth-child(2n){border-right:0}body:has(.head) .download{width:calc(100% - 40px);flex-direction:column;align-items:flex-start}body:has(.head) .footer-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){body:has(.head) .head>div{height:56px;padding:0 18px}body:has(.head) .hero{min-height:auto;padding:35px 20px 15px}body:has(.head) .hero h1:before,body:has(.head) .hero h1:after{font-size:54px}body:has(.head) .phones{height:350px}body:has(.head) .phone{width:145px;height:295px;border-width:4px}body:has(.head) .phone.left{left:-2%;top:38px}body:has(.head) .phone.main{left:27%;top:0}body:has(.head) .phone.right{right:-4%;top:28px}body:has(.head) .strip{grid-template-columns:1fr;padding:10px 18px}body:has(.head) .strip>div{border-right:0;border-bottom:1px solid rgba(255,255,255,.09)}body:has(.head) .footer-grid{grid-template-columns:1fr 1fr;gap:22px}body:has(.head) .footer-grid>div:first-child{grid-column:1/-1}body:has(.head) .footer-bottom span{float:none;display:block;margin-top:8px}}

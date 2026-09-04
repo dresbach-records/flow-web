@@ -1,12 +1,9 @@
-import { PrismaClient } from '@prisma/client';
-import { MongoClient } from 'mongodb';
-import { env } from '../config/env.js';
+import { firebaseAuth, firestore, firebaseStorage } from './firebase/firebase-admin.js';
 
-export const prisma = new PrismaClient();
-export const mongoClient = new MongoClient(env.MONGODB_URI);
-export const mongoDb = mongoClient.db(env.MONGODB_DATABASE);
+export { firebaseAuth, firestore, firebaseStorage };
 
 export async function connectDatabases() {
+
   await prisma.$connect();
   await mongoClient.connect();
   await mongoDb.command({ ping: 1 });
@@ -19,9 +16,11 @@ export async function connectDatabases() {
     mongoDb.collection('products').createIndex({ storeId: 1, moderationStatus: 1, createdAt: -1 }),
     mongoDb.collection('orders').createIndex({ buyerId: 1, createdAt: -1 }),
   ]);
+
+  await firestore().collection('_health').limit(1).get();
+main
 }
 
 export async function disconnectDatabases() {
-  await prisma.$disconnect();
-  await mongoClient.close();
+  // Firebase Admin manages its own connections.
 }
