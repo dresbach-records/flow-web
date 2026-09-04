@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Compass, Heart, Search, ShoppingBag, Sparkles, Users, Video, Camera, MessageCircle, ExternalLink } from 'lucide-react';
 import './explore-page.css';
 
@@ -36,7 +36,7 @@ export default function ExplorePage() {
       <button type="submit">Pesquisar</button>
     </form>
 
-    {submitted && <section className="flow-explore-results" aria-live="polite"><strong>{resultLabel}</strong><span>Use a pesquisa global do Flow para continuar explorando este assunto.</span><button onClick={() => go('/app')}>Ver no feed</button></section>}
+    {submitted && <section className="flow-explore-results" aria-live="polite"><strong>{resultLabel}</strong><span>Use a pesquisa global do Flow para continuar explorando este assunto.</span><button type="button" onClick={() => go('/app')}>Ver no feed</button></section>}
 
     <section className="flow-explore-grid">
       <ExploreCard icon={<Sparkles />} title="Pesquise com a IA da Flow" text="Peça pesquisas sobre assuntos importantes para você e transforme perguntas em experiências interativas." action="Explorar IA" onClick={() => go('/app/criar')} />
@@ -65,15 +65,15 @@ export default function ExplorePage() {
 
     <section className="flow-explore-trends">
       <div className="flow-explore-section-heading"><div><span className="flow-explore-eyebrow">AGORA</span><h2>Assuntos em movimento</h2></div><Compass size={25} /></div>
-      <div className="flow-trend-list">{trends.map(item => <button key={item.tag} className="flow-trend" onClick={() => { setQuery(item.tag); setSubmitted(item.tag); }}><strong>{item.tag}</strong><span>{item.count}</span></button>)}</div>
+      <div className="flow-trend-list">{trends.map(item => <button type="button" key={item.tag} className="flow-trend" onClick={() => { setQuery(item.tag); setSubmitted(item.tag); }}><strong>{item.tag}</strong><span>{item.count}</span></button>)}</div>
     </section>
   </div>;
 }
 
-function ExploreCard({ icon, title, text, action, onClick }: { icon: React.ReactNode; title: string; text: string; action: string; onClick: () => void }) {
-  return <article className="flow-explore-card"><div className="flow-explore-card-icon">{icon}</div><h3>{title}</h3><p>{text}</p><button onClick={onClick}>{action}</button></article>;
+function ExploreCard({ icon, title, text, action, onClick }: { icon: ReactNode; title: string; text: string; action: string; onClick: () => void }) {
+  return <article className="flow-explore-card"><div className="flow-explore-card-icon">{icon}</div><h3>{title}</h3><p>{text}</p><button type="button" onClick={onClick}>{action}</button></article>;
 }
 
-function Feature({ icon, title, text, action, onClick }: { icon: React.ReactNode; title: string; text: string; action: string; onClick: () => void }) {
-  return <article className="flow-explore-feature"><div className="flow-explore-feature-icon">{icon}</div><div><h3>{title}</h3><p>{text}</p><button onClick={onClick}>{action}</button></div></article>;
+function Feature({ icon, title, text, action, onClick }: { icon: ReactNode; title: string; text: string; action: string; onClick: () => void }) {
+  return <article className="flow-explore-feature"><div className="flow-explore-feature-icon">{icon}</div><div><h3>{title}</h3><p>{text}</p><button type="button" onClick={onClick}>{action}</button></div></article>;
 }
