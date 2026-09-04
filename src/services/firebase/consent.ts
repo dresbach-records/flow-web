@@ -18,28 +18,20 @@ export interface UserConsentRecord {
   userAgent?: string;
 }
 
-/**
- * Checks whether the given user has accepted the mandatory terms and privacy policy.
- * The Firestore database is the single source of truth.
- */
 export async function checkUserConsent(userId: string): Promise<{ hasAccepted: boolean; record?: UserConsentRecord | null }> {
   try {
     const firestore = requireFirestore();
-
-    // 1. Check user profile document in Firestore
     const userSnap = await getDoc(doc(firestore, 'users', userId));
     if (userSnap.exists()) {
       const data = userSnap.data();
       const termsAccepted = Boolean(data.termsAccepted ?? data.acceptedTermsAt);
       const privacyAccepted = Boolean(data.privacyAccepted ?? data.acceptedTermsAt);
       const consentVersion = String(data.consentVersion || '');
-
       if (termsAccepted && privacyAccepted && consentVersion === CURRENT_CONSENT_VERSION) {
         return { hasAccepted: true };
       }
     }
 
-    // 2. Check dedicated consents collection in Firestore
     const consentSnap = await getDoc(doc(firestore, 'consents', userId));
     if (consentSnap.exists()) {
       const consentData = consentSnap.data() as UserConsentRecord;
@@ -55,18 +47,20 @@ export async function checkUserConsent(userId: string): Promise<{ hasAccepted: b
 
     return { hasAccepted: false };
   } catch (error) {
-    console.warn('[FLOW] Falha ao verificar consentimento no Firestore, checando cache local.', error);
-    // Fallback: check local flag only if network fails
-    const cached = localStorage.getItem(`flow.consent.${userId}`);
+    console.warn('[FLOW] Falha ao verificar consentimento no Firestore.', error);
+    const cached = typeof localStorage !== 'undefined'
+      ? localStorage.getItem(`flow.consent.${userId}`)
+      : null;
     return { hasAccepted: cached === CURRENT_CONSENT_VERSION };
   }
 }
 
-/**
- * Persists the user's mandatory consent in Firestore.
- */
 export async function recordUserConsent(userId: string, accepted: boolean): Promise<void> {
   const firestore = requireFirestore();
+
+  if (!userId) {
+    throw new Error('Usuário não autenticado para registrar consentimento.');
+  }
 
   if (accepted) {
     const payload: UserConsentRecord = {
@@ -81,48 +75,53 @@ export async function recordUserConsent(userId: string, accepted: boolean): Prom
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
     };
 
-    // Save to consents collection
+    // A gravação é idempotente: funciona tanto para primeiro aceite quanto para atualização.
     await setDoc(doc(firestore, 'consents', userId), payload, { merge: true });
 
-    // Update user profile document
-    await updateDoc(doc(firestore, 'users', userId), {
+    const userRef = doc(firestore, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    const consentFields = {
       termsAccepted: true,
       privacyAccepted: true,
       consentVersion: CURRENT_CONSENT_VERSION,
       consentDocumentVersion: CURRENT_DOCUMENT_VERSION,
       consentAcceptedAt: serverTimestamp(),
       consentUserId: userId,
-    }).catch(async () => {
-      // If doc didn't exist or merge needed
-      await setDoc(doc(firestore, 'users', userId), {
-        termsAccepted: true,
-        privacyAccepted: true,
-        consentVersion: CURRENT_CONSENT_VERSION,
-        consentDocumentVersion: CURRENT_DOCUMENT_VERSION,
-        consentAcceptedAt: serverTimestamp(),
-        consentUserId: userId,
-      }, { merge: true });
-    });
+    };
 
-    localStorage.setItem(`flow.consent.${userId}`, CURRENT_CONSENT_VERSION);
-  } else {
-    // Declined flow
-    try {
-      await setDoc(doc(firestore, 'consents', userId), {
-        userId,
-        consentType: 'terms_and_privacy',
-        documentVersion: CURRENT_DOCUMENT_VERSION,
-        consentVersion: CURRENT_CONSENT_VERSION,
-        declinedAt: serverTimestamp(),
-        status: 'declined',
-        termsAccepted: false,
-        privacyAccepted: false,
+    if (userSnap.exists()) {
+      // Preserva todos os dados existentes e, principalmente, não altera role/accountType.
+      await updateDoc(userRef, consentFields);
+    } else {
+      // Cadastro ainda sem perfil Firestore: cria o mínimo exigido pelas regras.
+      await setDoc(userRef, {
+        role: 'user',
+        ...consentFields,
       }, { merge: true });
-    } catch {
-      // Ignore if offline
     }
 
-    localStorage.removeItem(`flow.consent.${userId}`);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(`flow.consent.${userId}`, CURRENT_CONSENT_VERSION);
+    }
+    return;
+  }
+
+  // Recusa: registra o evento quando possível e sempre encerra a sessão.
+  try {
+    await setDoc(doc(firestore, 'consents', userId), {
+      userId,
+      consentType: 'terms_and_privacy',
+      documentVersion: CURRENT_DOCUMENT_VERSION,
+      consentVersion: CURRENT_CONSENT_VERSION,
+      declinedAt: serverTimestamp(),
+      status: 'declined',
+      termsAccepted: false,
+      privacyAccepted: false,
+    }, { merge: true });
+  } finally {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(`flow.consent.${userId}`);
+    }
     await logout();
   }
 }
