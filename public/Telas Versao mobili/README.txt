@@ -1,0 +1,1 @@
+FLOW — pacote de 29 telas mobile individuais.\nAs telas estão em SVG, preenchidas com componentes e conteúdo visual de referência.\nInclui fluxo social, criação de Página, gestão da Página, agendamento, insights, mensagens, moderação e configurações.\n
