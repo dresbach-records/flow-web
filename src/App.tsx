@@ -1,11 +1,12 @@
 import React from 'react';
 import { AdminApp, AuthPage, CreatorCenter, ModuleCenter, PlatformModules, ProfilePage, PublicApp, SiteEditor } from './pages';
 import SocialFeed from './app/SocialFeed';
+import ExplorePage from './app/ExplorePage';
 import ScheduleCenter from './app/ScheduleCenter';
 import { AppProvider } from './contexts/AppContext';
 
 const AUTH_ROUTES = ['/auth/login', '/login', '/cadastro', '/recuperar-senha', '/redefinir-senha', '/verificar-conta'];
-const SOCIAL_ROUTES = new Set(['/app', '/app/', '/app/for-you', '/app/seguindo', '/app/explorar', '/app/shorts', '/app/criar', '/app/mensagens', '/app/notificacoes', '/app/comunidades', '/app/perfil', '/app/salvos', '/app/configuracoes', '/app/agendamento', '/app/agendamentos']);
+const SOCIAL_ROUTES = new Set(['/app', '/app/', '/app/for-you', '/app/seguindo', '/app/shorts', '/app/criar', '/app/mensagens', '/app/notificacoes', '/app/comunidades', '/app/perfil', '/app/salvos', '/app/configuracoes', '/app/agendamento', '/app/agendamentos']);
 
 export default function App() {
   const [path, setPath] = React.useState(() => window.location.pathname);
@@ -20,6 +21,7 @@ export default function App() {
   else if (path === '/app/perfil') content = <ProfilePage />;
   else if (path.startsWith('/app/perfil/')) content = <ProfilePage uid={decodeURIComponent(path.slice('/app/perfil/'.length))} />;
   else if (path === '/app/agendamento' || path === '/app/agendamentos') content = <ScheduleCenter />;
+  else if (path === '/app/explorar') content = <SocialWithExplore />;
   else if (SOCIAL_ROUTES.has(path)) content = <SocialFeed path={path} />;
   else if (path.startsWith('/app/criador')) content = <CreatorCenter />;
   else if (path === '/app/shop' || path === '/app/loja') content = <PlatformModules screen={path === '/app/shop' ? 'shop' : 'seller'} />;
@@ -30,6 +32,10 @@ export default function App() {
   else if (path === '/app/seguranca') content = <PlatformModules screen="safety" />;
   else content = <PublicApp />;
   return <AppProvider>{content}</AppProvider>;
+}
+
+function SocialWithExplore() {
+  return <div className="flow-social"><ExplorePage /></div>;
 }
 
 function AdminAppShell({ children }: { children: React.ReactNode }) {
