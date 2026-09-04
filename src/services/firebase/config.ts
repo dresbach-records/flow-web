@@ -15,20 +15,22 @@ const env = import.meta.env;
 const apiKey = typeof env.VITE_FIREBASE_API_KEY === 'string' ? env.VITE_FIREBASE_API_KEY.trim() : '';
 const isPlaceholderApiKey = !apiKey || apiKey === 'cole_a_api_key_publica_do_app_web_aqui';
 
-const firebaseConfig: FirebaseOptions = {
-  apiKey: apiKey || undefined,
-  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN?.trim() || 'flow-social-network-dc313.firebaseapp.com',
-  projectId: env.VITE_FIREBASE_PROJECT_ID?.trim() || 'flow-social-network-dc313',
-  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET?.trim() || 'flow-social-network-dc313.firebasestorage.app',
-  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID?.trim() || '44664124884',
-  appId: env.VITE_FIREBASE_APP_ID?.trim() || '1:44664124884:web:c7d30b5ff0f47a5bcd1241',
-  measurementId: env.VITE_FIREBASE_MEASUREMENT_ID?.trim() || 'G-3ENP4JSTJC',
-};
+const firebaseConfig: FirebaseOptions | null = isPlaceholderApiKey
+  ? null
+  : {
+      apiKey,
+      authDomain: env.VITE_FIREBASE_AUTH_DOMAIN?.trim() || 'flow-social-network-dc313.firebaseapp.com',
+      projectId: env.VITE_FIREBASE_PROJECT_ID?.trim() || 'flow-social-network-dc313',
+      storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET?.trim() || 'flow-social-network-dc313.firebasestorage.app',
+      messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID?.trim() || '44664124884',
+      appId: env.VITE_FIREBASE_APP_ID?.trim() || '1:44664124884:web:c7d30b5ff0f47a5bcd1241',
+      measurementId: env.VITE_FIREBASE_MEASUREMENT_ID?.trim() || 'G-3ENP4JSTJC',
+    };
 
 export const firebaseDiagnostics = {
-  apiKeyConfigured: !isPlaceholderApiKey,
-  projectIdConfigured: Boolean(firebaseConfig.projectId),
-  appIdConfigured: Boolean(firebaseConfig.appId),
+  apiKeyConfigured: Boolean(firebaseConfig?.apiKey),
+  projectIdConfigured: Boolean(firebaseConfig?.projectId),
+  appIdConfigured: Boolean(firebaseConfig?.appId),
 };
 
 export const firebaseConfigError: Error | null = isPlaceholderApiKey
@@ -41,7 +43,7 @@ let firestoreInstance: Firestore | null = null;
 let firebaseStorageInstance: FirebaseStorage | null = null;
 let firebaseInitializationError: Error | null = firebaseConfigError;
 
-if (!firebaseConfigError) {
+if (firebaseConfig) {
   try {
     firebaseAppInstance = getApps().length ? getApp() : initializeApp(firebaseConfig);
     firebaseAuthInstance = getAuth(firebaseAppInstance);
