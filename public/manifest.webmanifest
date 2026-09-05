@@ -9,6 +9,9 @@
   "theme_color": "#4F7FFF",
   "background_color": "#F8FAFC",
   "icons": [
+    { "src": "/icons/flow-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/flow-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/flow-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "/flow.ico", "sizes": "any", "type": "image/x-icon" },
     { "src": "/logo.png", "sizes": "any", "type": "image/png", "purpose": "any" },
     { "src": "/flow-assets-svg/brand/light/flow-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },

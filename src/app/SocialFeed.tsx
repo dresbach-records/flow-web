@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { usePosts } from '../hooks/usePosts';
+import { toggleLike, toggleSaved } from '../services/firebase/social';
 import CommentsPanel from '../components/social/CommentsPanel';
 import FeedTabs from '../components/social/FeedTabs';
 import PostCard from '../components/social/PostCard';
@@ -38,20 +39,42 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
   const [createModalOpen, setCreateModalOpen] = useState(path === '/app/criar');
 
   const handleLike = (postId: string) => {
+    const currentlyLiked = liked.has(postId);
     setLiked((prev) => {
       const next = new Set(prev);
-      if (next.has(postId)) next.delete(postId);
+      if (currentlyLiked) next.delete(postId);
       else next.add(postId);
       return next;
+    });
+    // Conteúdo fallback local não possui documento Firestore: mantém só local.
+    if (postId === 'canonical-post-1') return;
+    // Otimista com reversão real em caso de erro (sem falso sucesso).
+    void toggleLike(postId, currentlyLiked).catch(() => {
+      setLiked((prev) => {
+        const next = new Set(prev);
+        if (currentlyLiked) next.add(postId);
+        else next.delete(postId);
+        return next;
+      });
     });
   };
 
   const handleSave = (postId: string) => {
+    const currentlySaved = saved.has(postId);
     setSaved((prev) => {
       const next = new Set(prev);
-      if (next.has(postId)) next.delete(postId);
+      if (currentlySaved) next.delete(postId);
       else next.add(postId);
       return next;
+    });
+    if (postId === 'canonical-post-1') return;
+    void toggleSaved(postId, currentlySaved).catch(() => {
+      setSaved((prev) => {
+        const next = new Set(prev);
+        if (currentlySaved) next.add(postId);
+        else next.delete(postId);
+        return next;
+      });
     });
   };
 

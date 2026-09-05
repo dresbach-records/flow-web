@@ -43,6 +43,32 @@ function go(to: string) {
   window.scrollTo(0, 0);
 }
 
+const ROUTE_TITLES: Array<[RegExp, string]> = [
+  [/^\/$/, 'FLOW — Conecte. Compartilhe. Viva.'],
+  [/^\/(login|auth\/login)$/, 'FLOW — Login'],
+  [/^\/cadastro$/, 'FLOW — Criar conta'],
+  [/^\/(recuperar-senha|redefinir-senha|verificar|confirmacao)/, 'FLOW — Acesso'],
+  [/^\/seguranca/, 'FLOW — Segurança'],
+  [/^\/conta/, 'FLOW — Conta'],
+  [/^\/admin/, 'FLOW — Administração'],
+  [/^\/memorial/, 'FLOW — Memorial'],
+  [/^\/app\/perfil/, 'FLOW — Perfil'],
+  [/^\/app\/comunidades/, 'FLOW — Comunidades'],
+  [/^\/app\/mensagens/, 'FLOW — Mensagens'],
+  [/^\/app\/notificacoes/, 'FLOW — Notificações'],
+  [/^\/app\/configuracoes/, 'FLOW — Configurações'],
+  [/^\/app\/explorar/, 'FLOW — Explorar'],
+  [/^\/app\/shorts/, 'FLOW — Shorts'],
+  [/^\/app\/salvos/, 'FLOW — Salvos'],
+  [/^\/app\/criador/, 'FLOW — Criadores'],
+  [/^\/app/, 'FLOW — Rede Social'],
+];
+
+function titleFor(path: string): string {
+  const hit = ROUTE_TITLES.find(([re]) => re.test(path));
+  return hit ? hit[1] : 'FLOW — Conecte. Compartilhe. Viva.';
+}
+
 export default function App() {
   const [path, setPath] = React.useState(() => window.location.pathname);
   React.useEffect(() => {
@@ -51,6 +77,9 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
   const navigate = React.useCallback((next: string) => go(next), []);
+  React.useEffect(() => {
+    document.title = titleFor(path);
+  }, [path]);
 
   // Auth routes — no layout shell
   if (AUTH_ROUTES.includes(path)) {

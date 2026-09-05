@@ -1,8 +1,42 @@
+import { useEffect, useState } from 'react';
 import { Edit3, MoreHorizontal, UserRound } from 'lucide-react';
+import { getDocument } from '../../../services/firebase/firestore';
+import { toggleFollow } from '../../../services/firebase/social';
+import { useAppContext } from '../../../contexts/AppContext';
 import type { ProfileHeaderProps } from './ProfileHeader.types';
 import './ProfileHeader.css';
 
 export default function ProfileHeader({ profile, postsCount, own, tabs }: ProfileHeaderProps) {
+  const { user } = useAppContext();
+  const [following, setFollowing] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (own || !user) {
+      setFollowing(false);
+      return;
+    }
+    let cancelled = false;
+    void getDocument(`users/${user.uid}/following`, profile.uid)
+      .then((doc) => {
+        if (!cancelled) setFollowing(doc !== null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [own, user, profile.uid]);
+
+  const handleFollow = () => {
+    if (busy) return;
+    setBusy(true);
+    const next = !following;
+    setFollowing(next);
+    void toggleFollow(profile.uid, !next)
+      .catch(() => setFollowing(!next))
+      .finally(() => setBusy(false));
+  };
+
   return (
     <section className="flow-profile-card">
       <div className="flow-profile-cover-page">{profile.cover && <img src={profile.cover} alt="" />}</div>
@@ -16,7 +50,9 @@ export default function ProfileHeader({ profile, postsCount, own, tabs }: Profil
               <Edit3 size={16} /> Editar perfil
             </button>
           ) : (
-            <button className="flow-profile-primary">Seguir</button>
+            <button className="flow-profile-primary" onClick={handleFollow} disabled={busy} aria-pressed={following}>
+              {following ? 'Seguindo' : 'Seguir'}
+            </button>
           )}
           <button className="flow-profile-icon" aria-label="Mais opções">
             <MoreHorizontal />

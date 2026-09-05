@@ -5,7 +5,11 @@ export type ApiRequest = {
   signal?: AbortSignal;
 };
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+const API_URL =
+  ((import.meta.env.VITE_API_BASE_URL as string | undefined)
+    ?? (import.meta.env.VITE_API_URL as string | undefined)
+    ?? ''
+  ).replace(/\/$/, '');
 
 /** Single frontend/API boundary. Pages and components never access databases directly. */
 export async function apiRequest<T>({ path, method = 'GET', body, signal }: ApiRequest): Promise<T> {

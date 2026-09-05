@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Settings, Shield, Bell, Lock, Download, UserCheck, Check, KeyRound } from 'lucide-react';
+import { Settings, Shield, Bell, Lock, Download, UserCheck, Check, KeyRound, HeartHandshake } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
+import { navigate } from '../../hooks/useRouter';
 import { CURRENT_CONSENT_VERSION, CURRENT_DOCUMENT_VERSION } from '../../services/firebase/consent';
 
 export default function SettingsModule() {
   const { user } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'privacy' | 'notifications'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'privacy' | 'notifications' | 'legacy'>('profile');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Form states
@@ -72,6 +73,7 @@ export default function SettingsModule() {
           { key: 'security', label: 'Segurança & 2FA' },
           { key: 'privacy', label: 'Privacidade & LGPD' },
           { key: 'notifications', label: 'Notificações' },
+          { key: 'legacy', label: 'Legado & Memorial' },
         ].map(tab => (
           <button
             key={tab.key}
@@ -398,6 +400,58 @@ export default function SettingsModule() {
               onChange={e => setEmailNotifications(e.target.checked)}
               style={{ width: 20, height: 20, accentColor: '#2563EB', cursor: 'pointer' }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Legacy & Memorial Tab — memorial vive nas Configurações (sub-item) */}
+      {activeTab === 'legacy' && (
+        <div style={{
+          background: '#FFFFFF',
+          borderRadius: 16,
+          border: '1px solid #E2E8F0',
+          padding: 24,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{
+              width: 44, height: 44, borderRadius: 12, background: '#F5F3FF',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+            }}>
+              <HeartHandshake size={22} color="#8B5CF6" />
+            </span>
+            <div>
+              <strong style={{ fontSize: 15, color: '#0F172A', display: 'block' }}>
+                Legado e Memorial
+              </strong>
+              <span style={{ fontSize: 12.5, color: '#64748B' }}>
+                Defina o que acontece com sua conta no futuro e gerencie memoriais.
+              </span>
+            </div>
+          </div>
+          <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: '#475569' }}>
+            Nas configurações de legado você escolhe se a conta será memorializada,
+            indica um contato de legado e define permissões de publicações, fotos e mensagens.
+          </p>
+          <div>
+            <button
+              type="button"
+              onClick={() => navigate('/configuracoes/memorial')}
+              style={{
+                padding: '10px 22px',
+                borderRadius: 10,
+                border: 'none',
+                background: 'linear-gradient(135deg, #4F7FFF 0%, #8B5CF6 50%, #D946EF 100%)',
+                color: '#FFFFFF',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Abrir configurações de legado
+            </button>
           </div>
         </div>
       )}
