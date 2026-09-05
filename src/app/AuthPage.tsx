@@ -43,6 +43,7 @@ import {
   type TwoFactorMethod,
 } from '../services/firebase/auth';
 import { trackEvent } from '../services/firebase/analytics';
+import { SESSION_ENDED_KEY } from '../services/firebase/consent';
 import AuthLayout from '../components/auth/AuthLayout';
 import { authTitle, resolveAuthMode } from '../components/auth/types';
 
@@ -109,7 +110,6 @@ export default function AuthPage({ path, go }: AuthPageProps) {
   useEffect(() => {
     setError('');
     setMessage('');
-
     if (mode === '2fa-backup') {
       void getBackupCodes().then((codes) => {
         if (codes.length > 0) setBackupCodes(codes);
@@ -128,6 +128,19 @@ export default function AuthPage({ path, go }: AuthPageProps) {
     if (mode === 'account-blocked' || mode === 'account-deactivated' || mode === 'account-suspended') {
       const type = mode === 'account-blocked' ? 'bloqueada' : mode === 'account-suspended' ? 'suspensa' : 'desativada';
       void getAccountRestrictionDetails(type).then(setRestriction);
+    }
+  }, [mode]);
+
+  // Aviso de sessão encerrada por recusa do contrato (exibido uma vez).
+  useEffect(() => {
+    if (mode !== 'login') return;
+    try {
+      if (sessionStorage.getItem(SESSION_ENDED_KEY) === '1') {
+        sessionStorage.removeItem(SESSION_ENDED_KEY);
+        setMessage('A sua sessão foi encerrada. Faça login novamente.');
+      }
+    } catch {
+      /* armazenamento indisponível */
     }
   }, [mode]);
 

@@ -1,0 +1,85 @@
+/* FLOW — DownloadSection (PWA real, arte oficial) */
+.site-download {
+  background: #F8FAFC;
+  scroll-margin-top: 72px;
+}
+
+.site-download-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 64px 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.site-download-copy h2 {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 3.6vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0F172A;
+}
+
+.site-download-copy > p {
+  margin: 0 0 24px;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: #475569;
+  max-width: 460px;
+}
+
+.site-download-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.site-download-install {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 12px 30px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #4F7FFF 0%, #8B5CF6 50%, #D946EF 100%);
+  color: #FFFFFF;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+}
+
+.site-download-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #15803D;
+}
+
+.site-download-note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #64748B;
+  max-width: 440px;
+}
+
+.site-download-art img {
+  width: 100%;
+  height: auto;
+  border-radius: 24px;
+  display: block;
+  box-shadow: 0 24px 60px rgba(79, 127, 255, 0.18);
+}
+
+@media (max-width: 900px) {
+  .site-download-inner {
+    grid-template-columns: 1fr;
+  }
+}

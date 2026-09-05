@@ -53,6 +53,42 @@ service cloud.firestore {
       allow read, create, delete: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Consentimento versionado (LGPD): somente o próprio usuário registra;
+    // leitura só do titular; sem update/delete (histórico auditável).
+    match /users/{userId}/consents/{consentId} {
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.userId == userId
+        && request.resource.data.status == 'accepted';
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if false;
+    }
+
+    // Newsletter pública: qualquer visitante pode inscrever um e-mail válido;
+    // leitura/alteração só via backend administrativo.
+    match /newsletter/{subscriptionId} {
+      allow create: if request.resource.data.email is string
+        && request.resource.data.email.size() > 3
+        && request.resource.data.consent == true;
+      allow read, update, delete: if false;
+    }
+
+    // Comunidades: leitura pública; criação autenticada validada;
+    // participação gerenciada pelo próprio usuário.
+    match /communities/{communityId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0;
+      allow update, delete: if false;
+
+      match /members/{memberId} {
+        allow read: if true;
+        allow create, delete: if request.auth != null && request.auth.uid == memberId;
+        allow update: if false;
+      }
+    }
+
     match /reports/{reportId} {
       allow create: if request.auth != null && request.resource.data.reporterId == request.auth.uid;
       allow read: if request.auth != null && resource.data.reporterId == request.auth.uid;

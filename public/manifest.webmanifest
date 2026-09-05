@@ -1,14 +1,16 @@
 {
-  "name": "FLOW - Seu mundo. Em movimento.",
+  "name": "FLOW — Conecte. Compartilhe. Viva.",
   "short_name": "FLOW",
   "description": "Uma experiência social para descobrir, criar e conectar.",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#2563eb",
-  "background_color": "#f7f9fc",
+  "theme_color": "#4F7FFF",
+  "background_color": "#F8FAFC",
   "icons": [
+    { "src": "/flow.ico", "sizes": "any", "type": "image/x-icon" },
+    { "src": "/logo.png", "sizes": "any", "type": "image/png", "purpose": "any" },
     { "src": "/flow-assets-svg/brand/light/flow-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
     { "src": "/flow-assets-svg/brand/dark/flow-logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]

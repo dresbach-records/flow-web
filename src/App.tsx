@@ -1,9 +1,14 @@
 import React from 'react';
 import { AdminApp, AuthPage, CreatorCenter, MemorialModule, ModuleCenter, PlatformModules, ProfilePage, PublicApp, SiteEditor } from './pages';
+import SiteHome from './app/SiteHome';
 import SocialFeed from './app/SocialFeed';
 import ScheduleCenter from './app/ScheduleCenter';
-import { AppProvider } from './contexts/AppContext';
+import TermsGate from './components/auth/TermsGate';
+import LoadingState from './components/ui/LoadingState';
+import { AppProvider, useAppContext } from './contexts/AppContext';
 import { PlayerProvider } from './contexts/PlayerContext';
+import { useConsent } from './hooks/useConsent';
+import { SESSION_ENDED_KEY } from './services/firebase/consent';
 import { AppLayout } from './layouts';
 import { firebaseDiagnostics, getFirebaseInitializationError } from './services/firebase/config';
 
@@ -31,6 +36,41 @@ function go(to: string) {
   history.pushState({}, '', to);
   window.dispatchEvent(new PopStateEvent('popstate'));
   window.scrollTo(0, 0);
+}
+
+/**
+ * Guarda da rede social (/app*): sem login → /login; autenticado sem aceite
+ * versionado → TermsGate UMA única vez; com aceite → acesso normal.
+ */
+function ProtectedArea({ path, navigate, children }: { path: string; navigate: (to: string) => void; children: React.ReactNode }) {
+  const { user, loading } = useAppContext();
+  const { status, accept, decline } = useConsent(user?.uid);
+  const [redirected, setRedirected] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!loading && !user && !redirected) {
+      setRedirected(true);
+      navigate('/login');
+    }
+  }, [loading, user, redirected, navigate]);
+
+  const handleDecline = React.useCallback(async () => {
+    await decline();
+    try {
+      sessionStorage.setItem(SESSION_ENDED_KEY, '1');
+    } catch {
+      /* armazenamento indisponível */
+    }
+    navigate('/login');
+  }, [decline, navigate]);
+
+  if (loading || !user) return <LoadingState message="Carregando seu FLOW…" />;
+  if (status !== 'accepted') {
+    if (status === 'pending') return <TermsGate onAccept={accept} onDecline={handleDecline} />;
+    return <LoadingState message="Verificando seu acesso…" />;
+  }
+  void path;
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -73,7 +113,16 @@ export default function App() {
     );
   }
 
-  // Public landing
+  // Public landing — nova HOME institucional componentizada
+  if (path === '/') {
+    return (
+      <AppProvider>
+        <FirebaseRuntimeNotice />
+        <SiteHome />
+      </AppProvider>
+    );
+  }
+
   if (!path.startsWith('/app')) {
     return (
       <AppProvider>
@@ -102,9 +151,11 @@ export default function App() {
     <AppProvider>
       <PlayerProvider>
         <FirebaseRuntimeNotice />
-        <AppLayout path={path} go={navigate}>
-          {appContent}
-        </AppLayout>
+        <ProtectedArea path={path} navigate={navigate}>
+          <AppLayout path={path} go={navigate}>
+            {appContent}
+          </AppLayout>
+        </ProtectedArea>
       </PlayerProvider>
     </AppProvider>
   );

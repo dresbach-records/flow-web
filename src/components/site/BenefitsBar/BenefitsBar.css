@@ -1,0 +1,57 @@
+/* FLOW — BenefitsBar */
+.site-benefits {
+  background: #FFFFFF;
+  border-top: 1px solid #EDF2F7;
+  border-bottom: 1px solid #EDF2F7;
+}
+
+.site-benefits-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 26px 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.site-benefit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-benefit-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: #F1F5F9;
+  color: #4F7FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-benefit strong {
+  display: block;
+  font-size: 14.5px;
+  color: #0F172A;
+}
+
+.site-benefit small {
+  font-size: 12.5px;
+  color: #64748B;
+}
+
+@media (max-width: 900px) {
+  .site-benefits-inner {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .site-benefits-inner {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
