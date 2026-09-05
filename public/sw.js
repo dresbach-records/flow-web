@@ -1,5 +1,5 @@
-const CACHE = 'flow-shell-v3';
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/flow.ico', '/logo.png', '/flow-logo.svg'];
+const CACHE = 'flow-shell-v4';
+const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/favicon.ico', '/favicon-16x16.png', '/favicon-32x32.png', '/apple-touch-icon.png', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(APP_SHELL)));
@@ -30,7 +30,7 @@ self.addEventListener('push', event => {
     if (data.body) body = String(data.body);
   } catch { /* payload inválido: usa padrão */ }
   event.waitUntil(
-    self.registration.showNotification(title, { body, icon: '/icons/flow-192.png', badge: '/icons/flow-192.png' }),
+    self.registration.showNotification(title, { body, icon: '/icons/icon-192.png', badge: '/icons/icon-512.png' }),
   );
 });
 

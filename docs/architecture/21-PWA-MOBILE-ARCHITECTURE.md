@@ -12,17 +12,17 @@ Uma única SPA responsiva (não app nativo separado). Mobile = CSS responsivo + 
 
 ### 2.1 Manifest (`public/manifest.webmanifest`)
 - `name`: "FLOW — Conecte. Compartilhe. Viva."; `short_name`: "FLOW".
-- `start_url`: `/app`; `scope`: `/`; `display`: standalone.
-- `theme_color`: `#4F7FFF`; `background_color`: `#F8FAFC`.
-- Ícones: 192/512 PNG, 512 maskable, `flow.ico`, `logo.png`, SVG light/dark.
+- `start_url`: `/`; `scope`: `/`; `display`: standalone; `orientation`: portrait.
+- `theme_color`: `#4F7FFF`; `background_color`: `#FFFFFF`.
+- Ícones oficiais (logo da FLOW, gradiente azul→roxo→rosa): `icon-192.png`, `icon-512.png` (any), `icon-192-maskable.png`, `icon-512-maskable.png` (maskable opaco).
 
 ### 2.2 Service Worker (`public/sw.js`)
-- Cache: `flow-shell-v3`.
-- Precache: `/`, `/index.html`, `/manifest.webmanifest`, `/flow.ico`, `/logo.png`, `/flow-logo.svg`.
+- Cache: `flow-shell-v4` (bump para invalidar ícone antigo).
+- Precache: `/`, `/index.html`, `/manifest.webmanifest`, `/favicon.ico`, `favicon-16x16.png`, `favicon-32x32.png`, `apple-touch-icon.png`, `icons/icon-192.png`, `icons/icon-512.png`.
 - `install`: `cache.addAll` + `skipWaiting`.
 - `activate`: limpa caches antigos + `clients.claim`.
 - `fetch`: **network-first** para GETs same-origin; `/api` nunca é cacheado (FASE 10 — evita HTML no lugar de JSON); fallback `caches.match` → `/index.html`.
-- `push`: `showNotification`; click → focus/`/app`.
+- `push`: `showNotification` (ícone oficial); click → focus/`/app`.
 - Registro: `main.tsx` (on load).
 
 ### 2.3 Install
