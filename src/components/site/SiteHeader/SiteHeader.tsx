@@ -9,12 +9,8 @@ const NAV = [
   { label: 'Comunidades', route: '/comunidades' },
   { label: 'Criadores', route: '/criadores' },
   { label: 'Segurança', route: '/seguranca' },
-  { label: 'Baixar App', route: '#baixar' },
+  { label: 'Baixar App', route: '/baixar-app' },
 ];
-
-function scrollToDownload() {
-  document.getElementById('baixar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -22,15 +18,6 @@ export default function SiteHeader() {
 
   const go = (to: string) => {
     setOpen(false);
-    if (to.startsWith('#')) {
-      if (path === '/') {
-        scrollToDownload();
-        return;
-      }
-      navigate('/');
-      window.setTimeout(scrollToDownload, 150);
-      return;
-    }
     navigate(to);
   };
 
@@ -55,7 +42,7 @@ export default function SiteHeader() {
         </nav>
 
         <div className="site-header-actions">
-          <button className="site-icon-btn" onClick={() => go('/login')} aria-label="Pesquisar (entre para explorar)">
+          <button className="site-icon-btn" onClick={() => go('/app/pesquisa')} aria-label="Pesquisar na FLOW">
             <Search size={20} />
           </button>
           <button className="site-login-btn" onClick={() => go('/login')}>

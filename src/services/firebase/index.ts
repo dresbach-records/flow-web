@@ -6,6 +6,7 @@ export * from './analytics';
 export * from './audit';
 export * from './communities';
 export * from './consent';
+export * from './creators';
 export * from './messages';
 export * from './memorial';
 export * from './newsletter';

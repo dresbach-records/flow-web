@@ -8,6 +8,7 @@ import {
   joinCommunity,
   leaveCommunity,
   listCommunities,
+  createCommunity,
   type Community,
 } from '../../services/firebase/communities';
 import EmptyState from '../../components/ui/EmptyState';
@@ -22,6 +23,11 @@ export default function CommunitiesModule() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createBusy, setCreateBusy] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -98,26 +104,77 @@ export default function CommunitiesModule() {
 
         <button
           type="button"
-          disabled
-          title="Criação de comunidades com moderação chega na Fase 3"
+          onClick={() => {
+            setCreating((v) => !v);
+            setCreateError(null);
+          }}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
             padding: '9px 18px',
             borderRadius: 12,
-            border: '1px solid #E2E8F0',
-            background: '#F1F5F9',
-            color: '#94A3B8',
+            border: 'none',
+            background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+            color: '#FFFFFF',
             fontSize: 13.5,
             fontWeight: 700,
-            cursor: 'not-allowed'
+            cursor: 'pointer'
           }}
         >
           <Plus size={16} />
-          <span>Criar Comunidade (em breve)</span>
+          <span>{creating ? 'Fechar' : 'Criar Comunidade'}</span>
         </button>
       </div>
+
+      {creating && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (createBusy) return;
+            setCreateError(null);
+            setCreateBusy(true);
+            void createCommunity({ name: newName, description: newDescription })
+              .then(() => {
+                setNewName('');
+                setNewDescription('');
+                setCreating(false);
+                return reload();
+              })
+              .catch((err: unknown) => setCreateError(err instanceof Error ? err.message : 'Não foi possível criar.'))
+              .finally(() => setCreateBusy(false));
+          }}
+          style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: 16, padding: 20, marginBottom: 24, maxWidth: 560 }}
+        >
+          <h2 style={{ margin: '0 0 12px 0', fontSize: 17, color: '#0F172A' }}>Nova comunidade</h2>
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Nome (mín. 3 caracteres)"
+            aria-label="Nome da comunidade"
+            maxLength={80}
+            style={{ width: '100%', height: 42, padding: '0 14px', borderRadius: 10, border: '1px solid #CBD5E1', fontSize: 14, marginBottom: 10, boxSizing: 'border-box' }}
+          />
+          <textarea
+            value={newDescription}
+            onChange={(e) => setNewDescription(e.target.value)}
+            placeholder="Descrição (opcional)"
+            aria-label="Descrição da comunidade"
+            rows={3}
+            maxLength={500}
+            style={{ width: '100%', padding: 14, borderRadius: 10, border: '1px solid #CBD5E1', fontSize: 14, marginBottom: 10, boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical' }}
+          />
+          {createError && <p role="alert" style={{ margin: '0 0 10px 0', fontSize: 13, color: '#B91C1C' }}>{createError}</p>}
+          <button
+            type="submit"
+            disabled={createBusy}
+            style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#2563EB', color: '#FFFFFF', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}
+          >
+            {createBusy ? 'Criando…' : 'Criar comunidade'}
+          </button>
+        </form>
+      )}
 
       {/* Search & Tabs */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 24, alignItems: 'center', flexWrap: 'wrap' }}>

@@ -65,6 +65,8 @@ export default function MemorialModule({ path = '/memorial', go = () => {}, init
     if (p.includes('/ajuda')) return 364;
     if (p.includes('/mensagem-final') || p.includes('/sobre')) return 365;
     if (p.includes('/carlos') || p.includes('/perfil')) return 352;
+    // /memorial/:username → perfil público memorializado.
+    if (p.startsWith('/memorial/')) return 352;
     return 351;
   };
 

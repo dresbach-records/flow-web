@@ -9,12 +9,14 @@ import {
   getBackupCodes,
   regenerateBackupCodes,
   updateAccountProfile,
+  uploadProfileMedia,
 } from '../../services/firebase/auth';
 import { getDocument } from '../../services/firebase/firestore';
+import { listBlockedIds, unblockUser } from '../../services/firebase/blocks';
 
-export default function SettingsModule() {
+export default function SettingsModule({ initialTab = 'profile' }: { initialTab?: 'profile' | 'security' | 'privacy' | 'notifications' | 'legacy' }) {
   const { user } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'privacy' | 'notifications' | 'legacy'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'privacy' | 'notifications' | 'legacy'>(initialTab);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -29,6 +31,9 @@ export default function SettingsModule() {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
   const [codesLoading, setCodesLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(user?.photoURL || '');
+  const [coverUrl, setCoverUrl] = useState('');
+  const [mediaBusy, setMediaBusy] = useState<'avatar' | 'cover' | null>(null);
 
   // Carrega perfil/preferências reais (sem valores fictícios).
   useEffect(() => {
@@ -45,6 +50,9 @@ export default function SettingsModule() {
       if (cancelled) return;
       if (doc) {
         if (typeof doc.bio === 'string') setBio(doc.bio);
+        if (typeof doc.photoURL === 'string') setAvatarUrl(doc.photoURL);
+        else if (user?.photoURL) setAvatarUrl(user.photoURL);
+        if (typeof doc.coverUrl === 'string') setCoverUrl(doc.coverUrl);
         if (typeof doc.privateProfile === 'boolean') setPrivateProfile(doc.privateProfile);
         if (typeof doc.emailNotifications === 'boolean') setEmailNotifications(doc.emailNotifications);
         if (typeof doc.pushNotifications === 'boolean') setPushNotifications(doc.pushNotifications);
@@ -66,7 +74,7 @@ export default function SettingsModule() {
       return;
     }
     setSaving(true);
-    void updateAccountProfile({ displayName, bio, privateProfile, emailNotifications, pushNotifications })
+    void updateAccountProfile({ displayName, bio, photoURL: avatarUrl || undefined, coverUrl: coverUrl || undefined, privateProfile, emailNotifications, pushNotifications })
       .then(() => {
         setSavedSuccess(true);
         setTimeout(() => setSavedSuccess(false), 3000);
@@ -241,6 +249,67 @@ export default function SettingsModule() {
           flexDirection: 'column',
           gap: 20
         }}>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <img
+              src={avatarUrl || '/logo.png'}
+              alt="Foto de perfil"
+              style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', background: '#F1F5F9' }}
+            />
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <label
+                style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #CBD5E1', background: '#FFF', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+              >
+                {mediaBusy === 'avatar' ? 'Enviando…' : 'Trocar foto'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  disabled={mediaBusy !== null}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = '';
+                    if (!file) return;
+                    setSaveError(null);
+                    setMediaBusy('avatar');
+                    void uploadProfileMedia('avatar', file)
+                      .then((url) => {
+                        setAvatarUrl(url);
+                        return updateAccountProfile({ photoURL: url });
+                      })
+                      .then(() => setSavedSuccess(true))
+                      .catch((err: unknown) => setSaveError(err instanceof Error ? err.message : 'Falha no upload.'))
+                      .finally(() => setMediaBusy(null));
+                  }}
+                />
+              </label>
+              <label
+                style={{ padding: '9px 18px', borderRadius: 10, border: '1px solid #CBD5E1', background: '#FFF', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+              >
+                {mediaBusy === 'cover' ? 'Enviando…' : coverUrl ? 'Trocar capa' : 'Enviar capa'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  disabled={mediaBusy !== null}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = '';
+                    if (!file) return;
+                    setSaveError(null);
+                    setMediaBusy('cover');
+                    void uploadProfileMedia('cover', file)
+                      .then((url) => {
+                        setCoverUrl(url);
+                        return updateAccountProfile({ coverUrl: url });
+                      })
+                      .then(() => setSavedSuccess(true))
+                      .catch((err: unknown) => setSaveError(err instanceof Error ? err.message : 'Falha no upload.'))
+                      .finally(() => setMediaBusy(null));
+                  }}
+                />
+              </label>
+            </div>
+          </div>
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#0F172A', marginBottom: 6 }}>
               Nome de Exibição
@@ -445,6 +514,16 @@ export default function SettingsModule() {
             </p>
           </div>
 
+          <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: 16 }}>
+            <strong style={{ fontSize: 14, color: '#0F172A', display: 'block', marginBottom: 4 }}>
+              Contas bloqueadas
+            </strong>
+            <p style={{ margin: '0 0 10px 0', fontSize: 13, color: '#64748B' }}>
+              Perfis bloqueados não aparecem no seu feed nem na descoberta.
+            </p>
+            <BlockedList />
+          </div>
+
           <div style={{
             padding: 16,
             borderRadius: 12,
@@ -605,5 +684,57 @@ export default function SettingsModule() {
         </div>
       )}
     </div>
+  );
+}
+
+function BlockedList() {
+  const [ids, setIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    void listBlockedIds()
+      .then((set) => {
+        if (!cancelled) setIds([...set]);
+      })
+      .catch(() => {
+        if (!cancelled) setIds([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const unblock = (id: string) => {
+    const previous = ids;
+    setIds((prev) => prev.filter((x) => x !== id));
+    void unblockUser(id).catch(() => setIds(previous));
+  };
+
+  if (loading) return <p style={{ fontSize: 13, color: '#64748B' }}>Carregando…</p>;
+  if (ids.length === 0) {
+    return <p style={{ fontSize: 13, color: '#64748B' }}>Nenhuma conta bloqueada.</p>;
+  }
+  return (
+    <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {ids.map((id) => (
+        <li
+          key={id}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 10, background: '#F8FAFC', border: '1px solid #E2E8F0', fontSize: 13 }}
+        >
+          <span style={{ color: '#475569' }}>{id.slice(0, 12)}…</span>
+          <button
+            type="button"
+            onClick={() => unblock(id)}
+            style={{ background: 'none', border: 'none', color: '#2563EB', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+          >
+            Desbloquear
+          </button>
+        </li>
+      ))}
+    </ul>
   );
 }

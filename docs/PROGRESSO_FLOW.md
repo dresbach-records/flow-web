@@ -75,6 +75,22 @@
   backend `GET /api/v1/meta` + validação de reports; `ReportDialog` no PostCard;
   órfãos removidos; vitest + 18 testes + `pnpm test`; Playwright real 4/4;
   `AUDITORIA_FINAL_FLOW.md` criado. Ver relatório §34 do TODO na resposta final.
+- MAPA DE ROTAS DO SITE (este turno): fim do fallback-para-Home; 404 honesto
+  (`NotFound`); site público real — /produto, /recursos, /sobre, /imprensa,
+  /comunidades + /:slug (lista/detalhe/join/denúncia reais), /criadores + /:username
+  (diretório `creator_profiles` público + ativação + seguir/denunciar reais),
+  /baixar-app (PWA real), /ajuda + /:slug (6 artigos editoriais + busca),
+  /seguranca + /conta, /privacidade + /configuracoes, /termos + /versoes,
+  /contato (POST /api/v1/contact real), /blog + /:slug + /categoria/:slug + /busca,
+  /carreiras + /:slug + /:slug/candidatar (`job_posts`/`job_applications` reais);
+  app real — /app/feed, /app/reels, /app/stories, /app/pesquisa, /app/post/:id,
+  /app/mensagens/:id, /app/comunidades/:id, /app/criar (hub + publicação/vídeo reais),
+  /app/configuracoes/* (conta, privacidade, segurança, notificações, aparência Light,
+  sessões→real, bloqueados/eventos/story/enquete = PENDENTE honesto);
+  /consentimento dedicado; /memorial/:username → perfil; rodapé/header como mapa real;
+  rules: `creator_profiles`, `contact_messages`, `job_posts`, `job_applications` +
+  leitura de perfil por autenticado (nomes no feed de terceiros).
+  Playwright 6/6 (inclui 404 + 14 páginas públicas).
 - Infra: `F:` é exFAT (sem symlinks) — `pnpm install` padrão QUEBRA o `node_modules`;
   usar `pnpm install --node-linker=hoisted`. Não commitar `pnpm-lock.yaml` (remoto usa bun/npm).
 

@@ -18,7 +18,13 @@ import { pushNotification } from './notifications';
 import { uploadMedia, type UploadResult } from './storage';
 
 export type PostInput = { text?: string; type: 'text' | 'image' | 'video'; media?: UploadResult | null };
-export type CommentRecord = { id: string; authorId: string; text: string; createdAt?: unknown };
+export type CommentRecord = { id: string; authorId: string; text: string; createdAt?: unknown; parentId?: string | null };
+
+/** Puro e testável: extrai hashtags únicas (#tag) de um texto. */
+export function extractHashtags(text: string): string[] {
+  const found = text.match(/#[\p{L}\p{N}_]+/gu) ?? [];
+  return [...new Set(found.map((t) => (t.startsWith('#') ? t : `#${t}`)))];
+}
 
 function requireUid(): string {
   const auth = requireFirebaseAuth();
@@ -91,15 +97,55 @@ export async function hasLiked(postId: string): Promise<boolean> {
   return uid ? (await getDoc(doc(db, 'posts', postId, 'likes', uid))).exists() : false;
 }
 
-export async function addComment(postId: string, text: string): Promise<string> {
+export async function addComment(postId: string, text: string, parentId?: string): Promise<string> {
   const db = requireFirestore();
+  const auth = requireFirebaseAuth();
   const uid = requireUid();
   const value = text.trim();
   if (!value) throw new Error('Escreva um comentário.');
+  if (value.length > 500) throw new Error('Limite de 500 caracteres.');
   const commentRef = doc(collection(db, 'posts', postId, 'comments'));
-  await setDoc(commentRef, { authorId: uid, text: value, createdAt: serverTimestamp() });
+  await setDoc(commentRef, {
+    authorId: uid,
+    text: value,
+    parentId: parentId ?? null,
+    createdAt: serverTimestamp(),
+  });
   await updateDoc(doc(db, 'posts', postId), { commentsCount: increment(1) });
+  // Fan-out real: notifica o autor do post (best-effort, nunca quebra o envio).
+  void (async () => {
+    try {
+      const post = await getDoc(doc(db, 'posts', postId));
+      const authorId = post.data()?.authorId;
+      if (typeof authorId === 'string' && authorId && authorId !== uid) {
+        await pushNotification(authorId, {
+          type: 'comment',
+          actorName: auth.currentUser?.displayName || 'Alguém',
+          actorAvatar: auth.currentUser?.photoURL || '/logo.png',
+          text: parentId ? 'respondeu um comentário na sua publicação.' : 'comentou na sua publicação.',
+        });
+      }
+    } catch {
+      /* fan-out best-effort */
+    }
+  })();
   return commentRef.id;
+}
+
+/** Remove comentário próprio (regra: só o autor). */
+export async function deleteComment(postId: string, commentId: string): Promise<void> {
+  const db = requireFirestore();
+  await deleteDoc(doc(db, 'posts', postId, 'comments', commentId));
+  await updateDoc(doc(db, 'posts', postId), { commentsCount: increment(-1) }).catch(() => undefined);
+}
+
+/** Edita texto da própria publicação (regra: autor mantém authorId). */
+export async function updatePost(postId: string, text: string): Promise<void> {
+  const value = text.trim();
+  if (!value) throw new Error('A publicação não pode ficar vazia.');
+  if (value.length > 2000) throw new Error('Limite de 2000 caracteres.');
+  const db = requireFirestore();
+  await updateDoc(doc(db, 'posts', postId), { text: value, caption: value });
 }
 
 export async function listComments(postId: string): Promise<CommentRecord[]> {

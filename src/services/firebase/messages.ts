@@ -24,6 +24,7 @@ export interface Conversation {
   online: boolean;
   lastMessage: string;
   updatedAt?: unknown;
+  readByMeAt?: number;
 }
 
 export interface ChatMessage {
@@ -67,7 +68,13 @@ export async function listConversations(max = 30): Promise<Conversation[]> {
       limit(max),
     ),
   );
-  return snapshot.docs.map((d) => toConversation(d.id, d.data() as Record<string, unknown>));
+  return snapshot.docs.map((d) => {
+    const conv = toConversation(d.id, d.data() as Record<string, unknown>);
+    const read = (d.data() as Record<string, unknown>).read as Record<string, unknown> | undefined;
+    const mine = read?.[uid];
+    conv.readByMeAt = typeof mine === 'number' ? mine : 0;
+    return conv;
+  });
 }
 
 /** Mensagens de uma conversa (participantes apenas, garantido pela regra). */
@@ -90,6 +97,16 @@ export async function listMessages(conversationId: string, max = 100): Promise<C
       createdAt: data.createdAt,
     };
   });
+}
+
+/** Marca a conversa como lida pelo usuário atual (recibo real). */
+export async function markConversationRead(conversationId: string): Promise<void> {
+  const uid = requireUid();
+  const db = requireFirestore();
+  await updateDoc(doc(db, 'conversations', conversationId), {
+    [`read.${uid}`]: Date.now(),
+    updatedAt: serverTimestamp(),
+  }).catch(() => undefined);
 }
 
 /** Envia mensagem com persistência real (sem simulação local). */

@@ -10,8 +10,10 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  startAfter as startAfterFn,
   updateDoc,
   where,
+  type DocumentData,
   type QueryConstraint,
 } from 'firebase/firestore';
 import { requireFirestore } from './config';
@@ -53,6 +55,8 @@ export type ListOptions = {
   orderByField?: string;
   direction?: 'asc' | 'desc';
   max?: number;
+  /** Cursor de paginação: snapshot do último doc ou valor do campo ordenado. */
+  cursor?: unknown;
 };
 
 /** List documents from a collection with optional filtering and ordering. */
@@ -61,7 +65,27 @@ export async function listDocuments<T>(path: string, options: ListOptions = {}):
   const constraints: QueryConstraint[] = [];
   if (options.field && options.value !== undefined) constraints.push(where(options.field, '==', options.value));
   if (options.orderByField) constraints.push(orderBy(options.orderByField, options.direction ?? 'desc'));
+  if (options.cursor !== undefined) constraints.push(startAfterFn(options.cursor as DocumentData));
   if (options.max) constraints.push(limitFn(options.max));
   const snapshot = await getDocs(query(collection(db, path), ...constraints));
   return snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as T) }));
+}
+
+/** Último snapshot de uma lista (para paginar com `cursor`). */
+export async function listDocumentsPage<T>(
+  path: string,
+  options: ListOptions = {},
+): Promise<{ items: WithId<T>[]; cursor: unknown }> {
+  const db = requireFirestore();
+  const constraints: QueryConstraint[] = [];
+  if (options.field && options.value !== undefined) constraints.push(where(options.field, '==', options.value));
+  if (options.orderByField) constraints.push(orderBy(options.orderByField, options.direction ?? 'desc'));
+  if (options.cursor !== undefined) constraints.push(startAfterFn(options.cursor as DocumentData));
+  if (options.max) constraints.push(limitFn(options.max));
+  const snapshot = await getDocs(query(collection(db, path), ...constraints));
+  const docs = snapshot.docs;
+  return {
+    items: docs.map((d) => ({ id: d.id, ...(d.data() as T) })),
+    cursor: docs.length > 0 ? docs[docs.length - 1] : undefined,
+  };
 }

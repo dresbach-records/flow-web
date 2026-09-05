@@ -12,6 +12,7 @@ export interface StoryItem {
   name: string;
   avatar: string;
   isOwn?: boolean;
+  authorId?: string;
 }
 
 export type FeedTab = 'for-you' | 'following' | 'communities';

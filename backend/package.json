@@ -12,12 +12,13 @@
   },
   "dependencies": {
     "@google/genai": "latest",
-    "firebase-admin": "latest",
-    "firebase": "latest",
     "argon2": "latest",
     "cors": "latest",
     "dotenv": "latest",
     "express": "latest",
+    "express-rate-limit": "^8.7.0",
+    "firebase": "latest",
+    "firebase-admin": "latest",
     "helmet": "latest",
     "jsonwebtoken": "latest",
     "zod": "latest"

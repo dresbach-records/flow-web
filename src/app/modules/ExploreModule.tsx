@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Search, Flame, Heart, MessageCircle, Share2, Compass } from 'lucide-react';
 import { getDocument, listDocuments } from '../../services/firebase/firestore';
 import { toggleLike } from '../../services/firebase/social';
+import { listBlockedIds } from '../../services/firebase/blocks';
 import type { RawRecord } from '../../components/social/types';
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
@@ -13,6 +14,7 @@ const EXPLORE_TAGS = ['Todos', 'Tendências', 'Tecnologia', 'Música', 'Design',
 
 interface ExploreView {
   id: string;
+  authorId: string;
   title: string;
   author: string;
   handle: string;
@@ -27,6 +29,7 @@ export default function ExploreModule() {
   const [activeTag, setActiveTag] = useState('Todos');
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<ExploreView[]>([]);
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [likedItems, setLikedItems] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +57,7 @@ export default function ExploreModule() {
             : [];
           return {
             id: post.id,
+            authorId,
             title: (post.text as string) || (post.caption as string) || 'Publicação',
             author:
               (inlineAuthor?.name as string) ||
@@ -81,6 +85,9 @@ export default function ExploreModule() {
 
   useEffect(() => {
     void reload();
+    void listBlockedIds()
+      .then(setBlockedIds)
+      .catch(() => undefined);
   }, [reload]);
 
   const toggleLikeReal = (id: string) => {
@@ -122,6 +129,7 @@ export default function ExploreModule() {
   };
 
   const filteredItems = items.filter((item) => {
+    if (item.authorId && blockedIds.has(item.authorId)) return false;
     const q = query.trim().toLowerCase();
     const matchesTag =
       activeTag === 'Todos' ||

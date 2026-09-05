@@ -3,6 +3,7 @@ import { Edit3, MoreHorizontal, UserRound } from 'lucide-react';
 import { getDocument } from '../../../services/firebase/firestore';
 import { toggleFollow } from '../../../services/firebase/social';
 import { useAppContext } from '../../../contexts/AppContext';
+import { navigate } from '../../../hooks/useRouter';
 import type { ProfileHeaderProps } from './ProfileHeader.types';
 import './ProfileHeader.css';
 
@@ -46,7 +47,7 @@ export default function ProfileHeader({ profile, postsCount, own, tabs }: Profil
         </div>
         <div className="flow-profile-actions">
           {own ? (
-            <button className="flow-profile-outline">
+            <button className="flow-profile-outline" onClick={() => navigate('/app/configuracoes')}>
               <Edit3 size={16} /> Editar perfil
             </button>
           ) : (
@@ -54,7 +55,13 @@ export default function ProfileHeader({ profile, postsCount, own, tabs }: Profil
               {following ? 'Seguindo' : 'Seguir'}
             </button>
           )}
-          <button className="flow-profile-icon" aria-label="Mais opções">
+          <button
+            className="flow-profile-icon"
+            aria-label="Copiar link do perfil"
+            onClick={() => {
+              if (navigator.clipboard) void navigator.clipboard.writeText(window.location.href).catch(() => undefined);
+            }}
+          >
             <MoreHorizontal />
           </button>
         </div>

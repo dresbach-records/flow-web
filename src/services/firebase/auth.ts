@@ -335,6 +335,8 @@ export async function disable2FA(): Promise<void> {
 export async function updateAccountProfile(input: {
   displayName?: string;
   bio?: string;
+  photoURL?: string;
+  coverUrl?: string;
   privateProfile?: boolean;
   emailNotifications?: boolean;
   pushNotifications?: boolean;
@@ -347,13 +349,31 @@ export async function updateAccountProfile(input: {
     const { updateProfile } = await import('firebase/auth');
     await updateProfile(user, { displayName: input.displayName.trim() });
   }
+  if (typeof input.photoURL === 'string' && input.photoURL && input.photoURL !== user.photoURL) {
+    const { updateProfile } = await import('firebase/auth');
+    await updateProfile(user, { photoURL: input.photoURL });
+  }
   const data: Record<string, unknown> = { updatedAt: serverTimestamp() };
   if (typeof input.displayName === 'string') data.displayName = input.displayName.trim();
   if (typeof input.bio === 'string') data.bio = input.bio;
+  if (typeof input.photoURL === 'string') data.photoURL = input.photoURL;
+  if (typeof input.coverUrl === 'string') data.coverUrl = input.coverUrl;
   if (typeof input.privateProfile === 'boolean') data.privateProfile = input.privateProfile;
   if (typeof input.emailNotifications === 'boolean') data.emailNotifications = input.emailNotifications;
   if (typeof input.pushNotifications === 'boolean') data.pushNotifications = input.pushNotifications;
   await setDoc(doc(firestore, 'users', user.uid), data, { merge: true });
+}
+
+/** Upload de avatar/capa com validações reais (tipo + tamanho). */
+export async function uploadProfileMedia(kind: 'avatar' | 'cover', file: File): Promise<string> {
+  const auth = requireFirebaseAuth();
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('Faça login para continuar.');
+  if (!file.type.startsWith('image/')) throw new Error('Selecione uma imagem.');
+  if (file.size > 5 * 1024 * 1024) throw new Error('A imagem deve ter no máximo 5 MB.');
+  const { uploadMedia } = await import('./storage');
+  const result = await uploadMedia(`users/${uid}/profile`, file);
+  return result.url;
 }
 
 // ==================== SESSÕES E DISPOSITIVOS ====================

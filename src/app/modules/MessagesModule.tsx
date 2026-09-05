@@ -6,6 +6,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import {
   listConversations,
   listMessages,
+  markConversationRead,
   sendMessage,
   type ChatMessage,
   type Conversation,
@@ -13,6 +14,21 @@ import {
 import EmptyState from '../../components/ui/EmptyState';
 import ErrorState from '../../components/ui/ErrorState';
 import LoadingState from '../../components/ui/LoadingState';
+
+function tsMs(value: unknown): number {
+  try {
+    const ts = value as { toDate?: () => Date; toMillis?: () => number };
+    if (ts && typeof ts.toMillis === 'function') return ts.toMillis();
+    if (ts && typeof ts.toDate === 'function') return ts.toDate().getTime();
+  } catch {
+    /* sem data */
+  }
+  return 0;
+}
+
+function isUnread(chat: Conversation): boolean {
+  return tsMs(chat.updatedAt) > (chat.readByMeAt ?? 0) && chat.lastMessage !== '';
+}
 
 function formatTime(createdAt: unknown): string {
   try {
@@ -26,10 +42,10 @@ function formatTime(createdAt: unknown): string {
   return '';
 }
 
-export default function MessagesModule() {
+export default function MessagesModule({ initialConversationId = '' }: { initialConversationId?: string }) {
   const { user } = useAppContext();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeId, setActiveId] = useState<string>('');
+  const [activeId, setActiveId] = useState<string>(initialConversationId);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [inputVal, setInputVal] = useState('');
@@ -77,6 +93,15 @@ export default function MessagesModule() {
       .finally(() => {
         if (!cancelled) setMessagesLoading(false);
       });
+    // Recibo real: abrir marca como lida (sem simulação local de "não lidas").
+    void markConversationRead(activeId)
+      .then(() => {
+        if (cancelled) return;
+        setConversations((prev) =>
+          prev.map((c) => (c.id === activeId ? { ...c, readByMeAt: Date.now() } : c)),
+        );
+      })
+      .catch(() => undefined);
     return () => {
       cancelled = true;
     };
@@ -223,6 +248,9 @@ export default function MessagesModule() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                       <strong style={{ fontSize: 14, color: '#0F172A', fontWeight: 700 }}>{chat.name}</strong>
+                      {isUnread(chat) && (
+                        <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#2563EB' }} aria-label="Não lida" />
+                      )}
                     </div>
                     <p style={{
                       margin: 0,

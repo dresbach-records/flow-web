@@ -11,11 +11,12 @@ const COLUMNS: FooterColumn[] = [
   {
     title: 'Produto',
     links: [
+      { label: 'O produto', route: '/produto' },
       { label: 'Recursos', route: '/recursos' },
       { label: 'Comunidades', route: '/comunidades' },
       { label: 'Criadores', route: '/criadores' },
-      { label: 'Baixar App', route: '/#baixar' },
-      { label: 'For You', route: '/for-you' },
+      { label: 'Baixar App', route: '/baixar-app' },
+      { label: 'For You', route: '/app' },
     ],
   },
   {
@@ -23,8 +24,8 @@ const COLUMNS: FooterColumn[] = [
     links: [
       { label: 'Central de ajuda', route: '/ajuda' },
       { label: 'Segurança', route: '/seguranca' },
-      { label: 'Privacidade', route: '/legal/privacidade' },
-      { label: 'Termos de uso', route: '/legal/termos' },
+      { label: 'Privacidade', route: '/privacidade' },
+      { label: 'Termos de uso', route: '/termos' },
       { label: 'Fale conosco', route: '/contato' },
     ],
   },
@@ -42,11 +43,6 @@ const COLUMNS: FooterColumn[] = [
 
 export default function SiteFooter() {
   const go = (route: string) => {
-    if (route === '/#baixar') {
-      navigate('/');
-      window.setTimeout(() => document.getElementById('baixar')?.scrollIntoView({ behavior: 'smooth' }), 150);
-      return;
-    }
     navigate(route);
   };
 

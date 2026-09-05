@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { usePosts } from '../hooks/usePosts';
 import { toggleLike, toggleSaved } from '../services/firebase/social';
+import { listBlockedIds } from '../services/firebase/blocks';
 import { listDocuments } from '../services/firebase/firestore';
 import { listStories } from '../services/firebase/stories';
 import CommentsPanel from '../components/social/CommentsPanel';
@@ -21,9 +22,10 @@ import './social-feed.css';
 
 export default function SocialFeed({ path = '/app' }: { path?: string }) {
   const { user } = useAppContext();
-  const { posts, loading, error, reload } = usePosts(user?.uid);
+  const { posts, loading, loadingMore, hasMore, loadMore, error, reload } = usePosts(user?.uid);
   const [stories, setStories] = useState<StoryItem[]>([]);
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [saved, setSaved] = useState<Set<string>>(new Set());
@@ -106,10 +108,27 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
 
   const userAvatar = user?.photoURL || '/logo.png';
 
-  const visiblePosts =
-    activeTab === 'following'
-      ? posts.filter((p) => typeof p.authorId === 'string' && followingIds.has(p.authorId))
-      : posts;
+  useEffect(() => {
+    if (!user?.uid) return;
+    let cancelled = false;
+    void listBlockedIds()
+      .then((ids) => {
+        if (!cancelled) setBlockedIds(ids);
+      })
+      .catch(() => {
+        if (!cancelled) setBlockedIds(new Set());
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid]);
+
+  const visiblePosts = posts.filter((p) => {
+    const authorId = typeof p.authorId === 'string' ? p.authorId : '';
+    if (authorId && blockedIds.has(authorId)) return false;
+    if (activeTab === 'following') return authorId !== '' && followingIds.has(authorId);
+    return true;
+  });
   const emptyTitle = activeTab === 'following' ? 'Nenhuma publicação de quem você segue' : 'Nenhuma publicação ainda';
   const emptyDescription =
     activeTab === 'following'
@@ -143,6 +162,20 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
               onComments={() => setCommentsPost(post)}
             />
           ))}
+          {!loading && !error && hasMore && (
+            <button
+              type="button"
+              onClick={() => void loadMore()}
+              disabled={loadingMore}
+              style={{
+                width: '100%', padding: 12, borderRadius: 12, border: '1px solid #E2E8F0',
+                background: '#FFFFFF', color: '#2563EB', fontWeight: 800, fontSize: 14,
+                cursor: loadingMore ? 'wait' : 'pointer', marginTop: 8,
+              }}
+            >
+              {loadingMore ? 'Carregando…' : 'Carregar mais'}
+            </button>
+          )}
         </div>
       </div>
 

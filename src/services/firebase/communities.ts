@@ -90,3 +90,32 @@ export async function getCommunity(communityId: string): Promise<Community | nul
   const snapshot = await getDoc(doc(db, 'communities', communityId));
   return snapshot.exists() ? toCommunity(snapshot.id, snapshot.data() as Record<string, unknown>) : null;
 }
+
+/** Cria comunidade (nome validado; criador como dono). */
+export async function createCommunity(input: { name: string; description?: string }): Promise<string> {
+  const auth = requireFirebaseAuth();
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('Faça login para continuar.');
+  const name = input.name.trim();
+  if (name.length < 3) throw new Error('Nome com ao menos 3 caracteres.');
+  if (name.length > 80) throw new Error('Nome com no máximo 80 caracteres.');
+  const db = requireFirestore();
+  const ref = doc(collection(db, 'communities'));
+  await setDoc(ref, {
+    name,
+    description: (input.description ?? '').trim().slice(0, 500),
+    ownerId: uid,
+    memberCount: 1,
+    createdAt: serverTimestamp(),
+  });
+  await setDoc(doc(db, 'communities', ref.id, 'members', uid), {
+    userId: uid,
+    role: 'owner',
+    joinedAt: serverTimestamp(),
+  });
+  await setDoc(doc(db, 'users', uid, 'memberships', ref.id), {
+    communityId: ref.id,
+    joinedAt: serverTimestamp(),
+  });
+  return ref.id;
+}

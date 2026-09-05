@@ -1,13 +1,17 @@
-// FLOW — usePosts (FASE 1: sem mocks).
-// Feed 100% Firestore; sem CANONICAL_POST, sem fallback fictício.
-// Vazio/erro são estados honestos tratados pela página (REGRA DE CONCLUSÃO FLOW).
-import { useEffect, useState } from 'react';
-import { getDocument, listDocuments, type WithId } from '../services/firebase/firestore';
+// FLOW — usePosts (paginação por cursor, sem mocks).
+// Feed 100% Firestore com "carregar mais" real (startAfter).
+import { useCallback, useEffect, useState } from 'react';
+import { getDocument, listDocumentsPage, type WithId } from '../services/firebase/firestore';
 import type { RawRecord, SocialPost } from '../components/social/types';
+
+const PAGE_SIZE = 10;
 
 export function usePosts(userUid: string | undefined) {
   const [posts, setPosts] = useState<SocialPost[]>([]);
+  const [cursor, setCursor] = useState<unknown>(undefined);
+  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -21,23 +25,15 @@ export function usePosts(userUid: string | undefined) {
     setError(null);
     const load = async () => {
       try {
-        const loadedPosts = await listDocuments<RawRecord>('posts', {
+        const page = await listDocumentsPage<RawRecord>('posts', {
           orderByField: 'createdAt',
           direction: 'desc',
-          max: 20,
+          max: PAGE_SIZE,
         });
         if (cancelled) return;
-        const enrich = async (items: WithId<RawRecord>[]) =>
-          Promise.all(
-            items.map(async (item) => {
-              const authorId = typeof item.authorId === 'string' ? item.authorId : '';
-              const inlineAuthor = item.author && typeof item.author === 'object' ? (item.author as RawRecord) : null;
-              if (inlineAuthor || !authorId) return { ...item, author: inlineAuthor };
-              return { ...item, author: await getDocument<RawRecord>('users', authorId).catch(() => null) };
-            }),
-          );
-        const enriched = await enrich(loadedPosts);
-        if (!cancelled) setPosts(enriched);
+        setPosts(await enrich(page.items));
+        setCursor(page.cursor);
+        setHasMore(page.items.length === PAGE_SIZE);
       } catch {
         if (!cancelled) setError('Não foi possível carregar o feed. Verifique sua conexão.');
       } finally {
@@ -50,5 +46,50 @@ export function usePosts(userUid: string | undefined) {
     };
   }, [userUid, reloadKey]);
 
-  return { posts, loading, error, reload: () => setReloadKey((k) => k + 1) };
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || cursor === undefined) return;
+    setLoadingMore(true);
+    try {
+      const page = await listDocumentsPage<RawRecord>('posts', {
+        orderByField: 'createdAt',
+        direction: 'desc',
+        max: PAGE_SIZE,
+        cursor,
+      });
+      const enriched = await enrich(page.items);
+      setPosts((prev) => [...prev, ...enriched]);
+      setCursor(page.cursor);
+      setHasMore(page.items.length === PAGE_SIZE);
+    } catch {
+      /* mantém o que já carregou; próxima tentativa via botão */
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, cursor]);
+
+  return {
+    posts,
+    loading,
+    loadingMore,
+    hasMore,
+    loadMore,
+    error,
+    reload: () => {
+      setCursor(undefined);
+      setHasMore(true);
+      setPosts([]);
+      setReloadKey((k) => k + 1);
+    },
+  };
+}
+
+async function enrich(items: WithId<RawRecord>[]): Promise<SocialPost[]> {
+  return Promise.all(
+    items.map(async (item) => {
+      const authorId = typeof item.authorId === 'string' ? item.authorId : '';
+      const inlineAuthor = item.author && typeof item.author === 'object' ? (item.author as RawRecord) : null;
+      if (inlineAuthor || !authorId) return { ...item, author: inlineAuthor };
+      return { ...item, author: await getDocument<RawRecord>('users', authorId).catch(() => null) };
+    }),
+  );
 }
