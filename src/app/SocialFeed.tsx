@@ -1,42 +1,71 @@
-// FLOW — SocialFeed (FASE 3).
+// FLOW — SocialFeed (FASE 1: sem mocks).
 // Página orquestradora: monta componentes sociais e conecta dados via hooks.
-// Antes: 398 linhas com Stories/Composer/Tabs/PostCard/Comments internos.
-// Depois: composição de componentes reutilizáveis, mesma UI e mesmo Firebase.
-import { useState } from 'react';
+// Feed e stories 100% Firestore; vazio/erro honestos (REGRA DE CONCLUSÃO FLOW).
+import { useEffect, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { usePosts } from '../hooks/usePosts';
 import { toggleLike, toggleSaved } from '../services/firebase/social';
+import { listDocuments } from '../services/firebase/firestore';
+import { listStories } from '../services/firebase/stories';
 import CommentsPanel from '../components/social/CommentsPanel';
 import FeedTabs from '../components/social/FeedTabs';
 import PostCard from '../components/social/PostCard';
 import PostComposer from '../components/social/PostComposer';
 import StoriesRail from '../components/social/StoriesRail';
+import EmptyState from '../components/ui/EmptyState';
+import ErrorState from '../components/ui/ErrorState';
+import LoadingState from '../components/ui/LoadingState';
 import CreatePostModal from './modules/CreatePostModal';
 import type { FeedTab, SocialPost, StoryItem } from '../components/social/types';
 import './social-feed.css';
 
-const DEFAULT_STORIES: StoryItem[] = [
-  { id: 'story-0', isOwn: true, name: 'Seu story', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80' },
-  { id: 'story-1', name: 'Ana Clara', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80' },
-  { id: 'story-2', name: 'Lucas', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80' },
-  { id: 'story-3', name: 'Juliana', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=120&q=80' },
-  { id: 'story-4', name: 'Rafael', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80' },
-  { id: 'story-5', name: 'Beatriz', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=120&q=80' },
-  { id: 'story-6', name: 'Pedro', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=120&q=80' },
-  { id: 'story-7', name: 'Carla', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80' },
-];
-
-const FALLBACK_AVATAR =
-  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80';
-
 export default function SocialFeed({ path = '/app' }: { path?: string }) {
   const { user } = useAppContext();
-  const { posts, reload } = usePosts(user?.uid);
+  const { posts, loading, error, reload } = usePosts(user?.uid);
+  const [stories, setStories] = useState<StoryItem[]>([]);
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
-  const [liked, setLiked] = useState<Set<string>>(new Set(['canonical-post-1']));
+  const [liked, setLiked] = useState<Set<string>>(new Set());
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [commentsPost, setCommentsPost] = useState<SocialPost | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(path === '/app/criar');
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    let cancelled = false;
+    void listStories()
+      .then((items) => {
+        if (!cancelled) setStories(items);
+      })
+      .catch(() => {
+        if (!cancelled) setStories([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    let cancelled = false;
+    void listDocuments<{ userId?: unknown }>(`users/${user.uid}/following`, { max: 200 })
+      .then((rows) => {
+        if (cancelled) return;
+        setFollowingIds(
+          new Set(
+            rows
+              .map((r) => (typeof r.userId === 'string' ? r.userId : r.id))
+              .filter((v): v is string => typeof v === 'string'),
+          ),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setFollowingIds(new Set());
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid]);
 
   const handleLike = (postId: string) => {
     const currentlyLiked = liked.has(postId);
@@ -46,8 +75,6 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
       else next.add(postId);
       return next;
     });
-    // Conteúdo fallback local não possui documento Firestore: mantém só local.
-    if (postId === 'canonical-post-1') return;
     // Otimista com reversão real em caso de erro (sem falso sucesso).
     void toggleLike(postId, currentlyLiked).catch(() => {
       setLiked((prev) => {
@@ -67,7 +94,6 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
       else next.add(postId);
       return next;
     });
-    if (postId === 'canonical-post-1') return;
     void toggleSaved(postId, currentlySaved).catch(() => {
       setSaved((prev) => {
         const next = new Set(prev);
@@ -78,18 +104,35 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
     });
   };
 
-  const userAvatar = user?.photoURL || FALLBACK_AVATAR;
+  const userAvatar = user?.photoURL || '/logo.png';
+
+  const visiblePosts =
+    activeTab === 'following'
+      ? posts.filter((p) => typeof p.authorId === 'string' && followingIds.has(p.authorId))
+      : posts;
+  const emptyTitle = activeTab === 'following' ? 'Nenhuma publicação de quem você segue' : 'Nenhuma publicação ainda';
+  const emptyDescription =
+    activeTab === 'following'
+      ? 'Siga pessoas para ver as publicações delas aqui. Nada é simulado: vazio significa vazio no Firestore.'
+      : 'As publicações reais da sua rede aparecem aqui assim que forem criadas.';
 
   return (
     <div className="flow-feed-layout">
       <div className="flow-feed-main-col">
-        <StoriesRail stories={DEFAULT_STORIES} />
+        <StoriesRail stories={stories} />
         <PostComposer userAvatar={userAvatar} onCreate={() => setCreateModalOpen(true)} />
         <FeedTabs activeTab={activeTab} onChange={setActiveTab} />
 
         {/* Feed Post List */}
         <div className="flow-post-list">
-          {posts.map((post) => (
+          {loading && <LoadingState message="Carregando publicações…" />}
+          {!loading && error && <ErrorState description={error} onRetry={() => reload()} />}
+          {!loading && !error && visiblePosts.length === 0 && (
+            <EmptyState title={emptyTitle} description={emptyDescription} />
+          )}
+          {!loading &&
+            !error &&
+            visiblePosts.map((post) => (
             <PostCard
               key={post.id}
               post={post}

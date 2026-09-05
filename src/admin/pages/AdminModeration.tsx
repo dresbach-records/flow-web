@@ -1,78 +1,85 @@
-import React, { useState } from 'react';
-import { ShieldAlert, AlertTriangle, CheckCircle, Ban, Trash2, Eye, Flag } from 'lucide-react';
+// FLOW — AdminModeration (FASE 6: dados reais).
+// Fila de `reports` com status OPEN. Resolver/descartar persiste de verdade;
+// remoção de conteúdo usa AdminContent; banimento via suspensão em Usuários.
+// Trilha em `admin_audit`. Sem denúncias fictícias.
+import React, { useCallback, useEffect, useState } from 'react';
+import { ShieldAlert, CheckCircle, X } from 'lucide-react';
+import { listDocuments, updateDocument } from '../../services/firebase/firestore';
+import { logAdminAction } from '../../services/firebase/audit';
 
 interface ReportItem {
   id: string;
-  type: string;
-  reason: string;
-  reporter: string;
-  target: string;
-  severity: 'alta' | 'media' | 'baixa';
-  time: string;
-  status: 'pending' | 'resolved' | 'dismissed';
+  category: string;
+  description: string;
+  reporterId: string;
+  url: string | null;
+  createdAt: unknown;
 }
 
-const INITIAL_REPORTS: ReportItem[] = [
-  {
-    id: '#DEN-1042',
-    type: 'Post',
-    reason: 'Conteúdo impróprio / Violação de diretrizes',
-    reporter: '@carlos_88',
-    target: 'Post #82929 (@infrator_9)',
-    severity: 'alta',
-    time: 'há 12 min',
-    status: 'pending',
-  },
-  {
-    id: '#DEN-1041',
-    type: 'Comentário',
-    reason: 'Assédio direcionado e ofensas graves',
-    reporter: '@maria_silva',
-    target: 'Comentário em Live #402',
-    severity: 'alta',
-    time: 'há 34 min',
-    status: 'pending',
-  },
-  {
-    id: '#DEN-1040',
-    type: 'Mensagem',
-    reason: 'Discurso de ódio e discriminação',
-    reporter: '@lucas_tech',
-    target: 'Chat da Comunidade Devs',
-    severity: 'media',
-    time: 'há 1 hora',
-    status: 'pending',
-  },
-  {
-    id: '#DEN-1039',
-    type: 'Comunidade',
-    reason: 'Spam comercial e links suspeitos',
-    reporter: '@ana_digital',
-    target: 'Comunidade "Ganhos Rápidos"',
-    severity: 'baixa',
-    time: 'há 2 horas',
-    status: 'pending',
-  },
-  {
-    id: '#DEN-1038',
-    type: 'Foto de Perfil',
-    reason: 'Falsa identidade de personalidade pública',
-    reporter: '@flow_oficial',
-    target: 'Perfil @fake_flow',
-    severity: 'media',
-    time: 'há 3 horas',
-    status: 'pending',
-  },
-];
+function formatDate(createdAt: unknown): string {
+  try {
+    const ts = createdAt as { toDate?: () => Date };
+    if (ts && typeof ts.toDate === 'function') {
+      return ts.toDate().toLocaleString('pt-BR');
+    }
+  } catch {
+    /* sem data */
+  }
+  return '—';
+}
 
 export const AdminModeration: React.FC = () => {
-  const [reports, setReports] = useState<ReportItem[]>(INITIAL_REPORTS);
+  const [reports, setReports] = useState<ReportItem[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const handleAction = (id: string, actionName: string) => {
-    setReports((prev) => prev.filter((r) => r.id !== id));
-    setToast(`Denúncia ${id}: ação "${actionName}" aplicada.`);
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const docs = await listDocuments<Record<string, unknown>>('reports', {
+        field: 'status',
+        value: 'OPEN',
+        max: 100,
+      });
+      setReports(
+        docs.map((d) => ({
+          id: d.id,
+          category: typeof d.category === 'string' ? d.category : 'Denúncia',
+          description: typeof d.description === 'string' ? d.description : '',
+          reporterId: typeof d.reporterId === 'string' ? d.reporterId : '—',
+          url: typeof d.url === 'string' ? d.url : null,
+          createdAt: d.createdAt,
+        })),
+      );
+    } catch {
+      setLoadError('Não foi possível carregar as denúncias. Conta sem permissão ou sem conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const resolve = (id: string, status: 'RESOLVED' | 'DISMISSED') => {
+    setReports((prev) => prev.filter((r) => r.id !== id));
+    void updateDocument('reports', id, { status })
+      .then(() => {
+        showToast(`Denúncia ${id}: ${status === 'RESOLVED' ? 'resolvida' : 'descartada'}.`);
+        void logAdminAction(status === 'RESOLVED' ? 'RESOLVE_REPORT' : 'DISMISS_REPORT', `Report ${id}`);
+      })
+      .catch(() => {
+        showToast('Falha ao atualizar. Recarregando fila…');
+        void reload();
+      });
   };
 
   return (
@@ -93,6 +100,13 @@ export const AdminModeration: React.FC = () => {
         </div>
       )}
 
+      {loading && <p style={{ color: '#64748b', fontSize: 13 }}>Carregando denúncias…</p>}
+      {!loading && loadError && (
+        <div style={{ padding: '12px 16px', background: '#fef2f2', color: '#b91c1c', borderRadius: '10px', marginBottom: '16px', fontSize: '13px' }}>
+          {loadError} <button type="button" onClick={() => reload()} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 700 }}>Tentar novamente</button>
+        </div>
+      )}
+
       <div className="admin-table-container">
         <div className="admin-table-toolbar">
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
@@ -105,18 +119,17 @@ export const AdminModeration: React.FC = () => {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>ID & Tipo</th>
-              <th>Motivo & Detalhes</th>
-              <th>Alvo da Denúncia</th>
-              <th>Severidade</th>
+              <th>ID & Categoria</th>
+              <th>Descrição</th>
+              <th>Denunciante & URL</th>
               <th>Recebido</th>
               <th>Ações Imediatas</th>
             </tr>
           </thead>
           <tbody>
-            {reports.length === 0 ? (
+            {!loading && !loadError && reports.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
                   <CheckCircle size={32} color="#10b981" style={{ margin: '0 auto 8px auto', display: 'block' }} />
                   Nenhuma denúncia pendente no momento! A comunidade está em conformidade.
                 </td>
@@ -126,51 +139,37 @@ export const AdminModeration: React.FC = () => {
                 <tr key={r.id}>
                   <td>
                     <div style={{ fontWeight: 700, color: '#0f172a' }}>{r.id}</div>
-                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>{r.type}</div>
+                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>{r.category}</div>
                   </td>
 
                   <td>
-                    <div style={{ fontWeight: 600 }}>{r.reason}</div>
-                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>Reportado por: {r.reporter}</div>
+                    <div style={{ fontWeight: 600 }}>{r.description}</div>
                   </td>
-
-                  <td style={{ fontWeight: 600, color: '#334155' }}>{r.target}</td>
 
                   <td>
-                    <span className={`badge-tag ${r.severity}`}>
-                      {r.severity === 'alta' ? 'Alta' : r.severity === 'media' ? 'Média' : 'Baixa'}
-                    </span>
+                    <div style={{ fontSize: '11.5px', color: '#64748b' }}>{r.reporterId}</div>
+                    {r.url && <div style={{ fontSize: '11.5px', color: '#6366f1' }}>{r.url}</div>}
                   </td>
 
-                  <td style={{ fontSize: '12px', color: '#64748b' }}>{r.time}</td>
+                  <td style={{ fontSize: '12px', color: '#64748b' }}>{formatDate(r.createdAt)}</td>
 
                   <td>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button
                         type="button"
-                        className="admin-action-btn danger"
-                        onClick={() => handleAction(r.id, 'Conteúdo Removido')}
-                        title="Remover Conteúdo"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-
-                      <button
-                        type="button"
-                        className="admin-action-btn danger"
-                        onClick={() => handleAction(r.id, 'Usuário Suspenso')}
-                        title="Suspender / Banir Autor"
-                      >
-                        <Ban size={14} />
-                      </button>
-
-                      <button
-                        type="button"
                         className="admin-action-btn"
-                        onClick={() => handleAction(r.id, 'Denúncia Ignorada')}
-                        title="Descartar Denúncia"
+                        onClick={() => resolve(r.id, 'RESOLVED')}
+                        title="Marcar como resolvida"
                       >
                         <CheckCircle size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-action-btn danger"
+                        onClick={() => resolve(r.id, 'DISMISSED')}
+                        title="Descartar denúncia"
+                      >
+                        <X size={14} />
                       </button>
                     </div>
                   </td>

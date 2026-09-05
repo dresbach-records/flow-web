@@ -14,6 +14,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { requireFirebaseAuth, requireFirestore } from './config';
+import { pushNotification } from './notifications';
 import { uploadMedia, type UploadResult } from './storage';
 
 export type PostInput = { text?: string; type: 'text' | 'image' | 'video'; media?: UploadResult | null };
@@ -48,6 +49,7 @@ export async function createPost(input: PostInput): Promise<string> {
 
 export async function toggleLike(postId: string, liked: boolean): Promise<void> {
   const db = requireFirestore();
+  const auth = requireFirebaseAuth();
   const uid = requireUid();
   const likeRef = doc(db, 'posts', postId, 'likes', uid);
   const postRef = doc(db, 'posts', postId);
@@ -61,6 +63,25 @@ export async function toggleLike(postId: string, liked: boolean): Promise<void> 
       transaction.update(postRef, { likesCount: increment(1) });
     }
   });
+  // Fan-out real: notifica o autor (nunca quebra o like em caso de falha).
+  if (!liked) {
+    void (async () => {
+      try {
+        const post = await getDoc(postRef);
+        const authorId = post.data()?.authorId;
+        if (typeof authorId === 'string' && authorId && authorId !== uid) {
+          await pushNotification(authorId, {
+            type: 'like',
+            actorName: auth.currentUser?.displayName || 'Alguém',
+            actorAvatar: auth.currentUser?.photoURL || '/logo.png',
+            text: 'curtiu sua publicação.',
+          });
+        }
+      } catch {
+        /* fan-out best-effort */
+      }
+    })();
+  }
 }
 
 export async function hasLiked(postId: string): Promise<boolean> {
@@ -89,6 +110,7 @@ export async function listComments(postId: string): Promise<CommentRecord[]> {
 
 export async function toggleFollow(targetUid: string, following: boolean): Promise<void> {
   const db = requireFirestore();
+  const auth = requireFirebaseAuth();
   const uid = requireUid();
   if (uid === targetUid) throw new Error('Você não pode seguir a si mesmo.');
   const ref = doc(db, 'users', uid, 'following', targetUid);
@@ -100,6 +122,13 @@ export async function toggleFollow(targetUid: string, following: boolean): Promi
       setDoc(ref, { userId: targetUid, createdAt: serverTimestamp() }),
       setDoc(reverse, { userId: uid, createdAt: serverTimestamp() }),
     ]);
+    // Fan-out real: notifica o seguido (best-effort).
+    void pushNotification(targetUid, {
+      type: 'follow',
+      actorName: auth.currentUser?.displayName || 'Alguém',
+      actorAvatar: auth.currentUser?.photoURL || '/logo.png',
+      text: 'começou a seguir você.',
+    }).catch(() => undefined);
   }
 }
 
@@ -109,6 +138,24 @@ export async function toggleSaved(postId: string, saved: boolean): Promise<void>
   const ref = doc(db, 'users', uid, 'saved', postId);
   if (saved) await deleteDoc(ref);
   else await setDoc(ref, { postId, createdAt: serverTimestamp() });
+}
+
+export interface SavedPostRef {
+  id: string;
+  postId: string;
+}
+
+/** IDs de posts salvos pelo usuário logado (persistência real, sem mock). */
+export async function listSavedPostIds(): Promise<SavedPostRef[]> {
+  const db = requireFirestore();
+  const uid = requireUid();
+  const snapshot = await getDocs(
+    query(collection(db, 'users', uid, 'saved'), orderBy('createdAt', 'desc'), limit(50)),
+  );
+  return snapshot.docs.map((d) => {
+    const data = d.data() as { postId?: unknown };
+    return { id: d.id, postId: typeof data.postId === 'string' ? data.postId : d.id };
+  });
 }
 
 export async function uploadPostMedia(file: File, onProgress?: (percent: number) => void): Promise<UploadResult> {

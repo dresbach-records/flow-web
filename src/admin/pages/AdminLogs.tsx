@@ -1,30 +1,46 @@
-import React, { useState } from 'react';
-import { Terminal, Filter, RefreshCw, AlertCircle, CheckCircle2, Shield } from 'lucide-react';
+// FLOW — AdminLogs (FASE 6: dados reais).
+// Trilha de auditoria de `admin_audit` (ações administrativas reais com autor e
+// data do Firestore). Sem logs fictícios, sem IP inventado, sem alert().
+import React, { useCallback, useEffect, useState } from 'react';
+import { Terminal, Filter, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { listAuditEntries, type AuditEntry } from '../../services/firebase/audit';
 
-interface LogItem {
-  id: string;
-  timestamp: string;
-  adminUser: string;
-  action: string;
-  target: string;
-  ip: string;
-  status: 'success' | 'warning' | 'error';
+function formatDate(createdAt: unknown): string {
+  try {
+    const ts = createdAt as { toDate?: () => Date };
+    if (ts && typeof ts.toDate === 'function') {
+      return ts.toDate().toLocaleString('pt-BR');
+    }
+  } catch {
+    /* sem data */
+  }
+  return '—';
 }
 
-const INITIAL_LOGS: LogItem[] = [
-  { id: 'LOG-9921', timestamp: 'Hoje, 15:28:12', adminUser: 'carlos.mendes@flow.social', action: 'SUSPEND_USER', target: '@infrator_9 (USR-1019)', ip: '189.40.12.94', status: 'success' },
-  { id: 'LOG-9920', timestamp: 'Hoje, 15:14:03', adminUser: 'carlos.mendes@flow.social', action: 'REMOVE_POST', target: 'Post #845732', ip: '189.40.12.94', status: 'success' },
-  { id: 'LOG-9919', timestamp: 'Hoje, 14:52:45', adminUser: 'sistema.automod', action: 'QUARANTINE_MEDIA', target: 'Short #82929', ip: '127.0.0.1', status: 'warning' },
-  { id: 'LOG-9918', timestamp: 'Hoje, 14:20:19', adminUser: 'carlos.mendes@flow.social', action: 'VERIFY_COMMUNITY', target: 'Criadores & Tech (@comunidade.tech)', ip: '189.40.12.94', status: 'success' },
-  { id: 'LOG-9917', timestamp: 'Hoje, 13:45:00', adminUser: 'sistema.backup', action: 'FIREBASE_BACKUP', target: 'Firestore DB Users & Posts', ip: '10.0.4.12', status: 'success' },
-  { id: 'LOG-9916', timestamp: 'Hoje, 12:11:34', adminUser: 'desconhecido', action: 'FAILED_ADMIN_LOGIN', target: 'Tentativa com senha incorreta', ip: '45.162.22.10', status: 'error' },
-];
-
 export const AdminLogs: React.FC = () => {
-  const [logs, setLogs] = useState<LogItem[]>(INITIAL_LOGS);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [logs, setLogs] = useState<AuditEntry[]>([]);
+  const [actionFilter, setActionFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const filtered = logs.filter((l) => statusFilter === 'all' || l.status === statusFilter);
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      setLogs(await listAuditEntries());
+    } catch {
+      setLoadError('Não foi possível carregar a trilha. Conta sem permissão ou sem conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  const actions = Array.from(new Set(logs.map((l) => l.action))).sort();
+  const filtered = logs.filter((l) => actionFilter === 'all' || l.action === actionFilter);
 
   return (
     <div>
@@ -43,12 +59,19 @@ export const AdminLogs: React.FC = () => {
           type="button"
           className="admin-action-btn"
           style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-          onClick={() => alert('Logs atualizados em tempo real do stream Firebase.')}
+          onClick={() => reload()}
         >
           <RefreshCw size={14} />
-          <span>Atualizar Stream</span>
+          <span>Atualizar</span>
         </button>
       </div>
+
+      {loading && <p style={{ color: '#64748b', fontSize: 13 }}>Carregando trilha…</p>}
+      {!loading && loadError && (
+        <div style={{ padding: '12px 16px', background: '#fef2f2', color: '#b91c1c', borderRadius: '10px', marginBottom: '16px', fontSize: '13px' }}>
+          {loadError} <button type="button" onClick={() => reload()} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 700 }}>Tentar novamente</button>
+        </div>
+      )}
 
       <div className="admin-table-container">
         <div className="admin-table-toolbar">
@@ -56,13 +79,13 @@ export const AdminLogs: React.FC = () => {
             <Filter size={16} color="#64748b" />
             <select
               className="admin-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
             >
-              <option value="all">Todos os Status</option>
-              <option value="success">Sucesso</option>
-              <option value="warning">Alerta</option>
-              <option value="error">Falha / Erro</option>
+              <option value="all">Todas as Ações</option>
+              {actions.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -70,34 +93,31 @@ export const AdminLogs: React.FC = () => {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>ID & Horário</th>
+              <th>Data & Hora</th>
               <th>Operador</th>
               <th>Ação Executada</th>
               <th>Alvo da Ação</th>
-              <th>Endereço IP</th>
-              <th>Resultado</th>
             </tr>
           </thead>
           <tbody>
+            {!loading && !loadError && filtered.length === 0 && (
+              <tr>
+                <td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                  <CheckCircle2 size={32} color="#10b981" style={{ margin: '0 auto 8px auto', display: 'block' }} />
+                  Nenhuma ação administrativa registrada ainda.
+                </td>
+              </tr>
+            )}
             {filtered.map((l) => (
               <tr key={l.id}>
-                <td>
-                  <div style={{ fontWeight: 700, color: '#0f172a' }}>{l.id}</div>
-                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>{l.timestamp}</div>
-                </td>
-                <td style={{ fontWeight: 600, color: '#334155' }}>{l.adminUser}</td>
+                <td style={{ fontSize: '12px', color: '#64748b' }}>{formatDate(l.createdAt)}</td>
+                <td style={{ fontWeight: 600, color: '#334155' }}>{l.adminEmail || l.adminUid}</td>
                 <td>
                   <code style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 700 }}>
                     {l.action}
                   </code>
                 </td>
                 <td style={{ color: '#0f172a', fontSize: '13px' }}>{l.target}</td>
-                <td style={{ color: '#64748b', fontSize: '12px' }}>{l.ip}</td>
-                <td>
-                  <span className={`badge-tag ${l.status === 'success' ? 'novo' : l.status === 'error' ? 'alta' : 'media'}`}>
-                    {l.status === 'success' ? 'Sucesso' : l.status === 'error' ? 'Falha' : 'Atenção'}
-                  </span>
-                </td>
               </tr>
             ))}
           </tbody>

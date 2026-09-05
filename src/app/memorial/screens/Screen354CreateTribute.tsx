@@ -1,21 +1,69 @@
-import { useState } from 'react';
-import { Camera, CheckCircle2, Paperclip, Video } from 'lucide-react';
+// FLOW — Screen354CreateTribute (FASE 5: dados reais).
+// Publica homenagem no Firestore (texto 1..500 + foto/vídeo opcional via Storage).
+import { useRef, useState } from 'react';
+import { Camera, CheckCircle2 } from 'lucide-react';
 import type { MemorialScreenProps } from './types';
+import { DEFAULT_MEMORIAL_ID, createTribute } from '../../../services/firebase/memorial';
+import { uploadMedia } from '../../../services/firebase/storage';
+import { requireFirebaseAuth } from '../../../services/firebase/config';
 
 export default function Screen354CreateTribute({ onNavigate }: MemorialScreenProps) {
   const [msg, setMsg] = useState('');
-  const [privacy, setPrivacy] = useState('public');
-  const [sent, setSent] = useState(false);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [protocol, setProtocol] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const attach = async (file: File | undefined) => {
+    if (!file) return;
+    setFormError(null);
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    if (!isImage && !isVideo) {
+      setFormError('Selecione uma foto ou vídeo.');
+      return;
+    }
+    if (file.size > 100 * 1024 * 1024) {
+      setFormError('O arquivo deve ter no máximo 100 MB.');
+      return;
+    }
+    setUploading(true);
+    try {
+      const uid = requireFirebaseAuth().currentUser?.uid;
+      if (!uid) throw new Error('Faça login para continuar.');
+      const result = await uploadMedia(`users/${uid}/tributes`, file);
+      setMediaUrl(result.url);
+    } catch {
+      setFormError('Não foi possível enviar a mídia. Tente novamente.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const publish = () => {
+    setFormError(null);
+    if (!msg.trim()) {
+      setFormError('Escreva sua homenagem antes de publicar.');
+      return;
+    }
+    setSending(true);
+    void createTribute({ memorialId: DEFAULT_MEMORIAL_ID, text: msg, mediaUrl })
+      .then((id) => setProtocol(id))
+      .catch((err: unknown) => setFormError(err instanceof Error ? err.message : 'Não foi possível publicar.'))
+      .finally(() => setSending(false));
+  };
 
   return (
     <div className="m354-form">
       <h2 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 6px', color: '#0F172A' }}>Criar homenagem</h2>
-      <p style={{ margin: '0 0 28px', color: '#64748B', fontSize: 15 }}>Compartilhe uma mensagem especial.</p>
+      <p style={{ margin: '0 0 28px', color: '#64748B', fontSize: 15 }}>Compartilhe uma mensagem especial. As homenagens são públicas.</p>
 
-      {sent ? (
+      {protocol ? (
         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
           <CheckCircle2 size={48} color="#10B981" style={{ marginBottom: 16 }} />
-          <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px' }}>Homenagem enviada com sucesso!</h3>
+          <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px' }}>Homenagem publicada!</h3>
           <p style={{ color: '#64748B', marginBottom: 24 }}>Sua mensagem já está disponível no mural memorial.</p>
           <button className="m-btn-primary" onClick={() => onNavigate(353)}>Ver homenagens</button>
         </div>
@@ -36,35 +84,33 @@ export default function Screen354CreateTribute({ onNavigate }: MemorialScreenPro
           </div>
 
           <div className="m-form-group">
-            <label>Adicionar mídia (opcional)</label>
+            <label>Foto ou vídeo (opcional)</label>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*,video/*"
+              style={{ display: 'none' }}
+              onChange={(e) => void attach(e.target.files?.[0])}
+            />
             <div className="m-media-buttons">
-              <button className="m-media-btn" type="button"><Camera size={18} /> Foto</button>
-              <button className="m-media-btn" type="button"><Video size={18} /> Vídeo</button>
-              <button className="m-media-btn" type="button"><Paperclip size={18} /> Arquivo</button>
+              <button className="m-media-btn" type="button" disabled={uploading} onClick={() => fileRef.current?.click()}>
+                <Camera size={18} /> {uploading ? 'Enviando…' : mediaUrl ? 'Trocar mídia' : 'Anexar'}
+              </button>
             </div>
+            {mediaUrl && <small style={{ color: '#10B981' }}>Mídia anexada.</small>}
           </div>
 
-          <div className="m-form-group">
-            <label>Privacidade</label>
-            <select
-              className="m-select"
-              style={{ padding: '12px 14px', borderRadius: 10, border: '1px solid #CBD5E1', fontSize: 14 }}
-              value={privacy}
-              onChange={(e) => setPrivacy(e.target.value)}
-            >
-              <option value="public">Pública (visível para todos)</option>
-              <option value="friends">Apenas amigos conectados</option>
-            </select>
-          </div>
+          {formError && (
+            <p role="alert" style={{ color: '#B91C1C', fontSize: 14 }}>{formError}</p>
+          )}
 
           <button
             className="m-btn-primary"
             style={{ width: '100%', justifyContent: 'center', marginTop: 12 }}
-            onClick={() => {
-              if (msg.trim()) setSent(true);
-            }}
+            disabled={sending || uploading}
+            onClick={publish}
           >
-            Publicar homenagem
+            {sending ? 'Publicando…' : 'Publicar homenagem'}
           </button>
         </>
       )}

@@ -29,15 +29,22 @@ type AdminAuthContextType = {
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
-const DEMO_ADMIN_USER: AdminUser = {
-  uid: 'admin-super-001',
-  email: 'admin@flow.social',
-  displayName: 'Carlos Mendes',
-  role: 'superadmin',
-  photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop&crop=face',
-  lastLogin: 'Agora',
-  isDemo: true,
-};
+const ADMIN_ROLES: Array<FlowUser['role']> = ['admin', 'moderator'];
+
+function toAdminInfo(
+  fbUser: FirebaseUser,
+  flowUser: FlowUser,
+): AdminUser {
+  return {
+    uid: fbUser.uid,
+    email: fbUser.email || 'admin@flow.social',
+    displayName: fbUser.displayName || flowUser.displayName || 'Administrador',
+    role: flowUser.role === 'moderator' ? 'moderator' : 'admin',
+    photoURL: fbUser.photoURL || flowUser.photoURL,
+    lastLogin: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    isDemo: false,
+  };
+}
 
 export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AdminUser | null>(() => {
@@ -60,31 +67,22 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           if (fbUser) {
             try {
               const flowUser: FlowUser = await toFlowUser(fbUser);
-              const adminInfo: AdminUser = {
-                uid: fbUser.uid,
-                email: fbUser.email || 'admin@flow.social',
-                displayName: fbUser.displayName || flowUser.displayName || 'Administrador',
-                role: (flowUser.role === 'moderator' ? 'moderator' : 'superadmin'),
-                photoURL: fbUser.photoURL || flowUser.photoURL,
-                lastLogin: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-                isDemo: false,
-              };
-              setUser(adminInfo);
-              localStorage.setItem('flow.admin.session_user', JSON.stringify(adminInfo));
-              localStorage.setItem('flow.admin.session', '1');
+              // Autorização real: só perfis admin/moderator recebem sessão admin.
+              if (!ADMIN_ROLES.includes(flowUser.role)) {
+                setUser(null);
+                localStorage.removeItem('flow.admin.session_user');
+                localStorage.removeItem('flow.admin.session');
+              } else {
+                const adminInfo = toAdminInfo(fbUser, flowUser);
+                setUser(adminInfo);
+                localStorage.setItem('flow.admin.session_user', JSON.stringify(adminInfo));
+                localStorage.setItem('flow.admin.session', '1');
+              }
             } catch {
-              const adminInfo: AdminUser = {
-                uid: fbUser.uid,
-                email: fbUser.email || 'admin@flow.social',
-                displayName: fbUser.displayName || 'Administrador Flow',
-                role: 'superadmin',
-                photoURL: fbUser.photoURL,
-                lastLogin: 'Agora',
-                isDemo: false,
-              };
-              setUser(adminInfo);
-              localStorage.setItem('flow.admin.session_user', JSON.stringify(adminInfo));
-              localStorage.setItem('flow.admin.session', '1');
+              // Sem perfil no Firestore = sem permissão (nunca concede demo).
+              setUser(null);
+              localStorage.removeItem('flow.admin.session_user');
+              localStorage.removeItem('flow.admin.session');
             }
           }
           setLoading(false);
@@ -103,78 +101,39 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setError(null);
     const cleanEmail = email.trim();
 
-    // 1. Try Firebase Auth first if available
-    if (firebaseAuth) {
-      try {
-        const credential = await signInWithEmailAndPassword(firebaseAuth, cleanEmail, pass);
-        const fbUser = credential.user;
-        let adminInfo: AdminUser;
+    // Somente Firebase Auth + papel administrativo real. Sem sessão demo.
+    if (!firebaseAuth) {
+      setError('Autenticação indisponível: Firebase não configurado.');
+      return false;
+    }
 
-        try {
-          const flowUser = await toFlowUser(fbUser);
-          adminInfo = {
-            uid: fbUser.uid,
-            email: fbUser.email || cleanEmail,
-            displayName: fbUser.displayName || flowUser.displayName || 'Administrador',
-            role: (flowUser.role === 'moderator' ? 'moderator' : 'superadmin'),
-            photoURL: fbUser.photoURL || flowUser.photoURL,
-            lastLogin: 'Agora',
-            isDemo: false,
-          };
-        } catch {
-          adminInfo = {
-            uid: fbUser.uid,
-            email: fbUser.email || cleanEmail,
-            displayName: fbUser.displayName || 'Administrador Flow',
-            role: 'superadmin',
-            photoURL: fbUser.photoURL,
-            lastLogin: 'Agora',
-            isDemo: false,
-          };
-        }
-
-        setUser(adminInfo);
-        localStorage.setItem('flow.admin.session_user', JSON.stringify(adminInfo));
-        localStorage.setItem('flow.admin.session', '1');
-        return true;
-      } catch (fbErr: any) {
-        console.warn('[FlowAdmin] Firebase Auth tentativa:', fbErr);
-        
-        // Fallback for development/demo credentials
-        if (cleanEmail === 'admin@flow.social' || cleanEmail.includes('admin') || pass.length >= 6) {
-          const localAdmin: AdminUser = {
-            ...DEMO_ADMIN_USER,
-            email: cleanEmail,
-            displayName: cleanEmail.split('@')[0].toUpperCase(),
-          };
-          setUser(localAdmin);
-          localStorage.setItem('flow.admin.session_user', JSON.stringify(localAdmin));
-          localStorage.setItem('flow.admin.session', '1');
-          return true;
-        }
-
-        const msg = fbErr.code === 'auth/invalid-credential' || fbErr.code === 'auth/wrong-password' || fbErr.code === 'auth/user-not-found'
-          ? 'E-mail ou senha incorretos. (Dica de teste: admin@flow.social / admin123)'
-          : `Erro de login Firebase: ${fbErr.message || 'Falha na autenticação'}`;
-        setError(msg);
+    try {
+      const credential = await signInWithEmailAndPassword(firebaseAuth, cleanEmail, pass);
+      const fbUser = credential.user;
+      const flowUser = await toFlowUser(fbUser);
+      if (!ADMIN_ROLES.includes(flowUser.role)) {
+        await firebaseSignOut(firebaseAuth);
+        setError('Esta conta não possui permissão administrativa.');
         return false;
       }
-    }
-
-    // 2. Firebase not configured - fallback to demo admin session
-    if (cleanEmail && pass.length >= 4) {
-      const demoUser: AdminUser = {
-        ...DEMO_ADMIN_USER,
-        email: cleanEmail,
-      };
-      setUser(demoUser);
-      localStorage.setItem('flow.admin.session_user', JSON.stringify(demoUser));
+      const adminInfo = toAdminInfo(fbUser, flowUser);
+      setUser(adminInfo);
+      localStorage.setItem('flow.admin.session_user', JSON.stringify(adminInfo));
       localStorage.setItem('flow.admin.session', '1');
       return true;
+    } catch (fbErr: unknown) {
+      console.warn('[FlowAdmin] Firebase Auth tentativa:', fbErr);
+      const code =
+        typeof fbErr === 'object' && fbErr !== null && 'code' in fbErr
+          ? String((fbErr as { code: unknown }).code)
+          : '';
+      const msg =
+        code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found'
+          ? 'E-mail ou senha incorretos.'
+          : `Erro de login Firebase: ${code || 'falha na autenticação'}`;
+      setError(msg);
+      return false;
     }
-
-    setError('Informe e-mail e senha válidos.');
-    return false;
   };
 
   const logout = async () => {

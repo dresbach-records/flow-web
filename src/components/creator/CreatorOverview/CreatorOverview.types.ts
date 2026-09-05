@@ -1,4 +1,4 @@
-import type { CreatorPeriod, CreatorRange, CreatorTotals } from '../types';
+import type { CreatorPeriod, CreatorRange, CreatorTotals, CreatorVideo } from '../types';
 
 export interface CreatorOverviewProps {
   totals: CreatorTotals;
@@ -8,4 +8,5 @@ export interface CreatorOverviewProps {
   range: CreatorRange;
   onRangeChange: (range: CreatorRange) => void;
   onSeeAll: () => void;
+  videos: CreatorVideo[];
 }

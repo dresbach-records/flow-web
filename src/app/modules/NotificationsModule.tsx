@@ -1,64 +1,61 @@
-import React, { useState } from 'react';
-import { Bell, Heart, MessageCircle, UserPlus, Sparkles, Check, CheckCheck } from 'lucide-react';
+// FLOW — NotificationsModule (FASE 1/3: sem mocks).
+// Notificações 100% Firestore (`users/{uid}/notifications`).
+import React, { useCallback, useEffect, useState } from 'react';
+import { Bell, Heart, MessageCircle, UserPlus, Sparkles, CheckCheck } from 'lucide-react';
+import {
+  listNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  type NotificationRecord,
+  type NotificationType,
+} from '../../services/firebase/notifications';
+import EmptyState from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
+import LoadingState from '../../components/ui/LoadingState';
 
-interface NotificationItem {
-  id: string;
-  type: 'like' | 'comment' | 'follow' | 'system';
-  actorName: string;
-  actorAvatar: string;
-  text: string;
-  time: string;
-  read: boolean;
-  targetPreview?: string;
+function formatTime(createdAt: unknown): string {
+  try {
+    const ts = createdAt as { toDate?: () => Date };
+    if (ts && typeof ts.toDate === 'function') {
+      return ts.toDate().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+  } catch {
+    /* sem data honesta: omite */
+  }
+  return '';
 }
-
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'n1',
-    type: 'like',
-    actorName: 'Marina D.',
-    actorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    text: 'curtiu sua publicação "Explorando sintetizadores analógicos na FLOW".',
-    time: 'Há 15 min',
-    read: false,
-    targetPreview: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'n2',
-    type: 'comment',
-    actorName: 'Lucas Rocha',
-    actorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    text: 'comentou: "Qual DAW você usou nessa automação? Ficou animal!"',
-    time: 'Há 45 min',
-    read: false,
-    targetPreview: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'n3',
-    type: 'follow',
-    actorName: 'Sofia Mendes',
-    actorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    text: 'começou a seguir você na FLOW.',
-    time: 'Há 2 horas',
-    read: true,
-  },
-  {
-    id: 'n4',
-    type: 'system',
-    actorName: 'FLOW Guardian AI',
-    actorAvatar: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80',
-    text: 'Sua conta alcançou o nível de Criador Verificado. Acesse a Central do Criador.',
-    time: 'Ontem',
-    read: true,
-  },
-];
 
 export default function NotificationsModule() {
   const [filter, setFilter] = useState<'all' | 'mentions' | 'likes' | 'follows' | 'system'>('all');
-  const [items, setItems] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [items, setItems] = useState<NotificationRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setItems(await listNotifications());
+    } catch {
+      setError('Não foi possível carregar as notificações. Verifique sua conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   const markAllAsRead = () => {
-    setItems(prev => prev.map(i => ({ ...i, read: true })));
+    const previous = items;
+    setItems((prev) => prev.map((i) => ({ ...i, read: true })));
+    void markAllNotificationsAsRead().catch(() => setItems(previous));
+  };
+
+  const openItem = (id: string) => {
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, read: true } : i)));
+    void markNotificationAsRead(id).catch(() => undefined);
   };
 
   const filteredItems = items.filter(item => {
@@ -70,7 +67,7 @@ export default function NotificationsModule() {
     return true;
   });
 
-  const getIcon = (type: NotificationItem['type']) => {
+  const getIcon = (type: NotificationType) => {
     switch (type) {
       case 'like':
         return <Heart size={16} fill="#DC2626" color="#DC2626" />;
@@ -148,74 +145,84 @@ export default function NotificationsModule() {
         ))}
       </div>
 
+      {loading && <LoadingState message="Carregando notificações…" />}
+      {!loading && error && <ErrorState description={error} onRetry={() => reload()} />}
+      {!loading && !error && filteredItems.length === 0 && (
+        <EmptyState
+          title="Nenhuma notificação"
+          description="Curtidas, comentários e novos seguidores reais aparecem aqui."
+        />
+      )}
+
       {/* List */}
-      <div style={{
-        background: '#FFFFFF',
-        borderRadius: 16,
-        border: '1px solid #E2E8F0',
-        overflow: 'hidden',
-        boxShadow: '0 1px 4px rgba(15,23,42,0.04)'
-      }}>
-        {filteredItems.map(item => (
-          <div
-            key={item.id}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-              padding: '16px 20px',
-              borderBottom: '1px solid #F1F5F9',
-              background: item.read ? '#FFFFFF' : '#F8FAFC',
-              transition: 'background 0.15s ease'
-            }}
-          >
-            {/* Avatar with icon badge */}
-            <div style={{ position: 'relative' }}>
-              <img
-                src={item.actorAvatar}
-                alt={item.actorName}
-                style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }}
-              />
-              <div style={{
-                position: 'absolute',
-                bottom: -2,
-                right: -2,
-                width: 22,
-                height: 22,
-                borderRadius: '50%',
-                background: '#FFFFFF',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+      {!loading && !error && filteredItems.length > 0 && (
+        <div style={{
+          background: '#FFFFFF',
+          borderRadius: 16,
+          border: '1px solid #E2E8F0',
+          overflow: 'hidden',
+          boxShadow: '0 1px 4px rgba(15,23,42,0.04)'
+        }}>
+          {filteredItems.map(item => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => openItem(item.id)}
+              style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                {getIcon(item.type)}
+                gap: 14,
+                padding: '16px 20px',
+                background: item.read ? '#FFFFFF' : '#F8FAFC',
+                transition: 'background 0.15s ease',
+                width: '100%',
+                border: 'none',
+                borderBottom: '1px solid #F1F5F9',
+                cursor: 'pointer',
+                textAlign: 'left'
+              }}
+            >
+              {/* Avatar with icon badge */}
+              <div style={{ position: 'relative' }}>
+                <img
+                  src={item.actorAvatar}
+                  alt={item.actorName}
+                  style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  bottom: -2,
+                  right: -2,
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  background: '#FFFFFF',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {getIcon(item.type)}
+                </div>
               </div>
-            </div>
 
-            {/* Content text */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: '0 0 4px 0', fontSize: 13.5, color: '#1E293B', lineHeight: 1.4 }}>
-                <strong style={{ fontWeight: 700, color: '#0F172A' }}>{item.actorName}</strong> {item.text}
-              </p>
-              <span style={{ fontSize: 11.5, color: '#94A3B8' }}>{item.time}</span>
-            </div>
+              {/* Content text */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: '0 0 4px 0', fontSize: 13.5, color: '#1E293B', lineHeight: 1.4 }}>
+                  <strong style={{ fontWeight: 700, color: '#0F172A' }}>{item.actorName}</strong> {item.text}
+                </p>
+                {formatTime(item.createdAt) && (
+                  <span style={{ fontSize: 11.5, color: '#94A3B8' }}>{formatTime(item.createdAt)}</span>
+                )}
+              </div>
 
-            {/* Target preview if any */}
-            {item.targetPreview && (
-              <img
-                src={item.targetPreview}
-                alt="Alvo"
-                style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'cover' }}
-              />
-            )}
-
-            {!item.read && (
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563EB' }} />
-            )}
-          </div>
-        ))}
-      </div>
+              {!item.read && (
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2563EB' }} />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

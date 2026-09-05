@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+// FLOW — AdminDashboard (FASE 6: dados reais).
+// Contagens e listas do Firestore; status do backend via /health real.
+// Séries históricas sem fonte completa marcadas como parciais — sem números simulados.
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Users,
   Activity,
@@ -6,10 +9,7 @@ import {
   UsersRound,
   ShieldAlert,
   Trash2,
-  TrendingUp,
-  TrendingDown,
   Quote,
-  CheckCircle2,
   ArrowRight,
   Server,
   Database,
@@ -20,13 +20,119 @@ import {
   Sparkles,
 } from 'lucide-react';
 import type { AdminRouteId } from '../components/AdminSidebar';
+import { listDocuments } from '../../services/firebase/firestore';
+import { listAuditEntries, type AuditEntry } from '../../services/firebase/audit';
+import { getApiBaseUrl } from '../../services/api/client';
+import { firebaseDiagnostics } from '../../services/firebase/config';
 
 interface AdminDashboardProps {
   onNavigate: (route: AdminRouteId) => void;
 }
 
+interface DashboardData {
+  users: number;
+  posts: number;
+  communities: number;
+  openReports: number;
+  recentUsers: Array<{ id: string; name: string; detail: string; avatar: string }>;
+  recentReports: Array<{ id: string; category: string; reporter: string }>;
+  recentActions: AuditEntry[];
+  postsByType: Array<{ type: string; count: number; percent: number }>;
+}
+
+const EMPTY_DATA: DashboardData = {
+  users: 0,
+  posts: 0,
+  communities: 0,
+  openReports: 0,
+  recentUsers: [],
+  recentReports: [],
+  recentActions: [],
+  postsByType: [],
+};
+
+function formatName(d: Record<string, unknown>): string {
+  return (typeof d.displayName === 'string' && d.displayName) || 'Usuário';
+}
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
-  const [chartPeriod, setChartPeriod] = useState('30');
+  const [data, setData] = useState<DashboardData>(EMPTY_DATA);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'ok' | 'fail'>('checking');
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [users, posts, communities, reports, audit] = await Promise.all([
+        listDocuments<Record<string, unknown>>('users', { max: 1000 }).catch(() => []),
+        listDocuments<Record<string, unknown>>('posts', { orderByField: 'createdAt', direction: 'desc', max: 200 }).catch(() => []),
+        listDocuments('communities', { max: 1000 }).catch(() => []),
+        listDocuments<Record<string, unknown>>('reports', { field: 'status', value: 'OPEN', max: 100 }).catch(() => []),
+        listAuditEntries(5).catch(() => []),
+      ]);
+      const byType = new Map<string, number>();
+      posts.forEach((p) => {
+        const t = typeof p.type === 'string' ? p.type : 'post';
+        byType.set(t, (byType.get(t) ?? 0) + 1);
+      });
+      const total = Math.max(posts.length, 1);
+      setData({
+        users: users.length,
+        posts: posts.length,
+        communities: communities.length,
+        openReports: reports.length,
+        recentUsers: users.slice(0, 5).map((u) => ({
+          id: u.id,
+          name: formatName(u),
+          detail: (typeof u.email === 'string' && u.email) || u.id,
+          avatar: (typeof u.photoURL === 'string' && u.photoURL) || '/logo.png',
+        })),
+        recentReports: reports.slice(0, 5).map((r) => ({
+          id: r.id,
+          category: typeof r.category === 'string' ? r.category : 'Denúncia',
+          reporter: typeof r.reporterId === 'string' ? r.reporterId : '—',
+        })),
+        recentActions: audit,
+        postsByType: [...byType.entries()].map(([type, count]) => ({
+          type,
+          count,
+          percent: Math.round((count / total) * 100),
+        })),
+      });
+    } catch {
+      setLoadError('Não foi possível carregar o painel. Conta sem permissão ou sem conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const base = getApiBaseUrl();
+    if (!base) {
+      setBackendStatus('fail');
+      return;
+    }
+    const root = base.replace(/\/api\/v1\/?$/, '');
+    void fetch(`${root}/health`, { signal: AbortSignal.timeout(8000) })
+      .then((res) => {
+        if (!cancelled) setBackendStatus(res.ok ? 'ok' : 'fail');
+      })
+      .catch(() => {
+        if (!cancelled) setBackendStatus('fail');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const metric = (value: number) => value.toLocaleString('pt-BR');
 
   return (
     <div className="admin-dashboard-page">
@@ -39,6 +145,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           Aqui está um resumo do que está acontecendo na sua plataforma hoje.
         </p>
       </div>
+
+      {loading && <p style={{ color: '#64748b', fontSize: 13 }}>Carregando painel…</p>}
+      {!loading && loadError && (
+        <div style={{ padding: '12px 16px', background: '#fef2f2', color: '#b91c1c', borderRadius: '10px', marginBottom: '16px', fontSize: '13px' }}>
+          {loadError} <button type="button" onClick={() => reload()} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 700 }}>Tentar novamente</button>
+        </div>
+      )}
 
       {/* Hero Banner */}
       <div className="admin-hero-banner">
@@ -82,201 +195,86 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             </div>
             <span className="metric-title">Usuários Totais</span>
           </div>
-          <div className="metric-value">1.248.532</div>
+          <div className="metric-value">{metric(data.users)}</div>
           <div className="metric-footer">
-            <span className="metric-delta up">
-              <TrendingUp size={13} /> 12,5%
-            </span>
-            <span>+138.421 este mês</span>
+            <span>Base real do Firestore</span>
           </div>
         </div>
 
-        {/* 2. Usuários Ativos */}
+        {/* 2. Publicações */}
         <div className="admin-metric-card">
           <div className="metric-header">
             <div className="metric-icon-box green">
               <Activity size={18} />
             </div>
-            <span className="metric-title">Usuários Ativos</span>
+            <span className="metric-title">Publicações</span>
           </div>
-          <div className="metric-value">892.341</div>
+          <div className="metric-value">{metric(data.posts)}</div>
           <div className="metric-footer">
-            <span className="metric-delta up">
-              <TrendingUp size={13} /> 8,2%
-            </span>
-            <span>62% da base total</span>
+            <span>Posts reais (últimos 200)</span>
           </div>
         </div>
 
-        {/* 3. Posts */}
+        {/* 3. Comunidades */}
         <div className="admin-metric-card">
           <div className="metric-header">
             <div className="metric-icon-box purple">
               <FileText size={18} />
             </div>
-            <span className="metric-title">Posts</span>
+            <span className="metric-title">Comunidades</span>
           </div>
-          <div className="metric-value">3.421.892</div>
+          <div className="metric-value">{metric(data.communities)}</div>
           <div className="metric-footer">
-            <span className="metric-delta up">
-              <TrendingUp size={13} /> 15,3%
-            </span>
-            <span>+455.230 este mês</span>
+            <span>Comunidades reais</span>
           </div>
         </div>
 
-        {/* 4. Comunidades */}
+        {/* 4. Denúncias abertas */}
         <div className="admin-metric-card">
           <div className="metric-header">
             <div className="metric-icon-box cyan">
               <UsersRound size={18} />
             </div>
-            <span className="metric-title">Comunidades</span>
+            <span className="metric-title">Denúncias abertas</span>
           </div>
-          <div className="metric-value">12.843</div>
+          <div className="metric-value">{metric(data.openReports)}</div>
           <div className="metric-footer">
-            <span className="metric-delta up">
-              <TrendingUp size={13} /> 6,1%
-            </span>
-            <span>+742 este mês</span>
+            <span>Fila real de moderação</span>
           </div>
         </div>
 
-        {/* 5. Denúncias */}
+        {/* 5. Ações auditadas */}
         <div className="admin-metric-card">
           <div className="metric-header">
             <div className="metric-icon-box red">
               <ShieldAlert size={18} />
             </div>
-            <span className="metric-title">Denúncias</span>
+            <span className="metric-title">Ações auditadas</span>
           </div>
-          <div className="metric-value">1.238</div>
+          <div className="metric-value">{metric(data.recentActions.length)}</div>
           <div className="metric-footer">
-            <span className="metric-delta down">
-              <TrendingDown size={13} /> 4,5%
-            </span>
-            <span>312 em análise</span>
+            <span>Trilha real (últimas 5)</span>
           </div>
         </div>
 
-        {/* 6. Conteúdo Removido */}
+        {/* 6. Tipos de conteúdo */}
         <div className="admin-metric-card">
           <div className="metric-header">
             <div className="metric-icon-box orange">
               <Trash2 size={18} />
             </div>
-            <span className="metric-title">Conteúdo Removido</span>
+            <span className="metric-title">Tipos de conteúdo</span>
           </div>
-          <div className="metric-value">892</div>
+          <div className="metric-value">{metric(data.postsByType.length)}</div>
           <div className="metric-footer">
-            <span className="metric-delta down">
-              <TrendingDown size={13} /> 18,2%
-            </span>
-            <span>Hoje: 24 itens</span>
+            <span>Distribuição real abaixo</span>
           </div>
         </div>
       </div>
 
       {/* Row 2: Charts and Platform Status */}
       <div className="admin-row-grid-2">
-        {/* Card 1: Crescimento de Usuários (Line/Area Chart) */}
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <div>
-              <h3 className="admin-card-title">
-                <Users size={16} color="#6366f1" />
-                <span>Crescimento de Usuários</span>
-              </h3>
-              <p className="admin-card-subtitle">Novos usuários nos últimos 30 dias</p>
-            </div>
-            <select
-              className="admin-select"
-              value={chartPeriod}
-              onChange={(e) => setChartPeriod(e.target.value)}
-            >
-              <option value="7">Últimos 7 dias</option>
-              <option value="30">Últimos 30 dias</option>
-              <option value="90">Últimos 90 dias</option>
-            </select>
-          </div>
-
-          <div style={{ position: 'relative', width: '100%', height: '220px', marginTop: '10px' }}>
-            {/* Tooltip demonstration badge */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '28px',
-                left: '52%',
-                transform: 'translateX(-50%)',
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                fontSize: '11.5px',
-                zIndex: 5,
-                textAlign: 'center',
-              }}
-            >
-              <span style={{ color: '#64748b', display: 'block' }}>18 Mai</span>
-              <strong style={{ color: '#0f172a' }}>24.532 novos usuários</strong>
-            </div>
-
-            {/* SVG Interactive Area Chart */}
-            <svg viewBox="0 0 500 180" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-              <defs>
-                <linearGradient id="userGrowthGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.32" />
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* Grid lines */}
-              <line x1="0" y1="40" x2="500" y2="40" stroke="#f1f5f9" strokeDasharray="4 4" />
-              <line x1="0" y1="90" x2="500" y2="90" stroke="#f1f5f9" strokeDasharray="4 4" />
-              <line x1="0" y1="140" x2="500" y2="140" stroke="#f1f5f9" strokeDasharray="4 4" />
-
-              {/* Area fill */}
-              <path
-                d="M 0 140 Q 50 120, 100 130 T 200 95 T 265 60 T 350 100 T 430 85 T 500 45 L 500 170 L 0 170 Z"
-                fill="url(#userGrowthGradient)"
-              />
-
-              {/* Line path */}
-              <path
-                d="M 0 140 Q 50 120, 100 130 T 200 95 T 265 60 T 350 100 T 430 85 T 500 45"
-                fill="none"
-                stroke="#6366f1"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-
-              {/* Peak indicator dot */}
-              <circle cx="265" cy="60" r="5" fill="#6366f1" stroke="#ffffff" strokeWidth="2.5" />
-            </svg>
-
-            {/* X-Axis labels */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '11px',
-                color: '#94a3b8',
-                marginTop: '6px',
-              }}
-            >
-              <span>1 Mai</span>
-              <span>5 Mai</span>
-              <span>10 Mai</span>
-              <span>15 Mai</span>
-              <span>20 Mai</span>
-              <span>25 Mai</span>
-              <span>30 Mai</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Tipos de Conteúdo (Donut Chart) */}
+        {/* Card 1: Tipos de Conteúdo (Donut real) */}
         <div className="admin-card">
           <div className="admin-card-header">
             <div>
@@ -284,93 +282,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 <FileText size={16} color="#8b5cf6" />
                 <span>Tipos de Conteúdo</span>
               </h3>
-              <p className="admin-card-subtitle">Distribuição na plataforma</p>
+              <p className="admin-card-subtitle">Distribuição real dos posts</p>
             </div>
           </div>
 
-          <div className="donut-widget">
-            <div className="donut-svg-wrap">
-              <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}>
-                {/* Fotos 42% */}
-                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#3b82f6" strokeWidth="12" strokeDasharray="105 251" strokeDashoffset="0" />
-                {/* Vídeos 28% */}
-                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#6366f1" strokeWidth="12" strokeDasharray="70 251" strokeDashoffset="-105" />
-                {/* Textos 15% */}
-                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#8b5cf6" strokeWidth="12" strokeDasharray="38 251" strokeDashoffset="-175" />
-                {/* Stories 8% */}
-                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#f59e0b" strokeWidth="12" strokeDasharray="20 251" strokeDashoffset="-213" />
-                {/* Links 4% */}
-                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#06b6d4" strokeWidth="12" strokeDasharray="10 251" strokeDashoffset="-233" />
-                {/* Outros 3% */}
-                <circle cx="50" cy="50" r="38" fill="transparent" stroke="#94a3b8" strokeWidth="12" strokeDasharray="8 251" strokeDashoffset="-243" />
-              </svg>
-              <div className="donut-center-text">
-                <span className="donut-center-value">3.4M</span>
-                <span className="donut-center-label">publicações</span>
-              </div>
-            </div>
-
+          {data.postsByType.length === 0 ? (
+            <p style={{ fontSize: 13, color: '#94a3b8' }}>Sem publicações para distribuir ainda.</p>
+          ) : (
             <div className="donut-legend">
-              <div className="donut-legend-item">
-                <div className="donut-legend-left">
-                  <span className="donut-legend-dot" style={{ backgroundColor: '#3b82f6' }} />
-                  <span>Fotos</span>
+              {data.postsByType.map((row) => (
+                <div className="donut-legend-item" key={row.type}>
+                  <div className="donut-legend-left">
+                    <span className="donut-legend-dot" style={{ backgroundColor: '#6366f1' }} />
+                    <span style={{ textTransform: 'capitalize' }}>{row.type}</span>
+                  </div>
+                  <span className="donut-legend-percent">{row.percent}% ({row.count})</span>
                 </div>
-                <span className="donut-legend-percent">42%</span>
-              </div>
-
-              <div className="donut-legend-item">
-                <div className="donut-legend-left">
-                  <span className="donut-legend-dot" style={{ backgroundColor: '#6366f1' }} />
-                  <span>Vídeos</span>
-                </div>
-                <span className="donut-legend-percent">28%</span>
-              </div>
-
-              <div className="donut-legend-item">
-                <div className="donut-legend-left">
-                  <span className="donut-legend-dot" style={{ backgroundColor: '#8b5cf6' }} />
-                  <span>Textos</span>
-                </div>
-                <span className="donut-legend-percent">15%</span>
-              </div>
-
-              <div className="donut-legend-item">
-                <div className="donut-legend-left">
-                  <span className="donut-legend-dot" style={{ backgroundColor: '#f59e0b' }} />
-                  <span>Stories</span>
-                </div>
-                <span className="donut-legend-percent">8%</span>
-              </div>
-
-              <div className="donut-legend-item">
-                <div className="donut-legend-left">
-                  <span className="donut-legend-dot" style={{ backgroundColor: '#06b6d4' }} />
-                  <span>Links</span>
-                </div>
-                <span className="donut-legend-percent">4%</span>
-              </div>
-
-              <div className="donut-legend-item">
-                <div className="donut-legend-left">
-                  <span className="donut-legend-dot" style={{ backgroundColor: '#94a3b8' }} />
-                  <span>Outros</span>
-                </div>
-                <span className="donut-legend-percent">3%</span>
-              </div>
+              ))}
             </div>
-          </div>
+          )}
+          <p style={{ fontSize: 12, color: '#94a3b8' }}>
+            Séries históricas de crescimento: pendentes (Fase 8) — nenhum dado simulado.
+          </p>
         </div>
 
-        {/* Card 3: Status da Plataforma */}
+        {/* Card 2: Status da Plataforma (checks reais) */}
         <div className="admin-card">
           <div className="admin-card-header">
             <div>
               <h3 className="admin-card-title">
-                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }} />
+                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: backendStatus === 'ok' ? '#10b981' : '#f59e0b', display: 'inline-block' }} />
                 <span>Status da Plataforma</span>
               </h3>
-              <p className="admin-card-subtitle">Última verificação: há 2 minutos</p>
+              <p className="admin-card-subtitle">Verificação real de serviços</p>
             </div>
           </div>
 
@@ -378,9 +322,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             <div className="status-row">
               <div className="status-row-info">
                 <Server size={14} color="#64748b" />
-                <span>API Backend</span>
+                <span>API Backend (/health)</span>
               </div>
-              <span className="status-pill">Operacional</span>
+              <span className="status-pill">
+                {backendStatus === 'checking' ? 'Verificando…' : backendStatus === 'ok' ? 'Operacional' : 'Inacessível'}
+              </span>
             </div>
 
             <div className="status-row">
@@ -388,15 +334,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 <Database size={14} color="#64748b" />
                 <span>Banco de Dados</span>
               </div>
-              <span className="status-pill">Operacional</span>
+              <span className="status-pill">{loadError ? 'Falha de leitura' : 'Leitura OK'}</span>
             </div>
 
             <div className="status-row">
               <div className="status-row-info">
                 <Flame size={14} color="#f59e0b" />
-                <span>Serviços Firebase</span>
+                <span>Firebase Auth</span>
               </div>
-              <span className="status-pill">Operacional</span>
+              <span className="status-pill">
+                {firebaseDiagnostics.apiKeyConfigured ? 'Configurado' : 'Não configurado'}
+              </span>
             </div>
 
             <div className="status-row">
@@ -404,23 +352,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                 <HardDrive size={14} color="#64748b" />
                 <span>Armazenamento</span>
               </div>
-              <span className="status-pill">Operacional</span>
+              <span className="status-pill">Via Firebase Storage</span>
             </div>
 
             <div className="status-row">
               <div className="status-row-info">
                 <Bell size={14} color="#64748b" />
-                <span>Sistema de Notificações</span>
+                <span>Notificações</span>
               </div>
-              <span className="status-pill">Operacional</span>
+              <span className="status-pill">Coleção por usuário</span>
             </div>
 
             <div className="status-row">
               <div className="status-row-info">
                 <Cpu size={14} color="#64748b" />
-                <span>Fila de Processamento</span>
+                <span>Guardian (moderação IA)</span>
               </div>
-              <span className="status-pill">Operacional</span>
+              <span className="status-pill">Ver /health do backend</span>
             </div>
           </div>
 
@@ -431,7 +379,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
             <button
               type="button"
               className="promo-lts-btn"
-              onClick={() => onNavigate('sistema')}
+              onClick={() => onNavigate('sistema' as AdminRouteId)}
             >
               <span>Ver novidades</span>
               <ArrowRight size={13} />
@@ -461,22 +409,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           </div>
 
           <div className="activity-list">
-            {[
-              { name: 'Juliana Castro', handle: '@julianacastro', time: 'há 5 minutos', img: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face' },
-              { name: 'Rafael Lima', handle: '@rafaellima', time: 'há 12 minutos', img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face' },
-              { name: 'Marina Souza', handle: '@marinasouza', time: 'há 28 minutos', img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face' },
-              { name: 'Lucas Pereira', handle: '@lucaspereira', time: 'há 41 minutos', img: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face' },
-              { name: 'Fernanda Alves', handle: '@fealves', time: 'há 1 hora', img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face' },
-            ].map((u, i) => (
-              <div key={i} className="activity-item">
-                <img src={u.img} alt={u.name} className="activity-avatar" />
+            {data.recentUsers.length === 0 && (
+              <p style={{ fontSize: 13, color: '#94a3b8' }}>Nenhum usuário carregado.</p>
+            )}
+            {data.recentUsers.map((u) => (
+              <div key={u.id} className="activity-item">
+                <img src={u.avatar} alt={u.name} className="activity-avatar" />
                 <div className="activity-info">
                   <div className="activity-name">{u.name}</div>
-                  <div className="activity-detail">{u.handle}</div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                  <span className="badge-tag novo">Novo</span>
-                  <span className="activity-time">{u.time}</span>
+                  <div className="activity-detail">{u.detail}</div>
                 </div>
               </div>
             ))}
@@ -502,23 +443,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           </div>
 
           <div className="activity-list">
-            {[
-              { type: 'Conteúdo impróprio', target: 'Post • @usuario123', time: 'há 12 minutos', badge: 'alta' },
-              { type: 'Assédio', target: 'Comentário • @user_abcd', time: 'há 34 minutos', badge: 'alta' },
-              { type: 'Discurso de ódio', target: 'Mensagem • @usuario_xyz', time: 'há 1 hora', badge: 'media' },
-              { type: 'Spam', target: 'Comunidade • @comunidade123', time: 'há 2 horas', badge: 'baixa' },
-              { type: 'Violação de direitos', target: 'Imagem • @usuario789', time: 'há 3 horas', badge: 'media' },
-            ].map((d, i) => (
-              <div key={i} className="activity-item">
+            {data.recentReports.length === 0 && (
+              <p style={{ fontSize: 13, color: '#94a3b8' }}>Nenhuma denúncia aberta.</p>
+            )}
+            {data.recentReports.map((d) => (
+              <div key={d.id} className="activity-item">
                 <div className="activity-info">
-                  <div className="activity-name">{d.type}</div>
-                  <div className="activity-detail">{d.target}</div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                  <span className={`badge-tag ${d.badge}`}>
-                    {d.badge === 'alta' ? 'Alta' : d.badge === 'media' ? 'Média' : 'Baixa'}
-                  </span>
-                  <span className="activity-time">{d.time}</span>
+                  <div className="activity-name">{d.category}</div>
+                  <div className="activity-detail">{d.id} • {d.reporter}</div>
                 </div>
               </div>
             ))}
@@ -544,24 +476,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           </div>
 
           <div className="activity-list">
-            {[
-              { action: 'Usuário suspenso', detail: '@user_infrator', time: 'há 15 minutos' },
-              { action: 'Post removido', detail: 'ID: #845732', time: 'há 32 minutos' },
-              { action: 'Comunidade arquivada', detail: '@comunidade_antiga', time: 'há 1 hora' },
-              { action: 'Comentário ocultado', detail: 'ID: #934721', time: 'há 2 horas' },
-              { action: 'Usuário verificado', detail: '@influencer_top', time: 'há 3 horas' },
-            ].map((a, i) => (
-              <div key={i} className="activity-item">
+            {data.recentActions.length === 0 && (
+              <p style={{ fontSize: 13, color: '#94a3b8' }}>Nenhuma ação registrada ainda.</p>
+            )}
+            {data.recentActions.map((a) => (
+              <div key={a.id} className="activity-item">
                 <div className="activity-info">
                   <div className="activity-name">{a.action}</div>
-                  <div className="activity-detail">{a.detail}</div>
+                  <div className="activity-detail">{a.target}</div>
                 </div>
-                <span className="activity-time">{a.time}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      <p style={{ fontSize: 12, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <Sparkles size={12} /> Séries temporais e comparativos mensais: pendentes (Fase 8).
+      </p>
     </div>
   );
 };

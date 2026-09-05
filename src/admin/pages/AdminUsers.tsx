@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
-import { Users, Search, Filter, ShieldCheck, UserX, CheckCircle, MoreHorizontal, UserPlus } from 'lucide-react';
+// FLOW — AdminUsers (FASE 6: dados reais).
+// Lista `users` do Firestore (regra: list só admin). Suspensão/verificação
+// persistem de verdade + trilha em `admin_audit`. Sem usuários fictícios.
+import React, { useCallback, useEffect, useState } from 'react';
+import { Users, Search, Filter, ShieldCheck, UserX, CheckCircle } from 'lucide-react';
+import { listDocuments, updateDocument } from '../../services/firebase/firestore';
+import { logAdminAction } from '../../services/firebase/audit';
 
 interface AdminUsersProps {
   searchQuery?: string;
@@ -9,88 +14,60 @@ interface UserItem {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'creator' | 'seller' | 'admin' | 'moderator';
+  role: string;
   status: 'active' | 'suspended' | 'pending';
-  followers: string;
   joined: string;
   verified: boolean;
   avatar: string;
 }
 
-const INITIAL_USERS: UserItem[] = [
-  {
-    id: 'USR-1024',
-    name: 'Flow Creator Oficial',
-    email: 'creator@flow.social',
-    role: 'creator',
-    status: 'active',
-    followers: '128.4K',
-    joined: '02/08/2026',
-    verified: true,
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 'USR-1023',
-    name: 'Maria Santos',
-    email: 'maria.santos@email.com',
-    role: 'user',
-    status: 'active',
-    followers: '84.2K',
-    joined: '01/08/2026',
-    verified: true,
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 'USR-1022',
-    name: 'João Silva',
-    email: 'joao.silva@tech.io',
-    role: 'creator',
-    status: 'active',
-    followers: '57.8K',
-    joined: '31/07/2026',
-    verified: false,
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 'USR-1021',
-    name: 'Ana Costa',
-    email: 'ana.costa@empresa.com',
-    role: 'seller',
-    status: 'pending',
-    followers: '21.1K',
-    joined: '29/07/2026',
-    verified: false,
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 'USR-1020',
-    name: 'Lucas Rocha',
-    email: 'lucas.rocha@dev.br',
-    role: 'user',
-    status: 'active',
-    followers: '18.7K',
-    joined: '28/07/2026',
-    verified: false,
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face',
-  },
-  {
-    id: 'USR-1019',
-    name: 'Beatriz Lima',
-    email: 'bia.music@som.art',
-    role: 'creator',
-    status: 'suspended',
-    followers: '9.4K',
-    joined: '25/07/2026',
-    verified: false,
-    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop&crop=face',
-  },
-];
+function formatDate(createdAt: unknown): string {
+  try {
+    const ts = createdAt as { toDate?: () => Date };
+    if (ts && typeof ts.toDate === 'function') {
+      return ts.toDate().toLocaleDateString('pt-BR');
+    }
+  } catch {
+    /* sem data */
+  }
+  return '—';
+}
 
 export const AdminUsers: React.FC<AdminUsersProps> = ({ searchQuery = '' }) => {
-  const [users, setUsers] = useState<UserItem[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<UserItem[]>([]);
   const [localSearch, setLocalSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [toast, setToast] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const docs = await listDocuments<Record<string, unknown>>('users', { max: 100 });
+      setUsers(
+        docs.map((d) => ({
+          id: d.id,
+          name: (typeof d.displayName === 'string' && d.displayName) || 'Usuário',
+          email: (typeof d.email === 'string' && d.email) || '—',
+          role: typeof d.role === 'string' ? d.role : 'user',
+          status: d.status === 'suspended' ? 'suspended' : 'active',
+          joined: formatDate(d.createdAt),
+          verified: d.verified === true,
+          avatar: (typeof d.photoURL === 'string' && d.photoURL) || '/logo.png',
+        })),
+      );
+    } catch {
+      setLoadError('Não foi possível carregar os usuários. Conta sem permissão ou sem conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   const query = (searchQuery || localSearch).toLowerCase();
 
@@ -103,34 +80,40 @@ export const AdminUsers: React.FC<AdminUsersProps> = ({ searchQuery = '' }) => {
     return matchesSearch && matchesRole;
   });
 
-  const handleToggleStatus = (id: string) => {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === id) {
-          const nextStatus = u.status === 'active' ? 'suspended' : 'active';
-          showToast(`Status do usuário ${u.name} alterado para ${nextStatus === 'active' ? 'Ativo' : 'Suspenso'}.`);
-          return { ...u, status: nextStatus };
-        }
-        return u;
-      })
-    );
-  };
-
-  const handleToggleVerify = (id: string) => {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === id) {
-          showToast(`Selo de verificação ${!u.verified ? 'atribuído a' : 'removido de'} ${u.name}.`);
-          return { ...u, verified: !u.verified };
-        }
-        return u;
-      })
-    );
-  };
-
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleToggleStatus = (id: string) => {
+    const target = users.find((u) => u.id === id);
+    if (!target) return;
+    const nextStatus = target.status === 'active' ? 'suspended' : 'active';
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: nextStatus } : u)));
+    void updateDocument('users', id, { status: nextStatus })
+      .then(() => {
+        showToast(`Status de ${target.name} alterado para ${nextStatus === 'active' ? 'Ativo' : 'Suspenso'}.`);
+        void logAdminAction(nextStatus === 'active' ? 'REACTIVATE_USER' : 'SUSPEND_USER', `${target.name} (${id})`);
+      })
+      .catch(() => {
+        setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, status: target.status } : u)));
+        showToast('Falha ao alterar status. Verifique a permissão.');
+      });
+  };
+
+  const handleToggleVerify = (id: string) => {
+    const target = users.find((u) => u.id === id);
+    if (!target) return;
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, verified: !u.verified } : u)));
+    void updateDocument('users', id, { verified: !target.verified })
+      .then(() => {
+        showToast(`Selo de verificação ${!target.verified ? 'atribuído a' : 'removido de'} ${target.name}.`);
+        void logAdminAction(!target.verified ? 'VERIFY_USER' : 'UNVERIFY_USER', `${target.name} (${id})`);
+      })
+      .catch(() => {
+        setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, verified: target.verified } : u)));
+        showToast('Falha ao alterar verificação. Verifique a permissão.');
+      });
   };
 
   return (
@@ -150,6 +133,13 @@ export const AdminUsers: React.FC<AdminUsersProps> = ({ searchQuery = '' }) => {
       {toast && (
         <div style={{ padding: '10px 16px', background: '#dcfce7', color: '#15803d', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', fontWeight: 600 }}>
           ✓ {toast}
+        </div>
+      )}
+
+      {loading && <p style={{ color: '#64748b', fontSize: 13 }}>Carregando usuários…</p>}
+      {!loading && loadError && (
+        <div style={{ padding: '12px 16px', background: '#fef2f2', color: '#b91c1c', borderRadius: '10px', marginBottom: '16px', fontSize: '13px' }}>
+          {loadError} <button type="button" onClick={() => reload()} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 700 }}>Tentar novamente</button>
         </div>
       )}
 
@@ -189,12 +179,19 @@ export const AdminUsers: React.FC<AdminUsersProps> = ({ searchQuery = '' }) => {
               <th>Usuário</th>
               <th>Papel</th>
               <th>Status</th>
-              <th>Seguidores</th>
               <th>Data Cadastro</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
+            {!loading && !loadError && filteredUsers.length === 0 && (
+              <tr>
+                <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                  <CheckCircle size={32} color="#10b981" style={{ margin: '0 auto 8px auto', display: 'block' }} />
+                  Nenhum usuário encontrado.
+                </td>
+              </tr>
+            )}
             {filteredUsers.map((u) => (
               <tr key={u.id}>
                 <td>
@@ -227,12 +224,11 @@ export const AdminUsers: React.FC<AdminUsersProps> = ({ searchQuery = '' }) => {
                 </td>
 
                 <td>
-                  <span className={`badge-tag ${u.status === 'active' ? 'novo' : u.status === 'suspended' ? 'alta' : 'media'}`}>
-                    {u.status === 'active' ? 'Ativo' : u.status === 'suspended' ? 'Suspenso' : 'Em Análise'}
+                  <span className={`badge-tag ${u.status === 'active' ? 'novo' : 'alta'}`}>
+                    {u.status === 'active' ? 'Ativo' : 'Suspenso'}
                   </span>
                 </td>
 
-                <td style={{ fontWeight: 600 }}>{u.followers}</td>
                 <td style={{ color: '#64748b', fontSize: '12px' }}>{u.joined}</td>
 
                 <td>

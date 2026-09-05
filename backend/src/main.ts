@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { readFileSync } from 'node:fs';
 import { env } from './config/env.js';
 import { connectDatabases } from './infrastructure/database.js';
 import { register, login } from './services/auth.service.js';
@@ -8,15 +9,46 @@ import { createPost, likePost, listFeed } from './services/content.service.js';
 import { createReport } from './services/report.service.js';
 import { startPublicationScheduler } from './services/scheduler.service.js';
 
+function apiVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8')) as { version?: unknown };
+    return typeof pkg.version === 'string' ? pkg.version : '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
+const API_ROUTES = [
+  { method: 'GET', path: '/health' },
+  { method: 'GET', path: '/api/v1/meta' },
+  { method: 'POST', path: '/api/v1/auth/register' },
+  { method: 'POST', path: '/api/v1/auth/login' },
+  { method: 'GET', path: '/api/v1/feed' },
+  { method: 'POST', path: '/api/v1/posts' },
+  { method: 'POST', path: '/api/v1/posts/:id/like' },
+  { method: 'POST', path: '/api/v1/reports' },
+] as const;
+
 const app = express();
 app.use(helmet());
-app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+const allowedOrigins = env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
+app.use(cors({ origin: allowedOrigins.length === 1 ? allowedOrigins[0] : allowedOrigins, credentials: true }));
 app.use(express.json({ limit: '2mb' }));
 
 app.get('/health', (_req, res) => res.json({
   status: 'ok',
   service: 'flow-api',
   guardian: env.FLOW_GUARDIAN_ENABLED ? 'enabled' : 'disabled',
+}));
+
+// Metadados reais da API (versão, rotas, flags) — consumido pelo Painel Developer.
+app.get('/api/v1/meta', (_req, res) => res.json({
+  service: 'flow-api',
+  version: apiVersion(),
+  guardian: env.FLOW_GUARDIAN_ENABLED ? 'enabled' : 'disabled',
+  project: env.FIREBASE_PROJECT_ID,
+  time: new Date().toISOString(),
+  routes: API_ROUTES,
 }));
 
 app.post('/api/v1/auth/register', async (req, res) => {

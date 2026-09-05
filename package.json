@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "tsc -b",
     "typecheck": "tsc -b",
+    "test": "vitest run",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "@vitejs/plugin-react": "6.1.1",
     "sharp": "^0.35.4",
     "typescript": "5.9.3",
-    "vite": "8.2.2"
+    "vite": "8.2.2",
+    "vitest": "^5.0.0"
   }
 }

@@ -24,4 +24,5 @@ export interface CreatorTotals {
   followers: string;
   fdelta: string;
   income: string;
+  likes: string;
 }

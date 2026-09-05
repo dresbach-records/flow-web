@@ -36,6 +36,7 @@ export default function CreatePostModal({ isOpen, onClose, onCreated }: CreatePo
   };
 
   const handlePublish = async () => {
+    if (busy) return;
     const trimmed = text.trim();
     if (!trimmed && !file) {
       setError('Por favor, escreva um texto ou anexe uma foto/vídeo.');
@@ -255,7 +256,18 @@ export default function CreatePostModal({ isOpen, onClose, onCreated }: CreatePo
               </button>
               <button
                 type="button"
-                onClick={() => setText(prev => prev + ' 📍 São Paulo, Brasil')}
+                onClick={() => {
+                  if (!('geolocation' in navigator)) {
+                    setError('Geolocalização indisponível neste dispositivo.');
+                    return;
+                  }
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) =>
+                      setText((prev) => `${prev} 📍 ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`),
+                    () => setError('Não foi possível obter a localização. Verifique a permissão.'),
+                    { timeout: 8000 },
+                  );
+                }}
                 title="Localização"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8 }}
               >

@@ -1,17 +1,16 @@
 import { ChevronRight, Eye, Heart, TrendingUp, Users, Wallet } from 'lucide-react';
-import { creatorVideos } from '../data';
 import CreatorMetric from '../CreatorMetric';
 import CreatorVideoRow from '../CreatorVideoRow';
 import type { CreatorOverviewProps } from './CreatorOverview.types';
 
-export default function CreatorOverview({ totals, period, onPeriodChange, chart, range, onRangeChange, onSeeAll }: CreatorOverviewProps) {
+export default function CreatorOverview({ totals, period, onPeriodChange, chart, range, onRangeChange, onSeeAll, videos }: CreatorOverviewProps) {
   return (
     <>
       <section className="metrics">
         <CreatorMetric icon={Eye} label="Visualizações" value={totals.views} delta={totals.delta} />
         <CreatorMetric icon={Users} label="Seguidores" value={totals.followers} delta={totals.fdelta} />
         <CreatorMetric icon={Wallet} label="Renda" value={totals.income} />
-        <CreatorMetric icon={Heart} label="Curtidas" value={period === '7' ? '896' : '2.418'} delta={period === '7' ? '+14' : '+87'} />
+        <CreatorMetric icon={Heart} label="Curtidas" value={totals.likes} />
       </section>
       <div className="period-row">
         <div>
@@ -43,23 +42,27 @@ export default function CreatorOverview({ totals, period, onPeriodChange, chart,
               <i />
               <i />
             </div>
-            <svg viewBox="0 0 600 220" preserveAspectRatio="none">
-              <polyline
-                points={chart.map((v, i) => `${i * (600 / (chart.length - 1))},${210 - v * 2}`).join(' ')}
-                fill="none"
-                stroke="url(#flowGrad)"
-                strokeWidth="5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <defs>
-                <linearGradient id="flowGrad">
-                  <stop stopColor="#2663eb" />
-                  <stop offset=".5" stopColor="#00d2be" />
-                  <stop offset="1" stopColor="#f24882" />
-                </linearGradient>
-              </defs>
-            </svg>
+            {range === 'likes' && chart.length > 0 ? (
+              <svg viewBox="0 0 600 220" preserveAspectRatio="none">
+                <polyline
+                  points={chart.map((v, i) => `${i * (600 / Math.max(chart.length - 1, 1))},${210 - v * 2}`).join(' ')}
+                  fill="none"
+                  stroke="url(#flowGrad)"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <defs>
+                  <linearGradient id="flowGrad">
+                    <stop stopColor="#2663eb" />
+                    <stop offset=".5" stopColor="#00d2be" />
+                    <stop offset="1" stopColor="#f24882" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            ) : (
+              <p className="chart-pending">Métricas de visualização em implementação — nenhum dado simulado.</p>
+            )}
             <div className="chart-labels">
               <span>7 dias atrás</span>
               <span>Hoje</span>
@@ -89,7 +92,10 @@ export default function CreatorOverview({ totals, period, onPeriodChange, chart,
           </button>
         </div>
         <div className="video-list">
-          {creatorVideos.slice(0, 2).map((v) => (
+          {videos.length === 0 && (
+            <p className="chart-pending">Nenhum conteúdo publicado ainda — seus posts reais aparecem aqui.</p>
+          )}
+          {videos.slice(0, 2).map((v) => (
             <CreatorVideoRow key={v.title} video={v} />
           ))}
         </div>

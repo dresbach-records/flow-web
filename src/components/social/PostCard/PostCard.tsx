@@ -1,23 +1,29 @@
+import { useState } from 'react';
 import { Bookmark, CheckCircle2, Heart, MessageCircle, MoreHorizontal, Share2 } from 'lucide-react';
+import { ReportDialog } from '../../moderation/ReportDialog';
 import type { CommentPreview, SocialPost } from '../types';
 import type { PostCardProps } from './PostCard.types';
 import './PostCard.css';
 
 export default function PostCard({ post, liked, saved, onLike, onSave, onComments }: PostCardProps) {
-  const authorName = (post.author?.name as string) || 'Camila Torres';
-  const authorHandle = (post.author?.handle as string) || '@camilatorres';
-  const authorAvatar =
-    (post.author?.avatarUrl as string) ||
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80';
-  const isVerified = post.author?.verified === true || authorHandle === '@camilatorres';
+  const [reportOpen, setReportOpen] = useState(false);
+  const authorName = (post.author?.name as string) || 'Usuário';
+  const authorHandle = (post.author?.handle as string) || '@usuario';
+  const authorAvatar = (post.author?.avatarUrl as string) || '/logo.png';
+  const isVerified = post.author?.verified === true;
   const caption = (post.caption as string) || (post.text as string) || '';
   const hashtags = (post.hashtags as string[]) || [];
   const imageUrl = (post.imageUrl as string) || (post.mediaUrl as string) || '';
-  const likesCount = (post.likes as number) || 0;
-  const commentsCount = (post.comments as number) || 0;
-  const sharesCount = (post.shares as number) || 0;
-  const timeAgo = (post.timeAgo as string) || '2h';
+  const likesCount = (post.likes as number) || (post.likesCount as number) || 0;
+  const commentsCount = (post.comments as number) || (post.commentsCount as number) || 0;
+  const sharesCount = (post.shares as number) || (post.sharesCount as number) || 0;
+  const timeAgo = (post.timeAgo as string) || '';
   const commentPreview = post.commentPreview as CommentPreview | undefined;
+
+  const handleShare = () => {
+    const url = `${window.location.origin}/app`;
+    if (navigator.clipboard) void navigator.clipboard.writeText(url).catch(() => undefined);
+  };
 
   return (
     <article className="flow-post-card">
@@ -34,15 +40,20 @@ export default function PostCard({ post, liked, saved, onLike, onSave, onComment
                 </span>
               )}
               <span className="flow-post-handle">{authorHandle}</span>
-              <span className="flow-post-dot">•</span>
-              <span className="flow-post-time">{timeAgo}</span>
+              {timeAgo && (
+                <>
+                  <span className="flow-post-dot">•</span>
+                  <span className="flow-post-time">{timeAgo}</span>
+                </>
+              )}
             </div>
           </div>
         </div>
-        <button className="flow-post-more-btn" aria-label="Mais opções">
+        <button className="flow-post-more-btn" aria-label="Mais opções" onClick={() => setReportOpen(true)}>
           <MoreHorizontal size={18} />
         </button>
       </header>
+      {reportOpen && <ReportDialog targetId={post.id} onClose={() => setReportOpen(false)} />}
 
       {/* Caption & Hashtags */}
       {caption && <p className="flow-post-caption-text">{caption}</p>}
@@ -70,11 +81,11 @@ export default function PostCard({ post, liked, saved, onLike, onSave, onComment
             <Heart size={20} fill={liked ? '#EC4899' : 'none'} color={liked ? '#EC4899' : '#64748B'} />
             <span>{likesCount > 1000 ? `${(likesCount / 1000).toFixed(1)}K` : likesCount}</span>
           </button>
-          <button className="flow-action-btn" onClick={onComments}>
+          <button className="flow-action-btn" onClick={onComments} aria-label="Comentários">
             <MessageCircle size={20} color="#64748B" />
             <span>{commentsCount}</span>
           </button>
-          <button className="flow-action-btn">
+          <button className="flow-action-btn" onClick={handleShare} aria-label="Copiar link da publicação">
             <Share2 size={20} color="#64748B" />
             <span>{sharesCount}</span>
           </button>
@@ -102,7 +113,7 @@ export default function PostCard({ post, liked, saved, onLike, onSave, onComment
             </div>
           </div>
           <button className="flow-view-more-comments-btn" onClick={onComments}>
-            Ver mais 12 comentários
+            Ver {commentsCount > 0 ? `${commentsCount} ` : ''}comentários
           </button>
         </div>
       )}

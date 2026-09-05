@@ -1,82 +1,84 @@
-import React, { useState } from 'react';
-import { Users, Plus, Check, Search, Globe, Lock, MessageSquare } from 'lucide-react';
-
-interface Community {
-  id: string;
-  name: string;
-  description: string;
-  members: number;
-  category: string;
-  banner: string;
-  avatar: string;
-  joined: boolean;
-  isPrivate: boolean;
-}
-
-const INITIAL_COMMUNITIES: Community[] = [
-  {
-    id: 'com-1',
-    name: 'Produtores Musicais & Beatmakers BR',
-    description: 'Espaço para troca de feedbacks de mix, samples livres, plugins e colaborações musicais.',
-    members: 14200,
-    category: 'Música',
-    banner: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
-    avatar: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=150&auto=format&fit=crop&q=80',
-    joined: true,
-    isPrivate: false,
-  },
-  {
-    id: 'com-2',
-    name: 'Design Systems & UI Engineering',
-    description: 'Comunidade focada em arquitetura de componentes, tokens, acessibilidade e design ops.',
-    members: 8900,
-    category: 'Design & Tech',
-    banner: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=800&auto=format&fit=crop&q=80',
-    avatar: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=150&auto=format&fit=crop&q=80',
-    joined: true,
-    isPrivate: false,
-  },
-  {
-    id: 'com-3',
-    name: 'Fotografia Autoral & Analógica',
-    description: 'Compartilhamento de ensaios, revelação química, filmes 35mm e técnicas de iluminação.',
-    members: 6300,
-    category: 'Fotografia',
-    banner: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=80',
-    avatar: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=150&auto=format&fit=crop&q=80',
-    joined: false,
-    isPrivate: false,
-  },
-  {
-    id: 'com-4',
-    name: 'Criadores Digitais & Monetização',
-    description: 'Dicas sobre crescimento orgânico, parcerias comerciais, criação de conteúdo e Flow Rewards.',
-    members: 19500,
-    category: 'Criadores',
-    banner: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80',
-    avatar: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=150&auto=format&fit=crop&q=80',
-    joined: false,
-    isPrivate: false,
-  },
-];
+// FLOW — CommunitiesModule (FASE 1: sem mocks).
+// Comunidades 100% Firestore via services/firebase/communities.
+// Vazio/erro honestos (REGRA DE CONCLUSÃO FLOW).
+import React, { useCallback, useEffect, useState } from 'react';
+import { Users, Plus, Check, Search, Globe } from 'lucide-react';
+import {
+  getMyMemberships,
+  joinCommunity,
+  leaveCommunity,
+  listCommunities,
+  type Community,
+} from '../../services/firebase/communities';
+import EmptyState from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
+import LoadingState from '../../components/ui/LoadingState';
 
 export default function CommunitiesModule() {
-  const [communities, setCommunities] = useState<Community[]>(INITIAL_COMMUNITIES);
+  const [communities, setCommunities] = useState<Community[]>([]);
+  const [joined, setJoined] = useState<Set<string>>(new Set());
   const [tab, setTab] = useState<'all' | 'my'>('all');
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [items, mine] = await Promise.all([listCommunities(24), getMyMemberships()]);
+      setCommunities(items);
+      setJoined(mine);
+    } catch {
+      setError('Não foi possível carregar as comunidades. Verifique sua conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   const toggleJoin = (id: string) => {
-    setCommunities(prev =>
-      prev.map(c => (c.id === id ? { ...c, joined: !c.joined, members: c.joined ? c.members - 1 : c.members + 1 } : c))
+    const isJoined = joined.has(id);
+    setJoinError(null);
+    setJoined((prev) => {
+      const next = new Set(prev);
+      if (isJoined) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    setCommunities((prev) =>
+      prev.map((c) =>
+        c.id === id ? { ...c, memberCount: (c.memberCount ?? 0) + (isJoined ? -1 : 1) } : c,
+      ),
     );
+    // Otimista com reversão real (sem falso sucesso).
+    void (isJoined ? leaveCommunity(id) : joinCommunity(id)).catch(() => {
+      setJoined((prev) => {
+        const next = new Set(prev);
+        if (isJoined) next.add(id);
+        else next.delete(id);
+        return next;
+      });
+      setCommunities((prev) =>
+        prev.map((c) =>
+          c.id === id ? { ...c, memberCount: (c.memberCount ?? 0) + (isJoined ? 1 : -1) } : c,
+        ),
+      );
+      setJoinError('Não foi possível atualizar sua participação. Tente novamente.');
+    });
   };
 
-  const filtered = communities.filter(c => {
-    const matchesTab = tab === 'all' || c.joined;
-    const matchesSearch = !search.trim() ||
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.description.toLowerCase().includes(search.toLowerCase()) ||
-      c.category.toLowerCase().includes(search.toLowerCase());
+  const filtered = communities.filter((c) => {
+    const matchesTab = tab === 'all' || joined.has(c.id);
+    const q = search.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      c.name.toLowerCase().includes(q) ||
+      (c.description ?? '').toLowerCase().includes(q);
     return matchesTab && matchesSearch;
   });
 
@@ -96,23 +98,24 @@ export default function CommunitiesModule() {
 
         <button
           type="button"
-          onClick={() => alert('Em breve: ferramenta de criação e moderação de nova comunidade.')}
+          disabled
+          title="Criação de comunidades com moderação chega na Fase 3"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
             padding: '9px 18px',
             borderRadius: 12,
-            border: 'none',
-            background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-            color: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            background: '#F1F5F9',
+            color: '#94A3B8',
             fontSize: 13.5,
             fontWeight: 700,
-            cursor: 'pointer'
+            cursor: 'not-allowed'
           }}
         >
           <Plus size={16} />
-          <span>Criar Comunidade</span>
+          <span>Criar Comunidade (em breve)</span>
         </button>
       </div>
 
@@ -124,7 +127,7 @@ export default function CommunitiesModule() {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar por nome ou categoria..."
+            placeholder="Buscar por nome ou descrição..."
             style={{
               width: '100%',
               height: 40,
@@ -170,108 +173,131 @@ export default function CommunitiesModule() {
               color: tab === 'my' ? '#2563EB' : '#475569'
             }}
           >
-            Minhas comunidades ({communities.filter(c => c.joined).length})
+            Minhas comunidades ({joined.size})
           </button>
         </div>
       </div>
 
+      {joinError && (
+        <p role="alert" style={{ margin: '0 0 16px 0', fontSize: 13, color: '#DC2626' }}>{joinError}</p>
+      )}
+
+      {loading && <LoadingState message="Carregando comunidades…" />}
+      {!loading && error && <ErrorState description={error} onRetry={() => reload()} />}
+      {!loading && !error && filtered.length === 0 && (
+        <EmptyState
+          title={tab === 'my' ? 'Você ainda não participa de comunidades' : 'Nenhuma comunidade encontrada'}
+          description="As comunidades reais aparecem aqui. Nada é simulado."
+        />
+      )}
+
       {/* Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-        gap: 20
-      }}>
-        {filtered.map(com => (
-          <div
-            key={com.id}
-            style={{
-              background: '#FFFFFF',
-              borderRadius: 16,
-              border: '1px solid #E2E8F0',
-              overflow: 'hidden',
-              boxShadow: '0 1px 4px rgba(15,23,42,0.04)',
-              display: 'flex',
-              flexDirection: 'column'
-            }}
-          >
-            {/* Banner */}
-            <div style={{ height: 100, width: '100%', position: 'relative' }}>
-              <img src={com.banner} alt={com.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              <span style={{
-                position: 'absolute',
-                top: 10,
-                right: 10,
-                background: 'rgba(15,23,42,0.7)',
-                color: '#fff',
-                padding: '3px 8px',
-                borderRadius: 999,
-                fontSize: 11,
-                fontWeight: 600
-              }}>
-                {com.category}
-              </span>
-            </div>
-
-            {/* Avatar and Body */}
-            <div style={{ padding: '0 16px 16px', position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: -24, marginBottom: 12 }}>
-                <img
-                  src={com.avatar}
-                  alt={com.name}
-                  style={{ width: 52, height: 52, borderRadius: 14, border: '3px solid #FFFFFF', objectFit: 'cover' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => toggleJoin(com.id)}
-                  style={{
-                    padding: '6px 14px',
-                    borderRadius: 999,
-                    border: com.joined ? '1px solid #CBD5E1' : 'none',
-                    background: com.joined ? '#F8FAFC' : '#2563EB',
-                    color: com.joined ? '#475569' : '#FFFFFF',
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6
-                  }}
-                >
-                  {com.joined ? (
-                    <>
-                      <Check size={14} />
-                      <span>Participando</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus size={14} />
-                      <span>Entrar</span>
-                    </>
+      {!loading && !error && filtered.length > 0 && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gap: 20
+        }}>
+          {filtered.map(com => {
+            const isJoined = joined.has(com.id);
+            const avatar = com.imageUrl || '/logo.png';
+            return (
+              <div
+                key={com.id}
+                style={{
+                  background: '#FFFFFF',
+                  borderRadius: 16,
+                  border: '1px solid #E2E8F0',
+                  overflow: 'hidden',
+                  boxShadow: '0 1px 4px rgba(15,23,42,0.04)',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}
+              >
+                {/* Banner */}
+                <div style={{ height: 100, width: '100%', position: 'relative', background: 'linear-gradient(135deg, #4F7FFF 0%, #8B5CF6 50%, #D946EF 100%)' }}>
+                  {com.imageUrl && (
+                    <img src={com.imageUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   )}
-                </button>
-              </div>
-
-              <h3 style={{ margin: '0 0 6px 0', fontSize: 16, fontWeight: 700, color: '#0F172A' }}>
-                {com.name}
-              </h3>
-              <p style={{ margin: '0 0 14px 0', fontSize: 13, color: '#64748B', lineHeight: 1.45, flex: 1 }}>
-                {com.description}
-              </p>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, color: '#94A3B8', borderTop: '1px solid #F1F5F9', paddingTop: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Users size={14} />
-                  <span>{com.members.toLocaleString('pt-BR')} membros</span>
+                  <span style={{
+                    position: 'absolute',
+                    top: 10,
+                    right: 10,
+                    background: 'rgba(15,23,42,0.7)',
+                    color: '#fff',
+                    padding: '3px 8px',
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: 600
+                  }}>
+                    Comunidade
+                  </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Globe size={14} />
-                  <span>Pública</span>
+
+                {/* Avatar and Body */}
+                <div style={{ padding: '0 16px 16px', position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: -24, marginBottom: 12 }}>
+                    <img
+                      src={avatar}
+                      alt={com.name}
+                      style={{ width: 52, height: 52, borderRadius: 14, border: '3px solid #FFFFFF', objectFit: 'cover', background: '#F1F5F9' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleJoin(com.id)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: 999,
+                        border: isJoined ? '1px solid #CBD5E1' : 'none',
+                        background: isJoined ? '#F8FAFC' : '#2563EB',
+                        color: isJoined ? '#475569' : '#FFFFFF',
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}
+                    >
+                      {isJoined ? (
+                        <>
+                          <Check size={14} />
+                          <span>Participando</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={14} />
+                          <span>Entrar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <h3 style={{ margin: '0 0 6px 0', fontSize: 16, fontWeight: 700, color: '#0F172A' }}>
+                    {com.name}
+                  </h3>
+                  {com.description && (
+                    <p style={{ margin: '0 0 14px 0', fontSize: 13, color: '#64748B', lineHeight: 1.45, flex: 1 }}>
+                      {com.description}
+                    </p>
+                  )}
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 12, color: '#94A3B8', borderTop: '1px solid #F1F5F9', paddingTop: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Users size={14} />
+                      <span>{(com.memberCount ?? 0).toLocaleString('pt-BR')} membros</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <Globe size={14} />
+                      <span>Pública</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

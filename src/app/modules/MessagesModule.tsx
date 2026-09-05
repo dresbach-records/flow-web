@@ -1,111 +1,133 @@
-import React, { useState } from 'react';
+// FLOW — MessagesModule (FASE 1/3: sem mocks).
+// Conversas e mensagens 100% Firestore (`conversations` + subcoleção `messages`).
+import React, { useCallback, useEffect, useState } from 'react';
 import { Send, Image, Smile, Phone, Video, MoreVertical, Search, CheckCheck } from 'lucide-react';
+import { useAppContext } from '../../contexts/AppContext';
+import {
+  listConversations,
+  listMessages,
+  sendMessage,
+  type ChatMessage,
+  type Conversation,
+} from '../../services/firebase/messages';
+import EmptyState from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
+import LoadingState from '../../components/ui/LoadingState';
 
-interface ChatMessage {
-  id: string;
-  sender: 'me' | 'them';
-  text: string;
-  time: string;
+function formatTime(createdAt: unknown): string {
+  try {
+    const ts = createdAt as { toDate?: () => Date };
+    if (ts && typeof ts.toDate === 'function') {
+      return ts.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+  } catch {
+    /* sem data honesta: omite */
+  }
+  return '';
 }
-
-interface Conversation {
-  id: string;
-  name: string;
-  handle: string;
-  avatar: string;
-  online: boolean;
-  unread: number;
-  lastMessage: string;
-  time: string;
-  messages: ChatMessage[];
-}
-
-const INITIAL_CONVERSATIONS: Conversation[] = [
-  {
-    id: 'chat-1',
-    name: 'Marina D.',
-    handle: '@marinabeats',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    online: true,
-    unread: 2,
-    lastMessage: 'Ouviu a nova prévia que te mandei do arranjo?',
-    time: '14:32',
-    messages: [
-      { id: 'm1', sender: 'them', text: 'E aí! Terminei a mixagem daquela faixa que gravamos semana passada.', time: '14:20' },
-      { id: 'm2', sender: 'me', text: 'Sensacional! O grave ficou limpo como a gente queria?', time: '14:25' },
-      { id: 'm3', sender: 'them', text: 'Ouviu a nova prévia que te mandei do arranjo?', time: '14:32' },
-    ],
-  },
-  {
-    id: 'chat-2',
-    name: 'Lucas Rocha',
-    handle: '@lucasarch',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    online: false,
-    unread: 0,
-    lastMessage: 'Vamos marcar aquele café sobre o projeto semana que vem!',
-    time: 'Ontem',
-    messages: [
-      { id: 'm20', sender: 'them', text: 'Valeu pelo feedback sobre as renderizações!', time: 'Ontem' },
-      { id: 'm21', sender: 'me', text: 'Ficaram impecáveis, Lucas! Parabéns.', time: 'Ontem' },
-      { id: 'm22', sender: 'them', text: 'Vamos marcar aquele café sobre o projeto semana que vem!', time: 'Ontem' },
-    ],
-  },
-  {
-    id: 'chat-3',
-    name: 'Sofia Mendes',
-    handle: '@sofiaux',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    online: true,
-    unread: 0,
-    lastMessage: 'Te adicionei na biblioteca de componentes do Figma.',
-    time: 'Segunda',
-    messages: [
-      { id: 'm30', sender: 'them', text: 'Te adicionei na biblioteca de componentes do Figma.', time: 'Segunda' },
-    ],
-  },
-];
 
 export default function MessagesModule() {
-  const [conversations, setConversations] = useState<Conversation[]>(INITIAL_CONVERSATIONS);
-  const [activeId, setActiveId] = useState<string>('chat-1');
+  const { user } = useAppContext();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeId, setActiveId] = useState<string>('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [inputVal, setInputVal] = useState('');
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
 
-  const activeChat = conversations.find(c => c.id === activeId) ?? conversations[0];
+  const reload = useCallback(async () => {
+    if (!user?.uid) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const items = await listConversations();
+      setConversations(items);
+      setActiveId((prev) => (items.some((c) => c.id === prev) ? prev : (items[0]?.id ?? '')));
+    } catch {
+      setError('Não foi possível carregar as conversas. Verifique sua conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.uid]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  useEffect(() => {
+    if (!activeId) {
+      setMessages([]);
+      return;
+    }
+    let cancelled = false;
+    setMessagesLoading(true);
+    void listMessages(activeId)
+      .then((items) => {
+        if (!cancelled) setMessages(items);
+      })
+      .catch(() => {
+        if (!cancelled) setMessages([]);
+      })
+      .finally(() => {
+        if (!cancelled) setMessagesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId]);
+
+  const activeChat = conversations.find(c => c.id === activeId);
 
   const handleSend = () => {
     const text = inputVal.trim();
-    if (!text) return;
-
-    const newMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'me',
-      text,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setConversations(prev =>
-      prev.map(c => {
-        if (c.id === activeId) {
-          return {
-            ...c,
-            lastMessage: text,
-            time: newMsg.time,
-            messages: [...c.messages, newMsg],
-          };
-        }
-        return c;
-      })
-    );
-
+    if (!text || !activeId) return;
+    setSendError(null);
     setInputVal('');
+    // Persistência real; recarrega mensagens após confirmação (sem simulação local).
+    void sendMessage(activeId, text)
+      .then(() => listMessages(activeId))
+      .then(setMessages)
+      .then(() => reload())
+      .catch(() => setSendError('Não foi possível enviar. Tente novamente.'));
   };
 
   const filteredConversations = conversations.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.handle.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px 16px 40px' }}>
+        <LoadingState message="Carregando conversas…" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px 16px 40px' }}>
+        <ErrorState description={error} onRetry={() => reload()} />
+      </div>
+    );
+  }
+
+  if (conversations.length === 0) {
+    return (
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px 16px 40px' }}>
+        <EmptyState
+          title="Nenhuma conversa ainda"
+          description="Suas conversas reais aparecem aqui. Nada é simulado."
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -201,7 +223,6 @@ export default function MessagesModule() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                       <strong style={{ fontSize: 14, color: '#0F172A', fontWeight: 700 }}>{chat.name}</strong>
-                      <span style={{ fontSize: 11, color: '#94A3B8' }}>{chat.time}</span>
                     </div>
                     <p style={{
                       margin: 0,
@@ -214,18 +235,6 @@ export default function MessagesModule() {
                       {chat.lastMessage}
                     </p>
                   </div>
-                  {chat.unread > 0 && (
-                    <span style={{
-                      background: '#2563EB',
-                      color: '#FFFFFF',
-                      borderRadius: 999,
-                      padding: '2px 6px',
-                      fontSize: 10,
-                      fontWeight: 700
-                    }}>
-                      {chat.unread}
-                    </span>
-                  )}
                 </button>
               );
             })}
@@ -233,143 +242,162 @@ export default function MessagesModule() {
         </div>
 
         {/* Right Active Conversation */}
-        <div style={{ display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
-          {/* Header */}
-          <div style={{
-            padding: '12px 20px',
-            background: '#FFFFFF',
-            borderBottom: '1px solid #E2E8F0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <img
-                src={activeChat.avatar}
-                alt={activeChat.name}
-                style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
-              />
-              <div>
-                <strong style={{ fontSize: 15, color: '#0F172A', fontWeight: 700, display: 'block', lineHeight: 1.2 }}>
-                  {activeChat.name}
-                </strong>
-                <span style={{ fontSize: 12, color: activeChat.online ? '#10B981' : '#94A3B8', fontWeight: 500 }}>
-                  {activeChat.online ? 'Online agora' : 'Offline'}
-                </span>
+        {activeChat ? (
+          <div style={{ display: 'flex', flexDirection: 'column', background: '#F8FAFC' }}>
+            {/* Header */}
+            <div style={{
+              padding: '12px 20px',
+              background: '#FFFFFF',
+              borderBottom: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <img
+                  src={activeChat.avatar}
+                  alt={activeChat.name}
+                  style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
+                />
+                <div>
+                  <strong style={{ fontSize: 15, color: '#0F172A', fontWeight: 700, display: 'block', lineHeight: 1.2 }}>
+                    {activeChat.name}
+                  </strong>
+                  <span style={{ fontSize: 12, color: activeChat.online ? '#10B981' : '#94A3B8', fontWeight: 500 }}>
+                    {activeChat.online ? 'Online agora' : 'Offline'}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button aria-label="Chamada de voz (em breve)" disabled title="Chamadas chegam na Fase 3" style={{ background: 'none', border: 'none', color: '#CBD5E1', padding: 8 }}>
+                  <Phone size={18} />
+                </button>
+                <button aria-label="Chamada de vídeo (em breve)" disabled title="Chamadas chegam na Fase 3" style={{ background: 'none', border: 'none', color: '#CBD5E1', padding: 8 }}>
+                  <Video size={18} />
+                </button>
+                <button aria-label="Opções da conversa" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 8 }}>
+                  <MoreVertical size={18} />
+                </button>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 8 }}>
-                <Phone size={18} />
+            {/* Messages Area */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '20px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12
+            }}>
+              {messagesLoading && <LoadingState message="Carregando mensagens…" />}
+              {!messagesLoading && messages.length === 0 && (
+                <p style={{ margin: 0, fontSize: 13, color: '#94A3B8', textAlign: 'center' }}>
+                  Nenhuma mensagem nesta conversa ainda. Envie a primeira abaixo.
+                </p>
+              )}
+              {!messagesLoading && messages.map(msg => {
+                const isMe = msg.senderId === user?.uid;
+                return (
+                  <div
+                    key={msg.id}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: isMe ? 'flex-end' : 'flex-start'
+                    }}
+                  >
+                    <div style={{
+                      maxWidth: '68%',
+                      padding: '10px 16px',
+                      borderRadius: 16,
+                      borderBottomRightRadius: isMe ? 4 : 16,
+                      borderBottomLeftRadius: isMe ? 16 : 4,
+                      background: isMe ? 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)' : '#FFFFFF',
+                      color: isMe ? '#FFFFFF' : '#0F172A',
+                      fontSize: 14,
+                      lineHeight: 1.45,
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                      border: isMe ? 'none' : '1px solid #E2E8F0'
+                    }}>
+                      {msg.text}
+                    </div>
+                    {formatTime(msg.createdAt) && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                        <span style={{ fontSize: 10, color: '#94A3B8' }}>{formatTime(msg.createdAt)}</span>
+                        {isMe && <CheckCheck size={12} color="#2563EB" />}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {sendError && (
+              <p role="alert" style={{ margin: '0 20px 4px 20px', fontSize: 12.5, color: '#DC2626' }}>{sendError}</p>
+            )}
+
+            {/* Input Bar */}
+            <div style={{
+              padding: '12px 20px',
+              background: '#FFFFFF',
+              borderTop: '1px solid #E2E8F0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10
+            }}>
+              <button aria-label="Enviar foto (em breve)" disabled title="Anexos chegam na Fase 3" style={{ background: 'none', border: 'none', color: '#CBD5E1' }}>
+                <Image size={20} />
               </button>
-              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 8 }}>
-                <Video size={18} />
+              <button aria-label="Emoji (em breve)" disabled title="Emojis chegam na Fase 3" style={{ background: 'none', border: 'none', color: '#CBD5E1' }}>
+                <Smile size={20} />
               </button>
-              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B', padding: 8 }}>
-                <MoreVertical size={18} />
+              <input
+                type="text"
+                value={inputVal}
+                onChange={e => setInputVal(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
+                placeholder="Digite sua mensagem..."
+                style={{
+                  flex: 1,
+                  height: 40,
+                  padding: '0 16px',
+                  borderRadius: 999,
+                  border: '1px solid #E2E8F0',
+                  background: '#F8FAFC',
+                  fontSize: 14,
+                  color: '#0F172A',
+                  outline: 'none'
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleSend}
+                aria-label="Enviar mensagem"
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  background: '#2563EB',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(37,99,235,0.3)'
+                }}
+              >
+                <Send size={18} />
               </button>
             </div>
           </div>
-
-          {/* Messages Area */}
-          <div style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '20px 24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12
-          }}>
-            {activeChat.messages.map(msg => {
-              const isMe = msg.sender === 'me';
-              return (
-                <div
-                  key={msg.id}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: isMe ? 'flex-end' : 'flex-start'
-                  }}
-                >
-                  <div style={{
-                    maxWidth: '68%',
-                    padding: '10px 16px',
-                    borderRadius: 16,
-                    borderBottomRightRadius: isMe ? 4 : 16,
-                    borderBottomLeftRadius: isMe ? 16 : 4,
-                    background: isMe ? 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)' : '#FFFFFF',
-                    color: isMe ? '#FFFFFF' : '#0F172A',
-                    fontSize: 14,
-                    lineHeight: 1.45,
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-                    border: isMe ? 'none' : '1px solid #E2E8F0'
-                  }}>
-                    {msg.text}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                    <span style={{ fontSize: 10, color: '#94A3B8' }}>{msg.time}</span>
-                    {isMe && <CheckCheck size={12} color="#2563EB" />}
-                  </div>
-                </div>
-              );
-            })}
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}>
+            <p style={{ fontSize: 13, color: '#94A3B8' }}>Selecione uma conversa.</p>
           </div>
-
-          {/* Input Bar */}
-          <div style={{
-            padding: '12px 20px',
-            background: '#FFFFFF',
-            borderTop: '1px solid #E2E8F0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10
-          }}>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
-              <Image size={20} />
-            </button>
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748B' }}>
-              <Smile size={20} />
-            </button>
-            <input
-              type="text"
-              value={inputVal}
-              onChange={e => setInputVal(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
-              placeholder="Digite sua mensagem..."
-              style={{
-                flex: 1,
-                height: 40,
-                padding: '0 16px',
-                borderRadius: 999,
-                border: '1px solid #E2E8F0',
-                background: '#F8FAFC',
-                fontSize: 14,
-                color: '#0F172A',
-                outline: 'none'
-              }}
-            />
-            <button
-              type="button"
-              onClick={handleSend}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                background: '#2563EB',
-                color: '#FFFFFF',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 6px rgba(37,99,235,0.3)'
-              }}
-            >
-              <Send size={18} />
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

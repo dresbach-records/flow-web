@@ -171,8 +171,9 @@ export default function TermsGate({
               onChange={(e) => setChecked(e.target.checked)}
             />
             <span>
-              Li e aceito os Termos de Uso, a <strong>Política de Privacidade</strong> e demais políticas da Flow. Declaro que li todo o
-              conteúdo e concordo com as condições para utilizar a plataforma.
+              Li e estou de acordo com o contrato: aceito os Termos de Uso, a <strong>Política de Privacidade</strong> e
+              demais políticas da Flow. Você concorda com o aceite e está ciente de que, caso não aceite, sua sessão
+              será encerrada.
             </span>
           </label>
           {error && (

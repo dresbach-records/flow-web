@@ -13,43 +13,48 @@ import { AdminAnalytics } from './pages/AdminAnalytics';
 import { AdminCommunities } from './pages/AdminCommunities';
 import { AdminSettings } from './pages/AdminSettings';
 import { AdminLogs } from './pages/AdminLogs';
+import { AdminMessages } from './pages/AdminMessages';
+import { AdminNotifications } from './pages/AdminNotifications';
+import { AdminMemorial } from './pages/AdminMemorial';
+import { AdminRH } from './pages/AdminRH';
+import { AdminRelatorios } from './pages/AdminRelatorios';
+import { AdminSistema } from './pages/AdminSistema';
+import { AdminSuporte } from './pages/AdminSuporte';
+import { PermissionGuard } from './components/PermissionGuard';
 import ModuleCenter from './ModuleCenter';
 import SiteEditor from './SiteEditor';
 
+function resolveRoute(p: string): AdminRouteId {
+  if (p.includes('/modulos')) return 'modulos';
+  if (p.includes('/site')) return 'site';
+  if (p.includes('/usuarios')) return 'usuarios';
+  if (p.includes('/moderacao') || p.includes('/denuncias')) return 'moderacao';
+  if (p.includes('/conteudo') || p.includes('/posts')) return 'conteudo';
+  if (p.includes('/analytics')) return 'analytics';
+  if (p.includes('/comunidades')) return 'comunidades';
+  if (p.includes('/mensagens')) return 'mensagens';
+  if (p.includes('/notificacoes')) return 'notificacoes';
+  if (p.includes('/memorial')) return 'memorial';
+  if (p.includes('/rh') || p.includes('/colaboradores')) return 'rh';
+  if (p.includes('/marketplace') || p.includes('/lojas')) return 'marketplace';
+  if (p.includes('/eventos')) return 'eventos';
+  if (p.includes('/relatorios')) return 'relatorios';
+  if (p.includes('/sistema')) return 'sistema';
+  if (p.includes('/suporte')) return 'suporte';
+  if (p.includes('/configuracoes')) return 'configuracoes';
+  if (p.includes('/logs') || p.includes('/auditoria')) return 'logs';
+  if (p.includes('/seguranca')) return 'seguranca';
+  return 'dashboard';
+}
+
 const AdminAppContent: React.FC = () => {
   const { user, loading } = useAdminAuth();
-  const [currentRoute, setCurrentRoute] = useState<AdminRouteId>(() => {
-    const p = window.location.pathname;
-    if (p.includes('/modulos')) return 'modulos';
-    if (p.includes('/site')) return 'site';
-    if (p.includes('/usuarios')) return 'usuarios';
-    if (p.includes('/moderacao') || p.includes('/denuncias')) return 'moderacao';
-    if (p.includes('/conteudo') || p.includes('/posts')) return 'conteudo';
-    if (p.includes('/analytics')) return 'analytics';
-    if (p.includes('/comunidades')) return 'comunidades';
-    if (p.includes('/configuracoes')) return 'configuracoes';
-    if (p.includes('/logs') || p.includes('/auditoria')) return 'logs';
-    if (p.includes('/seguranca')) return 'seguranca';
-    return 'dashboard';
-  });
+  const [currentRoute, setCurrentRoute] = useState<AdminRouteId>(() => resolveRoute(window.location.pathname));
   const [searchQuery, setSearchQuery] = useState('');
 
   // Handle browser popstate
   useEffect(() => {
-    const handlePopState = () => {
-      const p = window.location.pathname;
-      if (p.includes('/modulos')) setCurrentRoute('modulos');
-      else if (p.includes('/site')) setCurrentRoute('site');
-      else if (p.includes('/usuarios')) setCurrentRoute('usuarios');
-      else if (p.includes('/moderacao') || p.includes('/denuncias')) setCurrentRoute('moderacao');
-      else if (p.includes('/conteudo') || p.includes('/posts')) setCurrentRoute('conteudo');
-      else if (p.includes('/analytics')) setCurrentRoute('analytics');
-      else if (p.includes('/comunidades')) setCurrentRoute('comunidades');
-      else if (p.includes('/configuracoes')) setCurrentRoute('configuracoes');
-      else if (p.includes('/logs') || p.includes('/auditoria')) setCurrentRoute('logs');
-      else if (p.includes('/seguranca')) setCurrentRoute('seguranca');
-      else setCurrentRoute('dashboard');
-    };
+    const handlePopState = () => setCurrentRoute(resolveRoute(window.location.pathname));
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
@@ -96,25 +101,85 @@ const AdminAppContent: React.FC = () => {
       onSearchChange={setSearchQuery}
     >
       {currentRoute === 'dashboard' && <AdminDashboard onNavigate={handleNavigate} />}
-      {currentRoute === 'usuarios' && <AdminUsers searchQuery={searchQuery} />}
-      {currentRoute === 'moderacao' && <AdminModeration />}
-      {currentRoute === 'conteudo' && <AdminContent />}
+      {currentRoute === 'usuarios' && (
+        <PermissionGuard allow={['admin', 'superadmin']}>
+          <AdminUsers searchQuery={searchQuery} />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'moderacao' && (
+        <PermissionGuard allow={['admin', 'superadmin', 'moderator']}>
+          <AdminModeration />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'conteudo' && (
+        <PermissionGuard allow={['admin', 'superadmin', 'moderator']}>
+          <AdminContent />
+        </PermissionGuard>
+      )}
       {currentRoute === 'seguranca' && <AdminSecurity />}
       {currentRoute === 'analytics' && <AdminAnalytics />}
-      {currentRoute === 'comunidades' && <AdminCommunities />}
-      {currentRoute === 'configuracoes' && <AdminSettings />}
-      {currentRoute === 'logs' && <AdminLogs />}
-      {currentRoute === 'modulos' && <ModuleCenter />}
-      {currentRoute === 'site' && <SiteEditor />}
+      {currentRoute === 'comunidades' && (
+        <PermissionGuard allow={['admin', 'superadmin', 'moderator']}>
+          <AdminCommunities />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'mensagens' && (
+        <PermissionGuard allow={['admin', 'superadmin', 'moderator']}>
+          <AdminMessages />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'notificacoes' && (
+        <PermissionGuard allow={['admin', 'superadmin', 'moderator']}>
+          <AdminNotifications />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'memorial' && (
+        <PermissionGuard allow={['admin', 'superadmin', 'moderator']}>
+          <AdminMemorial />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'rh' && (
+        <PermissionGuard allow={['admin', 'superadmin']}>
+          <AdminRH />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'relatorios' && <AdminRelatorios />}
+      {currentRoute === 'sistema' && <AdminSistema />}
+      {currentRoute === 'suporte' && (
+        <PermissionGuard allow={['admin', 'superadmin', 'moderator']}>
+          <AdminSuporte />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'configuracoes' && (
+        <PermissionGuard allow={['admin', 'superadmin']}>
+          <AdminSettings />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'logs' && (
+        <PermissionGuard allow={['admin', 'superadmin']}>
+          <AdminLogs />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'modulos' && (
+        <PermissionGuard allow={['admin', 'superadmin']}>
+          <ModuleCenter />
+        </PermissionGuard>
+      )}
+      {currentRoute === 'site' && (
+        <PermissionGuard allow={['admin', 'superadmin']}>
+          <SiteEditor />
+        </PermissionGuard>
+      )}
 
-      {/* Fallback for additional routes */}
-      {!['dashboard', 'usuarios', 'moderacao', 'conteudo', 'seguranca', 'analytics', 'comunidades', 'configuracoes', 'logs', 'modulos', 'site'].includes(currentRoute) && (
-        <div className="admin-card" style={{ padding: '40px', textAlign: 'center' }}>
+      {/* Rotas sem backend (marketplace, eventos): PENDENTE honesto, sem tela fictícia. */}
+      {(currentRoute === 'marketplace' || currentRoute === 'eventos') && (
+        <div className="admin-card" style={{ padding: '48px 24px', textAlign: 'center' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '8px', textTransform: 'capitalize' }}>
-            Módulo: {currentRoute}
+            {currentRoute === 'marketplace' ? 'Marketplace' : 'Eventos'}
           </h2>
           <p style={{ color: '#64748b', maxWidth: '500px', margin: '0 auto 20px auto', fontSize: '13.5px' }}>
-            Este painel operacional está conectado à infraestrutura LTS do FLOW Control Center.
+            Módulo pendente: sem backend e sem persistência (Fase 9). Nenhum dado é exibido até a
+            implementação ponta a ponta, conforme a REGRA DE CONCLUSÃO FLOW.
           </p>
           <button
             type="button"

@@ -1,13 +1,17 @@
 import { Eye, Heart, Plus, Share2 } from 'lucide-react';
-import { creatorVideos } from '../data';
 import CreatorMetric from '../CreatorMetric';
 import CreatorVideoRow from '../CreatorVideoRow';
+import type { CreatorVideo } from '../types';
 
 export interface CreatorPostsProps {
   onPublish: () => void;
+  videos?: CreatorVideo[];
+  likesTotal?: number;
+  commentsTotal?: number;
+  sharesTotal?: number;
 }
 
-export default function CreatorPosts({ onPublish }: CreatorPostsProps) {
+export default function CreatorPosts({ onPublish, videos = [], likesTotal = 0, commentsTotal = 0, sharesTotal = 0 }: CreatorPostsProps) {
   return (
     <section className="panel page-panel">
       <div className="panel-head">
@@ -20,12 +24,15 @@ export default function CreatorPosts({ onPublish }: CreatorPostsProps) {
         </button>
       </div>
       <div className="post-summary">
-        <CreatorMetric icon={Eye} label="Visualizações" value="47,9 mil" delta="+1.284" />
-        <CreatorMetric icon={Heart} label="Curtidas" value="1.438" delta="+87" />
-        <CreatorMetric icon={Share2} label="Compartilhamentos" value="584" delta="+29" />
+        <CreatorMetric icon={Eye} label="Visualizações" value="—" />
+        <CreatorMetric icon={Heart} label="Curtidas" value={String(likesTotal)} />
+        <CreatorMetric icon={Share2} label="Compartilhamentos" value={String(sharesTotal)} />
       </div>
       <div className="video-list">
-        {creatorVideos.map((v) => (
+        {videos.length === 0 && (
+          <p className="chart-pending">Nenhum conteúdo publicado ainda — {commentsTotal} comentários no total.</p>
+        )}
+        {videos.map((v) => (
           <CreatorVideoRow key={v.title} video={v} />
         ))}
       </div>

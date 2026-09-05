@@ -1,17 +1,26 @@
-import React from 'react';
-import { AdminApp, AuthPage, CreatorCenter, MemorialModule, PlatformModules, ProfilePage, PublicApp } from './pages';
-import SiteHome from './app/SiteHome';
-import SocialFeed from './app/SocialFeed';
-import ScheduleCenter from './app/ScheduleCenter';
-import ExploreModule from './app/modules/ExploreModule';
-import ShortsModule from './app/modules/ShortsModule';
-import MessagesModule from './app/modules/MessagesModule';
-import NotificationsModule from './app/modules/NotificationsModule';
-import CommunitiesModule from './app/modules/CommunitiesModule';
-import SavedModule from './app/modules/SavedModule';
-import SettingsModule from './app/modules/SettingsModule';
+import React, { Suspense } from 'react';
+// FASE 8: code-splitting por rota — bundles pesados carregam sob demanda.
+const AdminApp = React.lazy(() => import('./admin/AdminApp'));
+const AuthPage = React.lazy(() => import('./app/AuthPage'));
+const CreatorCenter = React.lazy(() => import('./app/CreatorCenter'));
+const MemorialModule = React.lazy(() => import('./app/memorial/MemorialModule'));
+const PlatformModules = React.lazy(() => import('./app/PlatformModules'));
+const ProfilePage = React.lazy(() => import('./app/ProfilePage'));
+const SiteHome = React.lazy(() => import('./app/SiteHome'));
+const SocialFeed = React.lazy(() => import('./app/SocialFeed'));
+const ScheduleCenter = React.lazy(() => import('./app/ScheduleCenter'));
+const ExploreModule = React.lazy(() => import('./app/modules/ExploreModule'));
+const ShortsModule = React.lazy(() => import('./app/modules/ShortsModule'));
+const MessagesModule = React.lazy(() => import('./app/modules/MessagesModule'));
+const NotificationsModule = React.lazy(() => import('./app/modules/NotificationsModule'));
+const CommunitiesModule = React.lazy(() => import('./app/modules/CommunitiesModule'));
+const SavedModule = React.lazy(() => import('./app/modules/SavedModule'));
+const SettingsModule = React.lazy(() => import('./app/modules/SettingsModule'));
+const DeveloperApp = React.lazy(() => import('./developer/DeveloperApp'));
 import TermsGate from './components/auth/TermsGate';
 import LoadingState from './components/ui/LoadingState';
+import EmptyState from './components/ui/EmptyState';
+import { moduleKeyForPath, useModuleStates } from './hooks/useModuleStates';
 import { AppProvider, useAppContext } from './contexts/AppContext';
 import { PlayerProvider } from './contexts/PlayerContext';
 import { AppLayout } from './layouts';
@@ -51,6 +60,7 @@ const ROUTE_TITLES: Array<[RegExp, string]> = [
   [/^\/seguranca/, 'FLOW — Segurança'],
   [/^\/conta/, 'FLOW — Conta'],
   [/^\/admin/, 'FLOW — Administração'],
+  [/^\/developer/, 'FLOW — Desenvolvedor'],
   [/^\/memorial/, 'FLOW — Memorial'],
   [/^\/app\/perfil/, 'FLOW — Perfil'],
   [/^\/app\/comunidades/, 'FLOW — Comunidades'],
@@ -86,7 +96,9 @@ export default function App() {
     return (
       <AppProvider>
         <FirebaseRuntimeNotice />
-        <AuthPage path={path} go={navigate} />
+        <Suspense fallback={<LoadingState message="Carregando…" />}>
+          <AuthPage path={path} go={navigate} />
+        </Suspense>
       </AppProvider>
     );
   }
@@ -95,7 +107,9 @@ export default function App() {
   if (path.startsWith('/admin')) {
     return (
       <AppProvider>
-        <AdminApp />
+        <Suspense fallback={<LoadingState message="Carregando administração…" />}>
+          <AdminApp />
+        </Suspense>
       </AppProvider>
     );
   }
@@ -107,9 +121,23 @@ export default function App() {
         <PlayerProvider>
           <FirebaseRuntimeNotice />
           <AppShellWrapper path={path} navigate={navigate}>
-            <MemorialModule path={path} go={navigate} />
+            <Suspense fallback={<LoadingState message="Carregando memorial…" />}>
+              <MemorialModule path={path} go={navigate} />
+            </Suspense>
           </AppShellWrapper>
         </PlayerProvider>
+      </AppProvider>
+    );
+  }
+
+  // Developer routes — painel técnico, sessão admin + papel admin
+  if (path.startsWith('/developer')) {
+    return (
+      <AppProvider>
+        <FirebaseRuntimeNotice />
+        <Suspense fallback={<LoadingState message="Carregando painel…" />}>
+          <DeveloperApp />
+        </Suspense>
       </AppProvider>
     );
   }
@@ -119,16 +147,22 @@ export default function App() {
     return (
       <AppProvider>
         <FirebaseRuntimeNotice />
-        <SiteHome />
+        <Suspense fallback={<LoadingState message="Carregando…" />}>
+          <SiteHome />
+        </Suspense>
       </AppProvider>
     );
   }
 
+  // Rotas públicas fora de /app: home institucional componentizada (FlowWeb legado
+  // aposentado na FASE 1 — demo com dados fictícios removida).
   if (!path.startsWith('/app')) {
     return (
       <AppProvider>
         <FirebaseRuntimeNotice />
-        <PublicApp />
+        <Suspense fallback={<LoadingState message="Carregando…" />}>
+          <SiteHome />
+        </Suspense>
       </AppProvider>
     );
   }
@@ -139,11 +173,33 @@ export default function App() {
       <PlayerProvider>
         <FirebaseRuntimeNotice />
         <AppShellWrapper path={path} navigate={navigate}>
-          <AppContentResolver path={path} navigate={navigate} />
+          <Suspense fallback={<LoadingState message="Carregando…" />}>
+            <ModuleGate path={path}>
+              <AppContentResolver path={path} navigate={navigate} />
+            </ModuleGate>
+          </Suspense>
         </AppShellWrapper>
       </PlayerProvider>
     </AppProvider>
   );
+}
+
+/**
+ * ModuleGate: aplica os estados reais de platform_settings/modules.
+ * Módulo em manutenção = aviso honesto em vez da tela.
+ */
+function ModuleGate({ path, children }: { path: string; children: React.ReactNode }) {
+  const states = useModuleStates();
+  const key = moduleKeyForPath(path);
+  if (key && states[key] === 'maintenance') {
+    return (
+      <EmptyState
+        title="Módulo em manutenção"
+        description="Esta área está temporariamente indisponível por decisão administrativa. Tente novamente em instantes."
+      />
+    );
+  }
+  return <>{children}</>;
 }
 
 /**

@@ -1,9 +1,11 @@
-// FLOW — CreatorCenter (FASE 3).
-// Página orquestradora: monta componentes creator e conecta estado local.
-// Antes: 52 linhas densas com 7 componentes internos + `any`.
-// Depois: composição de componentes tipados, mesma UI e mesmos dados.
-import { useMemo, useState } from 'react';
+// FLOW — CreatorCenter (FASE 1: sem mocks).
+// Página orquestradora: métricas reais via services/firebase/creator.
+// Sem views/renda simuladas: campos sem fonte exibem "—" (REGRA DE CONCLUSÃO FLOW).
+import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, LayoutDashboard, Plus, Sparkles, Users, Video, Wallet } from 'lucide-react';
+import { useAppContext } from '../contexts/AppContext';
+import { getCreatorStats, type CreatorStats } from '../services/firebase/creator';
+import type { CreatorVideo } from '../components/creator/types';
 import CreatorCreateModal from '../components/creator/CreatorCreateModal';
 import CreatorFollowers from '../components/creator/CreatorFollowers';
 import CreatorIncome from '../components/creator/CreatorIncome';
@@ -19,19 +21,69 @@ const go = (p: string) => {
   scrollTo(0, 0);
 };
 
+const EMPTY_STATS: CreatorStats = {
+  postsCount: 0,
+  likesTotal: 0,
+  commentsTotal: 0,
+  sharesTotal: 0,
+  followersCount: 0,
+  posts: [],
+};
+
 export default function CreatorCenter() {
+  const { user } = useAppContext();
   const [tab, setTab] = useState<CreatorTab>('overview');
   const [period, setPeriod] = useState<CreatorPeriod>('7');
   const [showCreate, setShowCreate] = useState(false);
   const [range, setRange] = useState<CreatorRange>('views');
-  const totals: CreatorTotals =
-    period === '7'
-      ? { views: '26,4 mil', delta: '+314', followers: '117', fdelta: '+4', income: 'R$ 0,00' }
-      : { views: '84,7 mil', delta: '+1.284', followers: '128', fdelta: '+11', income: 'R$ 0,00' };
-  const chart = useMemo(
-    () => (period === '7' ? [32, 45, 39, 61, 54, 72, 88] : [24, 32, 29, 45, 42, 54, 49, 66, 61, 72, 68, 84]),
-    [period],
+  const [stats, setStats] = useState<CreatorStats>(EMPTY_STATS);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    let cancelled = false;
+    void getCreatorStats(user.uid)
+      .then((s) => {
+        if (!cancelled) setStats(s);
+      })
+      .catch(() => {
+        if (!cancelled) setStats(EMPTY_STATS);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid]);
+
+  const totals: CreatorTotals = {
+    views: '—',
+    delta: '',
+    followers: String(stats.followersCount),
+    fdelta: '',
+    income: 'R$ 0,00',
+    likes: String(stats.likesTotal),
+  };
+  // Série real de curtidas por publicação (normalizada 0-100) para o range "likes".
+  const chart = useMemo(() => {
+    const likes = stats.posts.map((p) => p.likes);
+    const max = Math.max(...likes, 1);
+    return likes.map((v) => Math.round((v / max) * 100));
+  }, [stats]);
+  const videos: CreatorVideo[] = useMemo(
+    () =>
+      stats.posts.map((p) => ({
+        title: p.title,
+        views: '—',
+        likes: String(p.likes),
+        comments: String(p.comments),
+        shares: String(p.shares),
+        img: p.img,
+        date: p.date,
+        completion: '—',
+      })),
+    [stats],
   );
+  const profileName = user?.displayName || 'Seu perfil FLOW';
+  const profileHandle = user?.email ? `@${user.email.split('@')[0]}` : '@usuario';
+  void period;
 
   return (
     <div className="creator-shell">
@@ -50,21 +102,18 @@ export default function CreatorCenter() {
         </section>
         <section className="creator-profile">
           <div className="creator-user">
-            <img src="https://i.pravatar.cc/120?img=68" alt="" />
+            <img src={user?.photoURL || '/logo.png'} alt={profileName} />
             <div>
               <h2>
-                Seu perfil FLOW <CheckCircle2 />
+                {profileName} <CheckCircle2 />
               </h2>
-              <span>@flow.creator</span>
-              <p>11 direitos de criador · Perfil público</p>
+              <span>{profileHandle}</span>
+              <p>{stats.postsCount} publicações · {stats.followersCount} seguidores · Perfil público</p>
             </div>
           </div>
           <div className="level">
-            <b>Prata</b>
-            <span>11 Direitos</span>
-            <div>
-              <i style={{ width: '58%' }} />
-            </div>
+            <b>{stats.likesTotal} curtidas</b>
+            <span>Total nos seus posts</span>
           </div>
         </section>
         <nav className="creator-tabs">
@@ -94,10 +143,19 @@ export default function CreatorCenter() {
             range={range}
             onRangeChange={setRange}
             onSeeAll={() => go('/app/criador/publicacoes')}
+            videos={videos}
           />
         )}
-        {tab === 'posts' && <CreatorPosts onPublish={() => go('/app/criar/post')} />}
-        {tab === 'followers' && <CreatorFollowers period={period} />}
+        {tab === 'posts' && (
+          <CreatorPosts
+            onPublish={() => go('/app/criar/post')}
+            videos={videos}
+            likesTotal={stats.likesTotal}
+            commentsTotal={stats.commentsTotal}
+            sharesTotal={stats.sharesTotal}
+          />
+        )}
+        {tab === 'followers' && <CreatorFollowers period={period} count={stats.followersCount} />}
         {tab === 'income' && <CreatorIncome />}
         <CreatorTools />
       </main>

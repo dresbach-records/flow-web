@@ -2,6 +2,8 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { AppErrorBoundary } from './components/system/AppErrorBoundary';
+import OfflineNotice from './components/ui/OfflineNotice';
+import InstallAppPrompt from './components/site/InstallAppPrompt';
 import './styles/index.css';
 
 const rootElement = document.getElementById('root');
@@ -22,6 +24,8 @@ createRoot(rootElement).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <App />
+      <OfflineNotice />
+      <InstallAppPrompt />
     </AppErrorBoundary>
   </React.StrictMode>,
 );

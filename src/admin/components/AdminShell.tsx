@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AdminSidebar, type AdminRouteId } from './AdminSidebar';
 import { AdminTopbar } from './AdminTopbar';
+import { getApiBaseUrl } from '../../services/api/client';
 
 interface AdminShellProps {
   currentRoute: AdminRouteId;
@@ -17,6 +18,28 @@ export const AdminShell: React.FC<AdminShellProps> = ({
   onSearchChange,
   children,
 }) => {
+  const [backendOk, setBackendOk] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const base = getApiBaseUrl();
+    if (!base) {
+      setBackendOk(false);
+      return;
+    }
+    const root = base.replace(/\/api\/v1\/?$/, '');
+    void fetch(`${root}/health`, { signal: AbortSignal.timeout(8000) })
+      .then((res) => {
+        if (!cancelled) setBackendOk(res.ok);
+      })
+      .catch(() => {
+        if (!cancelled) setBackendOk(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="flow-admin-root">
       {/* 1. Fixed Full-Width Topbar com Logo oficial FLOW */}
@@ -46,8 +69,8 @@ export const AdminShell: React.FC<AdminShellProps> = ({
         </div>
 
         <div className="slim-footer-right">
-          <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }} />
-          <span>Sistema operacional</span>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: backendOk ? '#10b981' : '#f59e0b', display: 'inline-block' }} />
+          <span>{backendOk === null ? 'Verificando backend…' : backendOk ? 'Backend operacional' : 'Backend inacessível'}</span>
         </div>
       </footer>
     </div>

@@ -1,42 +1,93 @@
-import React, { useState } from 'react';
-import { FileText, Video, Eye, Radio, MessageSquare, Trash2, CheckCircle2, Search } from 'lucide-react';
+// FLOW — AdminContent (FASE 6: dados reais).
+// Catálogo de `posts` do Firestore. Remoção administrativa persiste de verdade
+// (regra: delete próprio ou admin) + trilha em `admin_audit`. Sem alcance fictício.
+import React, { useCallback, useEffect, useState } from 'react';
+import { FileText, Trash2, CheckCircle2, Search } from 'lucide-react';
+import { deleteDocument, listDocuments } from '../../services/firebase/firestore';
+import { logAdminAction } from '../../services/firebase/audit';
 
 interface ContentItem {
   id: string;
-  type: 'post' | 'short' | 'story' | 'live';
-  author: string;
+  type: string;
+  authorId: string;
   title: string;
-  reach: string;
-  likes: string;
-  comments: string;
-  status: 'published' | 'review' | 'flagged';
-  date: string;
+  likes: number;
+  comments: number;
+  createdAt: unknown;
 }
 
-const INITIAL_CONTENT: ContentItem[] = [
-  { id: '#CNT-82931', type: 'post', author: '@flow.creator', title: 'Lançamento oficial da nova temporada criativa FLOW', reach: '84.2K', likes: '12.8K', comments: '482', status: 'published', date: 'Hoje, 14:10' },
-  { id: '#CNT-82930', type: 'short', author: '@maria.flow', title: 'Dicas de produção de conteúdo mobile em 4K', reach: '142.8K', likes: '21.4K', comments: '913', status: 'published', date: 'Hoje, 12:45' },
-  { id: '#CNT-82929', type: 'short', author: '@joao.cria', title: 'Bastidores da criação do novo hit musical', reach: '428K', likes: '58.1K', comments: '2.4K', status: 'flagged', date: 'Hoje, 10:20' },
-  { id: '#CNT-82928', type: 'story', author: '@lucas.dev', title: 'Novas ferramentas para desenvolvedores no app', reach: '8.2K', likes: '1.2K', comments: '41', status: 'published', date: 'Ontem, 22:15' },
-  { id: '#CNT-82927', type: 'live', author: '@ana.digital', title: 'Live Q&A com os fundadores e comunidade', reach: '34.5K', likes: '9.4K', comments: '1.8K', status: 'published', date: 'Ontem, 19:00' },
-];
+function formatDate(createdAt: unknown): string {
+  try {
+    const ts = createdAt as { toDate?: () => Date };
+    if (ts && typeof ts.toDate === 'function') {
+      return ts.toDate().toLocaleString('pt-BR');
+    }
+  } catch {
+    /* sem data */
+  }
+  return '—';
+}
 
 export const AdminContent: React.FC = () => {
-  const [items, setItems] = useState<ContentItem[]>(INITIAL_CONTENT);
+  const [items, setItems] = useState<ContentItem[]>([]);
   const [filterType, setFilterType] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const docs = await listDocuments<Record<string, unknown>>('posts', {
+        orderByField: 'createdAt',
+        direction: 'desc',
+        max: 100,
+      });
+      setItems(
+        docs.map((d) => ({
+          id: d.id,
+          type: typeof d.type === 'string' ? d.type : 'post',
+          authorId: typeof d.authorId === 'string' ? d.authorId : '—',
+          title: (typeof d.text === 'string' && d.text) || (typeof d.caption === 'string' && d.caption) || '(sem texto)',
+          likes: (d.likesCount as number) || (d.likes as number) || 0,
+          comments: (d.commentsCount as number) || (d.comments as number) || 0,
+          createdAt: d.createdAt,
+        })),
+      );
+    } catch {
+      setLoadError('Não foi possível carregar o conteúdo. Conta sem permissão ou sem conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   const filtered = items.filter((item) => {
     const matchesType = filterType === 'all' || item.type === filterType;
-    const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase()) || item.author.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    const matchesSearch = item.title.toLowerCase().includes(q) || item.authorId.toLowerCase().includes(q);
     return matchesType && matchesSearch;
   });
 
   const handleRemove = (id: string) => {
+    const previous = items;
     setItems((prev) => prev.filter((i) => i.id !== id));
-    setToast(`Conteúdo ${id} foi removido por decisão administrativa.`);
-    setTimeout(() => setToast(null), 3000);
+    void deleteDocument('posts', id)
+      .then(() => {
+        setToast(`Conteúdo ${id} removido por decisão administrativa.`);
+        setTimeout(() => setToast(null), 3000);
+        void logAdminAction('REMOVE_POST', `Post ${id}`);
+      })
+      .catch(() => {
+        setItems(previous);
+        setToast('Falha ao remover. Verifique a permissão.');
+        setTimeout(() => setToast(null), 3000);
+      });
   };
 
   return (
@@ -57,6 +108,13 @@ export const AdminContent: React.FC = () => {
         </div>
       )}
 
+      {loading && <p style={{ color: '#64748b', fontSize: 13 }}>Carregando conteúdo…</p>}
+      {!loading && loadError && (
+        <div style={{ padding: '12px 16px', background: '#fef2f2', color: '#b91c1c', borderRadius: '10px', marginBottom: '16px', fontSize: '13px' }}>
+          {loadError} <button type="button" onClick={() => reload()} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 700 }}>Tentar novamente</button>
+        </div>
+      )}
+
       <div className="admin-table-container">
         <div className="admin-table-toolbar">
           <div className="topbar-search-wrapper" style={{ width: '360px' }}>
@@ -71,7 +129,7 @@ export const AdminContent: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            {['all', 'post', 'short', 'story', 'live'].map((t) => (
+            {['all', 'text', 'image', 'video'].map((t) => (
               <button
                 key={t}
                 type="button"
@@ -94,14 +152,21 @@ export const AdminContent: React.FC = () => {
             <tr>
               <th>ID & Tipo</th>
               <th>Título & Autor</th>
-              <th>Alcance</th>
               <th>Curtidas</th>
               <th>Comentários</th>
-              <th>Status</th>
+              <th>Data</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
+            {!loading && !loadError && filtered.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                  <CheckCircle2 size={32} color="#10b981" style={{ margin: '0 auto 8px auto', display: 'block' }} />
+                  Nenhum conteúdo encontrado.
+                </td>
+              </tr>
+            )}
             {filtered.map((item) => (
               <tr key={item.id}>
                 <td>
@@ -110,16 +175,11 @@ export const AdminContent: React.FC = () => {
                 </td>
                 <td>
                   <div style={{ fontWeight: 600, color: '#0f172a' }}>{item.title}</div>
-                  <div style={{ fontSize: '11.5px', color: '#6366f1' }}>{item.author}</div>
+                  <div style={{ fontSize: '11.5px', color: '#6366f1' }}>{item.authorId}</div>
                 </td>
-                <td style={{ fontWeight: 600 }}>{item.reach}</td>
                 <td>{item.likes}</td>
                 <td>{item.comments}</td>
-                <td>
-                  <span className={`badge-tag ${item.status === 'published' ? 'novo' : item.status === 'flagged' ? 'alta' : 'media'}`}>
-                    {item.status === 'published' ? 'Publicado' : item.status === 'flagged' ? 'Sinalizado' : 'Em Análise'}
-                  </span>
-                </td>
+                <td style={{ fontSize: '12px', color: '#64748b' }}>{formatDate(item.createdAt)}</td>
                 <td>
                   <button
                     type="button"

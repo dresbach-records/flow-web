@@ -1,48 +1,85 @@
-import React, { useState } from 'react';
-import { Bookmark, Heart, MessageCircle, Share2, Trash2, ExternalLink } from 'lucide-react';
+// FLOW — SavedModule (FASE 1: sem mocks).
+// Itens salvos 100% Firestore (`users/{uid}/saved` + docs de `posts`).
+import React, { useCallback, useEffect, useState } from 'react';
+import { Bookmark, Heart, MessageCircle } from 'lucide-react';
+import { useAppContext } from '../../contexts/AppContext';
+import { getDocument, type WithId } from '../../services/firebase/firestore';
+import { listSavedPostIds, toggleSaved } from '../../services/firebase/social';
+import type { RawRecord } from '../../components/social/types';
+import EmptyState from '../../components/ui/EmptyState';
+import ErrorState from '../../components/ui/ErrorState';
+import LoadingState from '../../components/ui/LoadingState';
 
-interface SavedItem {
+interface SavedView {
   id: string;
+  postId: string;
   title: string;
   authorName: string;
   authorHandle: string;
   authorAvatar: string;
-  timeAgo: string;
   imageUrl?: string;
   likes: number;
   comments: number;
 }
 
-const INITIAL_SAVED: SavedItem[] = [
-  {
-    id: 's-1',
-    title: 'Acabei de subir uma prévia exclusiva da nova faixa que estou produzindo no estúdio aqui em SP. Sintetizadores analógicos vintage, graves gordos e uma linha melódica intimista.',
-    authorName: 'Marina D.',
-    authorHandle: '@marinabeats',
-    authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    timeAgo: 'Há 2 dias',
-    imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
-    likes: 1240,
-    comments: 48,
-  },
-  {
-    id: 's-2',
-    title: 'Guia definitivo de Design Tokens e padronização visual no Figma: como estruturar para equipes em escala.',
-    authorName: 'Sofia Mendes',
-    authorHandle: '@sofiaux',
-    authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    timeAgo: 'Semana passada',
-    imageUrl: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=800&auto=format&fit=crop&q=80',
-    likes: 850,
-    comments: 32,
-  },
-];
-
 export default function SavedModule() {
-  const [items, setItems] = useState<SavedItem[]>(INITIAL_SAVED);
+  const { user } = useAppContext();
+  const [items, setItems] = useState<SavedView[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const removeItem = (id: string) => {
-    setItems(prev => prev.filter(i => i.id !== id));
+  const reload = useCallback(async () => {
+    if (!user?.uid) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const refs = await listSavedPostIds();
+      const views = await Promise.all(
+        refs.map(async (ref): Promise<SavedView | null> => {
+          const post = await getDocument<RawRecord>('posts', ref.postId).catch(() => null);
+          if (!post) return null;
+          const author = (post.author && typeof post.author === 'object'
+            ? (post.author as RawRecord)
+            : null) as WithId<RawRecord> | null;
+          const authorId = typeof post.authorId === 'string' ? post.authorId : '';
+          const authorDoc = !author && authorId
+            ? await getDocument<RawRecord>('users', authorId).catch(() => null)
+            : null;
+          const name =
+            (author?.name as string) || (authorDoc?.displayName as string) || 'Usuário';
+          return {
+            id: ref.id,
+            postId: ref.postId,
+            title: (post.text as string) || (post.caption as string) || 'Publicação salva',
+            authorName: name,
+            authorHandle: (author?.handle as string) || '@usuario',
+            authorAvatar: (author?.avatarUrl as string) || (authorDoc?.photoURL as string) || '/logo.png',
+            imageUrl: (post.mediaUrl as string) || (post.imageUrl as string) || undefined,
+            likes: (post.likesCount as number) || (post.likes as number) || 0,
+            comments: (post.commentsCount as number) || (post.comments as number) || 0,
+          };
+        }),
+      );
+      setItems(views.filter((v): v is SavedView => v !== null));
+    } catch {
+      setError('Não foi possível carregar os salvos. Verifique sua conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.uid]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  const removeItem = (postId: string) => {
+    const previous = items;
+    setItems((prev) => prev.filter((i) => i.postId !== postId));
+    // Remoção real com reversão (sem falso sucesso).
+    void toggleSaved(postId, true).catch(() => setItems(previous));
   };
 
   return (
@@ -53,26 +90,19 @@ export default function SavedModule() {
         <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#0F172A' }}>Itens Salvos</h1>
       </div>
       <p style={{ margin: '0 0 24px 0', fontSize: 14, color: '#64748B' }}>
-        Sua coleção pessoal de publicações, fotos e conteúdos guardados para consulta posterior.
+        Sua coleção pessoal de publicações guardadas para consulta posterior.
       </p>
 
-      {items.length === 0 ? (
-        <div style={{
-          background: '#FFFFFF',
-          borderRadius: 16,
-          padding: '48px 24px',
-          textAlign: 'center',
-          border: '1px solid #E2E8F0'
-        }}>
-          <Bookmark size={40} color="#CBD5E1" style={{ margin: '0 auto 12px' }} />
-          <h3 style={{ margin: '0 0 6px 0', fontSize: 16, fontWeight: 700, color: '#0F172A' }}>
-            Nenhum item salvo
-          </h3>
-          <p style={{ margin: 0, fontSize: 13.5, color: '#64748B' }}>
-            Clique no ícone de marcador nas publicações do feed para salvá-las aqui.
-          </p>
-        </div>
-      ) : (
+      {loading && <LoadingState message="Carregando salvos…" />}
+      {!loading && error && <ErrorState description={error} onRetry={() => reload()} />}
+      {!loading && !error && items.length === 0 && (
+        <EmptyState
+          title="Nenhum item salvo"
+          description="Clique no ícone de marcador nas publicações do feed para salvá-las aqui."
+        />
+      )}
+
+      {!loading && !error && items.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {items.map(item => (
             <div
@@ -100,13 +130,13 @@ export default function SavedModule() {
                     <strong style={{ fontSize: 14, color: '#0F172A', display: 'block', lineHeight: 1.2 }}>
                       {item.authorName}
                     </strong>
-                    <span style={{ fontSize: 12, color: '#64748B' }}>{item.authorHandle} • {item.timeAgo}</span>
+                    <span style={{ fontSize: 12, color: '#64748B' }}>{item.authorHandle}</span>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => removeItem(item.id)}
+                  onClick={() => removeItem(item.postId)}
                   title="Remover dos salvos"
                   style={{
                     background: 'none',
@@ -117,7 +147,7 @@ export default function SavedModule() {
                     borderRadius: 8
                   }}
                 >
-                  <Trash2 size={16} />
+                  <Bookmark size={16} />
                 </button>
               </div>
 

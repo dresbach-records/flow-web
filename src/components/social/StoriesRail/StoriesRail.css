@@ -79,3 +79,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.flow-stories-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--flow-text-muted);
+}

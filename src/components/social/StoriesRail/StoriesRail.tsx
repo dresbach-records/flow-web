@@ -3,6 +3,13 @@ import type { StoriesRailProps } from './StoriesRail.types';
 import './StoriesRail.css';
 
 export default function StoriesRail({ stories }: StoriesRailProps) {
+  if (stories.length === 0) {
+    return (
+      <section className="flow-stories-card">
+        <p className="flow-stories-empty">Nenhum story por aqui ainda — os stories da sua rede aparecem aqui.</p>
+      </section>
+    );
+  }
   return (
     <section className="flow-stories-card">
       <div className="flow-stories-scroll">

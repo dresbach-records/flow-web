@@ -184,10 +184,14 @@ export default function AuthPage({ path, go }: AuthPageProps) {
         return;
       }
 
-      // 4. Redefinir senha
+      // 4. Redefinir senha (via código do link — persistência real)
       if (mode === 'reset') {
         if (!password || password.length < 6) return setError('A nova senha deve ter no mínimo 6 caracteres.');
         if (password !== confirmPassword) return setError('As senhas digitadas não coincidem.');
+        const oobCode = new URLSearchParams(window.location.search).get('oobCode') ?? '';
+        if (!oobCode) return setError('Link de redefinição inválido ou expirado. Solicite um novo e-mail de recuperação.');
+        const { confirmPasswordResetWithCode } = await import('../services/firebase/auth');
+        await confirmPasswordResetWithCode(oobCode, password);
         setMessage('Senha alterada com sucesso! Redirecionando para o login...');
         setTimeout(() => go('/login'), 1500);
         return;
@@ -200,20 +204,16 @@ export default function AuthPage({ path, go }: AuthPageProps) {
         return;
       }
 
-      // 6. Verificar telefone
+      // 6. Verificar telefone (provedor SMS pendente — sem envio simulado)
       if (mode === 'verify-phone') {
         if (!phone.trim()) return setError('Informe seu número de telefone com DDD.');
-        setMessage(`Código SMS enviado com sucesso para ${phone}.`);
-        setTimeout(() => go('/confirmacao'), 1000);
-        return;
+        return setError('Verificação por SMS em implementação: provedor pendente (Fase 4). Nenhum código foi enviado.');
       }
 
-      // 7. Código de confirmação
+      // 7. Código de confirmação (validação por provedor pendente — sem aceite simulado)
       if (mode === 'confirm-code') {
         if (code.trim().length < 6) return setError('Digite o código de verificação de 6 dígitos.');
-        setMessage('Código validado com sucesso!');
-        setTimeout(() => go('/app'), 1000);
-        return;
+        return setError('Validação de código em implementação: provedor pendente (Fase 4).');
       }
 
       // 8. Validação 2FA

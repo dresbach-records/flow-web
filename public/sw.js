@@ -1,4 +1,4 @@
-const CACHE = 'flow-shell-v2';
+const CACHE = 'flow-shell-v3';
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/flow.ico', '/logo.png', '/flow-logo.svg'];
 
 self.addEventListener('install', event => {
@@ -14,5 +14,8 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) return;
+  // FASE 10: API nunca passa pelo cache (dados sempre frescos; sem HTML no lugar de JSON).
+  const pathname = new URL(event.request.url).pathname;
+  if (pathname.startsWith('/api')) return;
   event.respondWith(fetch(event.request).catch(() => caches.match(event.request).then(response => response || caches.match('/index.html'))));
 });

@@ -220,6 +220,13 @@ export async function requestPasswordReset(email: string): Promise<void> {
   await sendPasswordResetEmail(auth, email.trim());
 }
 
+/** Confirma a redefinição com o código do link (oobCode) — persistência real. */
+export async function confirmPasswordResetWithCode(oobCode: string, newPassword: string): Promise<void> {
+  const auth = requireFirebaseAuth();
+  const { confirmPasswordReset } = await import('firebase/auth');
+  await confirmPasswordReset(auth, oobCode, newPassword);
+}
+
 export async function resendVerification(): Promise<void> {
   const auth = requireFirebaseAuth();
   if (auth.currentUser) await sendEmailVerification(auth.currentUser);
@@ -270,7 +277,20 @@ export async function configure2FAMethod(method: TwoFactorMethod, target?: strin
 export async function verify2FACode(code: string): Promise<boolean> {
   const cleaned = code.trim().replace(/\D/g, '');
   if (cleaned.length < 6) throw new Error('O código deve conter pelo menos 6 dígitos.');
-  // Em ambiente de produção conectará ao endpoint autenticado
+  // Verificação real contra os códigos de backup de uso único (Fase 4).
+  // TOTP por app autenticador chega com o backend dedicado (Fase 9).
+  const auth = requireFirebaseAuth();
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('Autenticação necessária.');
+  const firestore = requireFirestore();
+  const ref = doc(firestore, 'users', uid, 'security', '2fa');
+  const docSnap = await getDoc(ref);
+  if (!docSnap.exists()) throw new Error('Segundo fator não configurado para esta conta.');
+  const stored = (docSnap.data().backupCodes as unknown[] | undefined) ?? [];
+  const codes = stored.filter((c): c is string => typeof c === 'string');
+  if (!codes.includes(cleaned)) throw new Error('Código inválido. Confira e tente novamente.');
+  // Consumo real de uso único: o código não pode ser reutilizado.
+  await setDoc(ref, { backupCodes: codes.filter((c) => c !== cleaned) }, { merge: true });
   return true;
 }
 
@@ -298,30 +318,60 @@ export async function regenerateBackupCodes(): Promise<string[]> {
   return backupCodes;
 }
 
+/** Desativa o segundo fator (persistência real). */
+export async function disable2FA(): Promise<void> {
+  const auth = requireFirebaseAuth();
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('Autenticação necessária.');
+  const firestore = requireFirestore();
+  await setDoc(
+    doc(firestore, 'users', uid, 'security', '2fa'),
+    { enabled: false, updatedAt: serverTimestamp() },
+    { merge: true },
+  );
+}
+
+/** Atualiza nome de exibição (Auth + perfil) com persistência real. */
+export async function updateAccountProfile(input: {
+  displayName?: string;
+  bio?: string;
+  privateProfile?: boolean;
+  emailNotifications?: boolean;
+  pushNotifications?: boolean;
+}): Promise<void> {
+  const auth = requireFirebaseAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error('Faça login para continuar.');
+  const firestore = requireFirestore();
+  if (typeof input.displayName === 'string' && input.displayName.trim() && input.displayName !== user.displayName) {
+    const { updateProfile } = await import('firebase/auth');
+    await updateProfile(user, { displayName: input.displayName.trim() });
+  }
+  const data: Record<string, unknown> = { updatedAt: serverTimestamp() };
+  if (typeof input.displayName === 'string') data.displayName = input.displayName.trim();
+  if (typeof input.bio === 'string') data.bio = input.bio;
+  if (typeof input.privateProfile === 'boolean') data.privateProfile = input.privateProfile;
+  if (typeof input.emailNotifications === 'boolean') data.emailNotifications = input.emailNotifications;
+  if (typeof input.pushNotifications === 'boolean') data.pushNotifications = input.pushNotifications;
+  await setDoc(doc(firestore, 'users', user.uid), data, { merge: true });
+}
+
 // ==================== SESSÕES E DISPOSITIVOS ====================
 
 export async function listActiveSessions(): Promise<SessionRecord[]> {
   const isCurrentChrome = navigator.userAgent.includes('Chrome');
   const isCurrentMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
 
+  // Apenas a sessão atual é verificável no cliente (demais sessões: Fase 9/backend).
   return [
     {
       id: 'current-session',
       device: isCurrentMobile ? 'Smartphone (Atual)' : 'Computador Desktop (Atual)',
-      browser: isCurrentChrome ? 'Google Chrome / Windows' : 'Navegador Web / Windows',
-      ip: '189.40.xxx.xxx',
-      location: 'São Paulo, Brasil',
+      browser: isCurrentChrome ? 'Google Chrome' : 'Navegador Web',
+      ip: 'Não exibido por privacidade',
+      location: 'Sessão atual deste dispositivo',
       lastActive: 'Agora mesmo',
       current: true,
-    },
-    {
-      id: 'session-mobile-1',
-      device: 'iPhone 15 Pro',
-      browser: 'FLOW Mobile App (iOS 18)',
-      ip: '177.18.xxx.xxx',
-      location: 'São Paulo, Brasil',
-      lastActive: 'Há 2 horas',
-      current: false,
     },
   ];
 }
@@ -329,7 +379,9 @@ export async function listActiveSessions(): Promise<SessionRecord[]> {
 export async function terminateSession(sessionId: string): Promise<void> {
   if (sessionId === 'current-session') {
     await logout();
+    return;
   }
+  throw new Error('Encerramento remoto de sessões chega com o backend (Fase 9).');
 }
 
 // ==================== STATUS DE CONTA & RECURSOS ====================
@@ -364,19 +416,16 @@ export async function getAccountRestrictionDetails(statusType: 'bloqueada' | 'de
 
 export async function submitAccountAppeal(ticketData: { email: string; reason: string; details: string }): Promise<string> {
   const ticketId = 'REC-' + Math.floor(100000 + Math.random() * 900000);
-  try {
-    const firestore = requireFirestore();
-    await setDoc(doc(collection(firestore, 'appeals')), {
-      ticketId,
-      email: ticketData.email.trim(),
-      reason: ticketData.reason,
-      details: ticketData.details,
-      status: 'PENDING',
-      createdAt: serverTimestamp(),
-    });
-  } catch {
-    // Continua com ID mesmo em modo offline
-  }
+  const firestore = requireFirestore();
+  // Falha de persistência = erro honesto (sem protocolo fictício).
+  await setDoc(doc(collection(firestore, 'appeals')), {
+    ticketId,
+    email: ticketData.email.trim(),
+    reason: ticketData.reason,
+    details: ticketData.details,
+    status: 'PENDING',
+    createdAt: serverTimestamp(),
+  });
   return ticketId;
 }
 

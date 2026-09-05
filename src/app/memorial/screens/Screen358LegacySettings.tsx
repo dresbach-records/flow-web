@@ -1,20 +1,60 @@
-import { useState } from 'react';
+// FLOW — Screen358LegacySettings (FASE 5: dados reais).
+// Preferências de legado persistidas no perfil (`users/{uid}`).
+import { useEffect, useState } from 'react';
 import type { MemorialScreenProps } from './types';
+import {
+  DEFAULT_LEGACY,
+  loadLegacySettings,
+  saveLegacySettings,
+  type LegacySettings,
+} from '../../../services/firebase/memorial';
+
+const ROWS: Array<{ key: keyof LegacySettings; label: string }> = [
+  { key: 'memorialize', label: 'Desejo que minha conta seja memorializada' },
+  { key: 'legacyContact', label: 'Indicar um contato de legado' },
+  { key: 'keepPosts', label: 'Permitir que minhas publicações permaneçam' },
+  { key: 'keepMedia', label: 'Permitir fotos e vídeos' },
+  { key: 'clearDMs', label: 'Remover minhas mensagens privadas' },
+  { key: 'purgeAfterTime', label: 'Remover meus dados após determinado período' },
+];
 
 export default function Screen358LegacySettings(_props: MemorialScreenProps) {
   void _props;
-  const [switches, setSwitches] = useState({
-    memorialize: true,
-    contact: true,
-    posts: true,
-    media: true,
-    clearDMs: true,
-    purgeAfterTime: false,
-  });
+  const [switches, setSwitches] = useState<LegacySettings>(DEFAULT_LEGACY);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const toggle = (key: keyof typeof switches) => {
+  useEffect(() => {
+    let cancelled = false;
+    void loadLegacySettings()
+      .then((s) => {
+        if (!cancelled) setSwitches(s);
+      })
+      .catch(() => {
+        if (!cancelled) setSwitches(DEFAULT_LEGACY);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const toggle = (key: keyof LegacySettings) => {
     setSwitches((prev) => ({ ...prev, [key]: !prev[key] }));
+    setSaved(false);
+  };
+
+  const save = () => {
+    setError(null);
+    setSaving(true);
+    void saveLegacySettings(switches)
+      .then(() => setSaved(true))
+      .catch(() => setError('Não foi possível salvar. Verifique sua conexão.'))
+      .finally(() => setSaving(false));
   };
 
   return (
@@ -26,80 +66,36 @@ export default function Screen358LegacySettings(_props: MemorialScreenProps) {
         Defina o que deve acontecer com sua conta no futuro.
       </p>
 
-      <div className="m358-switches">
-        <div className="m358-switch-row">
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#1E293B' }}>Desejo que minha conta seja memorializada</span>
-          <label className="m-switch">
-            <input type="checkbox" checked={switches.memorialize} onChange={() => toggle('memorialize')} />
-            <span className="m-slider" />
-          </label>
-        </div>
+      {loading && <p style={{ color: '#64748B', fontSize: 14 }}>Carregando preferências…</p>}
 
-        <div className="m358-switch-row">
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#1E293B' }}>Indicar um contato de legado</span>
-          <label className="m-switch">
-            <input type="checkbox" checked={switches.contact} onChange={() => toggle('contact')} />
-            <span className="m-slider" />
-          </label>
-        </div>
+      {!loading && (
+        <>
+          <div className="m358-switches">
+            {ROWS.map(({ key, label }) => (
+              <div className="m358-switch-row" key={key}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: '#1E293B' }}>{label}</span>
+                <label className="m-switch">
+                  <input type="checkbox" checked={switches[key]} onChange={() => toggle(key)} />
+                  <span className="m-slider" />
+                </label>
+              </div>
+            ))}
+          </div>
 
-        <div className="m358-switch-row">
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#1E293B' }}>Permitir que minhas publicações permaneçam</span>
-          <label className="m-switch">
-            <input type="checkbox" checked={switches.posts} onChange={() => toggle('posts')} />
-            <span className="m-slider" />
-          </label>
-        </div>
+          {error && (
+            <p role="alert" style={{ color: '#B91C1C', fontSize: 14 }}>{error}</p>
+          )}
 
-        <div className="m358-switch-row">
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#1E293B' }}>Permitir fotos e vídeos</span>
-          <label className="m-switch">
-            <input type="checkbox" checked={switches.media} onChange={() => toggle('media')} />
-            <span className="m-slider" />
-          </label>
-        </div>
-
-        <div className="m358-switch-row">
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#1E293B' }}>Remover minhas mensagens privadas</span>
-          <label className="m-switch">
-            <input type="checkbox" checked={switches.clearDMs} onChange={() => toggle('clearDMs')} />
-            <span className="m-slider" />
-          </label>
-        </div>
-
-        <div className="m358-switch-row">
-          <span style={{ fontSize: 15, fontWeight: 600, color: '#1E293B' }}>Remover meus dados após determinado período</span>
-          <label className="m-switch">
-            <input type="checkbox" checked={switches.purgeAfterTime} onChange={() => toggle('purgeAfterTime')} />
-            <span className="m-slider" />
-          </label>
-        </div>
-      </div>
-
-      <div className="m-form-group" style={{ marginBottom: 28 }}>
-        <label>Contato de legado</label>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <input
-            type="text"
-            className="m-input"
-            placeholder="Nome e e-mail do contato"
-            defaultValue="Mariana Silva (mariana.silva@email.com)"
-            style={{ flex: 1, padding: '12px 14px', borderRadius: 10, border: '1px solid #CBD5E1' }}
-          />
-          <button className="m-btn-primary" type="button" style={{ padding: '10px 20px' }}>Adicionar</button>
-        </div>
-      </div>
-
-      <button
-        className="m-btn-primary"
-        style={{ width: '100%', justifyContent: 'center' }}
-        onClick={() => {
-          setSaved(true);
-          setTimeout(() => setSaved(false), 3000);
-        }}
-      >
-        {saved ? 'Configurações salvas!' : 'Salvar configurações'}
-      </button>
+          <button
+            className="m-btn-primary"
+            style={{ width: '100%', justifyContent: 'center' }}
+            disabled={saving}
+            onClick={save}
+          >
+            {saving ? 'Salvando…' : saved ? 'Configurações salvas!' : 'Salvar configurações'}
+          </button>
+        </>
+      )}
     </div>
   );
 }

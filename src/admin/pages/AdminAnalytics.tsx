@@ -1,8 +1,83 @@
-import React, { useState } from 'react';
-import { BarChart3, TrendingUp, Users, Eye, Heart, MessageCircle, ArrowUpRight, Calendar, Download } from 'lucide-react';
+// FLOW — AdminAnalytics (FASE 6/8: dados reais + CSV real).
+// KPIs calculados de coleções reais (usuários, posts, comunidades, denúncias).
+// Métricas sem fonte (views, retenção, dispositivos) marcadas como pendentes —
+// nenhum número simulado. Exportação CSV gera arquivo a partir dos dados reais.
+import React, { useCallback, useEffect, useState } from 'react';
+import { BarChart3, Users, FileText, UsersRound, ShieldAlert, Download } from 'lucide-react';
+import { listDocuments } from '../../services/firebase/firestore';
+
+interface Kpis {
+  users: number;
+  posts: number;
+  communities: number;
+  openReports: number;
+  likes: number;
+  comments: number;
+}
+
+const EMPTY: Kpis = { users: 0, posts: 0, communities: 0, openReports: 0, likes: 0, comments: 0 };
 
 export const AdminAnalytics: React.FC = () => {
-  const [timeRange, setTimeRange] = useState('30d');
+  const [kpis, setKpis] = useState<Kpis>(EMPTY);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [users, posts, communities, reports] = await Promise.all([
+        listDocuments('users', { max: 1000 }).catch(() => []),
+        listDocuments<Record<string, unknown>>('posts', { max: 1000 }).catch(() => []),
+        listDocuments('communities', { max: 1000 }).catch(() => []),
+        listDocuments('reports', { field: 'status', value: 'OPEN', max: 1000 }).catch(() => []),
+      ]);
+      setKpis({
+        users: users.length,
+        posts: posts.length,
+        communities: communities.length,
+        openReports: reports.length,
+        likes: posts.reduce((acc, p) => acc + (((p.likesCount as number) || (p.likes as number) || 0) as number), 0),
+        comments: posts.reduce((acc, p) => acc + (((p.commentsCount as number) || (p.comments as number) || 0) as number), 0),
+      });
+    } catch {
+      setLoadError('Não foi possível carregar as métricas. Conta sem permissão ou sem conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  const exportCsv = () => {
+    const rows = [
+      ['metrica', 'valor'],
+      ['usuarios', String(kpis.users)],
+      ['posts', String(kpis.posts)],
+      ['comunidades', String(kpis.communities)],
+      ['denuncias_abertas', String(kpis.openReports)],
+      ['curtidas_totais', String(kpis.likes)],
+      ['comentarios_totais', String(kpis.comments)],
+      ['exportado_em', new Date().toISOString()],
+    ];
+    const csv = rows.map((r) => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `flow-analytics-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const cards = [
+    { icon: Users, title: 'Usuários', value: String(kpis.users), hint: 'Base real do Firestore' },
+    { icon: FileText, title: 'Publicações', value: String(kpis.posts), hint: 'Posts reais' },
+    { icon: UsersRound, title: 'Comunidades', value: String(kpis.communities), hint: 'Comunidades reais' },
+    { icon: ShieldAlert, title: 'Denúncias abertas', value: String(kpis.openReports), hint: 'Fila real de moderação' },
+  ];
 
   return (
     <div>
@@ -13,27 +88,16 @@ export const AdminAnalytics: React.FC = () => {
             <span>Métricas & Analytics da Plataforma</span>
           </h1>
           <p className="greeting-subtitle">
-            Análise detalhada de crescimento, engajamento, retenção e consumo de mídia.
+            Contagens reais das coleções do Firestore. Séries históricas chegam na Fase 8.
           </p>
         </div>
 
         <div style={{ display: 'flex', gap: '10px' }}>
-          <select
-            className="admin-select"
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-          >
-            <option value="7d">Últimos 7 dias</option>
-            <option value="30d">Últimos 30 dias</option>
-            <option value="90d">Últimos 3 meses</option>
-            <option value="1y">Este ano</option>
-          </select>
-
           <button
             type="button"
             className="admin-action-btn"
             style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-            onClick={() => alert('Relatório analítico exportado com sucesso em CSV.')}
+            onClick={exportCsv}
           >
             <Download size={14} />
             <span>Exportar CSV</span>
@@ -41,137 +105,41 @@ export const AdminAnalytics: React.FC = () => {
         </div>
       </div>
 
+      {loading && <p style={{ color: '#64748b', fontSize: 13 }}>Carregando métricas…</p>}
+      {!loading && loadError && (
+        <div style={{ padding: '12px 16px', background: '#fef2f2', color: '#b91c1c', borderRadius: '10px', marginBottom: '16px', fontSize: '13px' }}>
+          {loadError} <button type="button" onClick={() => reload()} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 700 }}>Tentar novamente</button>
+        </div>
+      )}
+
       {/* KPI Row */}
       <div className="admin-metrics-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-        <div className="admin-metric-card">
-          <div className="metric-header">
-            <div className="metric-icon-box blue">
-              <Eye size={18} />
+        {cards.map((c) => (
+          <div className="admin-metric-card" key={c.title}>
+            <div className="metric-header">
+              <div className="metric-icon-box blue">
+                <c.icon size={18} />
+              </div>
+              <span className="metric-title">{c.title}</span>
             </div>
-            <span className="metric-title">Visualizações Totais</span>
-          </div>
-          <div className="metric-value">18.7M</div>
-          <div className="metric-footer">
-            <span className="metric-delta up"><TrendingUp size={13} /> 21,6%</span>
-            <span>vs mês anterior</span>
-          </div>
-        </div>
-
-        <div className="admin-metric-card">
-          <div className="metric-header">
-            <div className="metric-icon-box purple">
-              <Heart size={18} />
+            <div className="metric-value">{c.value}</div>
+            <div className="metric-footer">
+              <span>{c.hint}</span>
             </div>
-            <span className="metric-title">Taxa de Engajamento</span>
           </div>
-          <div className="metric-value">14.2%</div>
-          <div className="metric-footer">
-            <span className="metric-delta up"><TrendingUp size={13} /> 3,4%</span>
-            <span>Média da rede</span>
-          </div>
-        </div>
-
-        <div className="admin-metric-card">
-          <div className="metric-header">
-            <div className="metric-icon-box green">
-              <Users size={18} />
-            </div>
-            <span className="metric-title">Retenção D30</span>
-          </div>
-          <div className="metric-value">68.4%</div>
-          <div className="metric-footer">
-            <span className="metric-delta up"><TrendingUp size={13} /> 5,1%</span>
-            <span>Cohorts de novos usuários</span>
-          </div>
-        </div>
-
-        <div className="admin-metric-card">
-          <div className="metric-header">
-            <div className="metric-icon-box orange">
-              <MessageCircle size={18} />
-            </div>
-            <span className="metric-title">Interações Diárias</span>
-          </div>
-          <div className="metric-value">2.14M</div>
-          <div className="metric-footer">
-            <span className="metric-delta up"><TrendingUp size={13} /> 11,8%</span>
-            <span>Curtidas, comentários e shares</span>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Charts Row */}
-      <div className="admin-row-grid-2" style={{ gridTemplateColumns: '1.5fr 1fr' }}>
-        {/* Engagement Trend */}
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h3 className="admin-card-title">
-              <TrendingUp size={16} color="#6366f1" />
-              <span>Volume de Engajamento por Dia</span>
-            </h3>
-          </div>
-
-          <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '8px', paddingTop: '20px' }}>
-            {[34, 42, 51, 48, 62, 75, 84, 91, 88, 96, 110, 105, 120, 134, 128, 142, 155, 168, 160, 175, 190, 185, 204, 215, 220, 238, 245, 260].map((v, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  height: `${(v / 260) * 100}%`,
-                  background: i >= 24 ? 'linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%)' : '#e0e7ff',
-                  borderRadius: '4px 4px 0 0',
-                  transition: 'height 0.3s ease',
-                  cursor: 'pointer',
-                }}
-                title={`Dia ${i + 1}: ${v}k interações`}
-              />
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginTop: '10px' }}>
-            <span>Início do Mês</span>
-            <span>Meio do Período</span>
-            <span>Hoje (Pico)</span>
-          </div>
+      <div className="admin-card" style={{ marginTop: 20 }}>
+        <div className="admin-card-header">
+          <h3 className="admin-card-title">Engajamento agregado (real)</h3>
         </div>
-
-        {/* Device breakdown */}
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h3 className="admin-card-title">Distribuição por Dispositivo</h3>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px 0' }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                <span style={{ fontWeight: 600 }}>Mobile Android</span>
-                <span style={{ color: '#6366f1', fontWeight: 700 }}>58%</span>
-              </div>
-              <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ width: '58%', height: '100%', background: '#6366f1', borderRadius: '4px' }} />
-              </div>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                <span style={{ fontWeight: 600 }}>Mobile iOS</span>
-                <span style={{ color: '#3b82f6', fontWeight: 700 }}>34%</span>
-              </div>
-              <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ width: '34%', height: '100%', background: '#3b82f6', borderRadius: '4px' }} />
-              </div>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                <span style={{ fontWeight: 600 }}>Web Desktop</span>
-                <span style={{ color: '#10b981', fontWeight: 700 }}>8%</span>
-              </div>
-              <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ width: '8%', height: '100%', background: '#10b981', borderRadius: '4px' }} />
-              </div>
-            </div>
-          </div>
-        </div>
+        <p style={{ fontSize: 13, color: '#475569' }}>
+          {kpis.likes} curtidas · {kpis.comments} comentários somados das publicações reais.
+        </p>
+        <p style={{ fontSize: 12, color: '#94a3b8' }}>
+          Visualizações, retenção D30 e distribuição por dispositivo: pendentes (Fase 8) — nenhum número simulado.
+        </p>
       </div>
     </div>
   );

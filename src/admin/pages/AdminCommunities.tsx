@@ -1,50 +1,91 @@
-import React, { useState } from 'react';
-import { UsersRound, Search, ShieldCheck, Archive, Star, CheckCircle } from 'lucide-react';
+// FLOW — AdminCommunities (FASE 6: dados reais).
+// Gestão sobre `communities` do Firestore. Selo/arquivamento persistem de verdade
+// (regra: update admin só em verified/status/featured) + trilha em `admin_audit`.
+import React, { useCallback, useEffect, useState } from 'react';
+import { UsersRound, Search, ShieldCheck, Archive, CheckCircle } from 'lucide-react';
+import { getDocument, updateDocument } from '../../services/firebase/firestore';
+import { listCommunities } from '../../services/firebase/communities';
+import { logAdminAction } from '../../services/firebase/audit';
+import type { Community } from '../../services/firebase/communities';
 
-interface CommunityItem {
-  id: string;
-  name: string;
-  slug: string;
-  members: string;
-  category: string;
-  status: 'active' | 'archived' | 'review';
+type CommunityStatus = 'active' | 'archived' | 'review';
+
+interface CommunityRow extends Community {
   verified: boolean;
+  status: CommunityStatus;
   featured: boolean;
 }
 
-const INITIAL_COMMUNITIES: CommunityItem[] = [
-  { id: '#COM-101', name: 'Criadores & Tech Brasil', slug: '@comunidade.tech', members: '48.2K', category: 'Tecnologia', status: 'active', verified: true, featured: true },
-  { id: '#COM-102', name: 'Música & Batidas Urbanas', slug: '@comunidade.musica', members: '36.8K', category: 'Música & Arte', status: 'active', verified: true, featured: false },
-  { id: '#COM-103', name: 'Empreendedorismo Digital', slug: '@comunidade.empreender', members: '24.1K', category: 'Negócios', status: 'active', verified: false, featured: true },
-  { id: '#COM-104', name: 'Designers & Motion Makers', slug: '@comunidade.design', members: '18.7K', category: 'Design', status: 'active', verified: true, featured: false },
-  { id: '#COM-105', name: 'Games & Transmissões', slug: '@comunidade.games', members: '15.4K', category: 'Games', status: 'review', verified: false, featured: false },
-];
-
 export const AdminCommunities: React.FC = () => {
-  const [communities, setCommunities] = useState<CommunityItem[]>(INITIAL_COMMUNITIES);
+  const [communities, setCommunities] = useState<CommunityRow[]>([]);
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const items = await listCommunities(100);
+      const rows: CommunityRow[] = await Promise.all(
+        items.map(async (c) => {
+          const full = await getDocument<Record<string, unknown>>('communities', c.id).catch(() => null);
+          return {
+            ...c,
+            verified: full?.verified === true,
+            status: ((full?.status as CommunityStatus) || 'active'),
+            featured: full?.featured === true,
+          };
+        }),
+      );
+      setCommunities(rows);
+    } catch {
+      setLoadError('Não foi possível carregar as comunidades. Conta sem permissão ou sem conexão.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   const filtered = communities.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.slug.toLowerCase().includes(search.toLowerCase()) ||
-    c.category.toLowerCase().includes(search.toLowerCase())
+    (c.description ?? '').toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleArchive = (id: string) => {
-    setCommunities((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, status: c.status === 'active' ? 'archived' : 'active' } : c))
-    );
-    setToast('Status da comunidade atualizado.');
+  const showToast = (msg: string) => {
+    setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
 
+  const patch = (id: string, data: Partial<Pick<CommunityRow, 'verified' | 'status'>>, action: string, okMsg: string) => {
+    const previous = communities;
+    setCommunities((prev) => prev.map((c) => (c.id === id ? { ...c, ...data } : c)));
+    void updateDocument('communities', id, data)
+      .then(() => {
+        showToast(okMsg);
+        void logAdminAction(action, `Community ${id}`);
+      })
+      .catch(() => {
+        setCommunities(previous);
+        showToast('Falha ao atualizar. Verifique a permissão.');
+      });
+  };
+
+  const toggleArchive = (id: string) => {
+    const target = communities.find((c) => c.id === id);
+    if (!target) return;
+    const next: CommunityStatus = target.status === 'active' ? 'archived' : 'active';
+    patch(id, { status: next }, next === 'archived' ? 'ARCHIVE_COMMUNITY' : 'UNARCHIVE_COMMUNITY', 'Status da comunidade atualizado.');
+  };
+
   const toggleVerify = (id: string) => {
-    setCommunities((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, verified: !c.verified } : c))
-    );
-    setToast('Selo de comunidade oficial atualizado.');
-    setTimeout(() => setToast(null), 3000);
+    const target = communities.find((id2) => id2.id === id);
+    if (!target) return;
+    patch(id, { verified: !target.verified }, target.verified ? 'UNVERIFY_COMMUNITY' : 'VERIFY_COMMUNITY', 'Selo de comunidade oficial atualizado.');
   };
 
   return (
@@ -65,6 +106,13 @@ export const AdminCommunities: React.FC = () => {
         </div>
       )}
 
+      {loading && <p style={{ color: '#64748b', fontSize: 13 }}>Carregando comunidades…</p>}
+      {!loading && loadError && (
+        <div style={{ padding: '12px 16px', background: '#fef2f2', color: '#b91c1c', borderRadius: '10px', marginBottom: '16px', fontSize: '13px' }}>
+          {loadError} <button type="button" onClick={() => reload()} style={{ textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontWeight: 700 }}>Tentar novamente</button>
+        </div>
+      )}
+
       <div className="admin-table-container">
         <div className="admin-table-toolbar">
           <div className="topbar-search-wrapper" style={{ width: '360px' }}>
@@ -72,7 +120,7 @@ export const AdminCommunities: React.FC = () => {
             <input
               type="text"
               className="topbar-search-input"
-              placeholder="Buscar comunidade ou categoria..."
+              placeholder="Buscar comunidade..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -83,27 +131,30 @@ export const AdminCommunities: React.FC = () => {
           <thead>
             <tr>
               <th>Comunidade</th>
-              <th>Categoria</th>
               <th>Membros</th>
               <th>Status</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
+            {!loading && !loadError && filtered.length === 0 && (
+              <tr>
+                <td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                  <CheckCircle size={32} color="#10b981" style={{ margin: '0 auto 8px auto', display: 'block' }} />
+                  Nenhuma comunidade encontrada.
+                </td>
+              </tr>
+            )}
             {filtered.map((c) => (
               <tr key={c.id}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <strong>{c.name}</strong>
                     {c.verified && <CheckCircle size={14} color="#6366f1" fill="#e0e7ff" />}
-                    {c.featured && <Star size={13} color="#f59e0b" fill="#fef3c7" />}
                   </div>
-                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>{c.slug} • {c.id}</div>
+                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>{c.id}</div>
                 </td>
-                <td>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>{c.category}</span>
-                </td>
-                <td style={{ fontWeight: 700 }}>{c.members}</td>
+                <td style={{ fontWeight: 700 }}>{(c.memberCount ?? 0).toLocaleString('pt-BR')}</td>
                 <td>
                   <span className={`badge-tag ${c.status === 'active' ? 'novo' : c.status === 'archived' ? 'baixa' : 'media'}`}>
                     {c.status === 'active' ? 'Ativa' : c.status === 'archived' ? 'Arquivada' : 'Sob Análise'}

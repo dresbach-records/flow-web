@@ -1,26 +1,126 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Settings, Shield, Bell, Lock, Download, UserCheck, Check, KeyRound, HeartHandshake } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { navigate } from '../../hooks/useRouter';
 import { CURRENT_CONSENT_VERSION, CURRENT_DOCUMENT_VERSION } from '../../services/firebase/consent';
+import {
+  disable2FA,
+  get2FAStatus,
+  getBackupCodes,
+  regenerateBackupCodes,
+  updateAccountProfile,
+} from '../../services/firebase/auth';
+import { getDocument } from '../../services/firebase/firestore';
 
 export default function SettingsModule() {
   const { user } = useAppContext();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'privacy' | 'notifications' | 'legacy'>('profile');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   // Form states
-  const [displayName, setDisplayName] = useState(user?.displayName || 'Criador FLOW');
-  const [bio, setBio] = useState('Criador de conteúdo e apaixonado por música e tecnologia.');
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
+  const [displayName, setDisplayName] = useState(user?.displayName || '');
+  const [bio, setBio] = useState('');
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [privateProfile, setPrivateProfile] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
+  const [backupCodes, setBackupCodes] = useState<string[] | null>(null);
+  const [codesLoading, setCodesLoading] = useState(false);
+
+  // Carrega perfil/preferências reais (sem valores fictícios).
+  useEffect(() => {
+    if (!user?.uid) {
+      setLoadingProfile(false);
+      return;
+    }
+    let cancelled = false;
+    setDisplayName(user.displayName || '');
+    void Promise.all([
+      getDocument<Record<string, unknown>>('users', user.uid).catch(() => null),
+      get2FAStatus().catch(() => ({ enabled: false })),
+    ]).then(([doc, tfa]) => {
+      if (cancelled) return;
+      if (doc) {
+        if (typeof doc.bio === 'string') setBio(doc.bio);
+        if (typeof doc.privateProfile === 'boolean') setPrivateProfile(doc.privateProfile);
+        if (typeof doc.emailNotifications === 'boolean') setEmailNotifications(doc.emailNotifications);
+        if (typeof doc.pushNotifications === 'boolean') setPushNotifications(doc.pushNotifications);
+        if (typeof doc.displayName === 'string' && doc.displayName) setDisplayName(doc.displayName);
+      }
+      setTwoFactorEnabled(tfa.enabled === true);
+      setLoadingProfile(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.uid, user?.displayName]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    setSaveError(null);
+    if (!displayName.trim()) {
+      setSaveError('Informe um nome de exibição.');
+      return;
+    }
+    setSaving(true);
+    void updateAccountProfile({ displayName, bio, privateProfile, emailNotifications, pushNotifications })
+      .then(() => {
+        setSavedSuccess(true);
+        setTimeout(() => setSavedSuccess(false), 3000);
+      })
+      .catch((err: unknown) => setSaveError(err instanceof Error ? err.message : 'Não foi possível salvar.'))
+      .finally(() => setSaving(false));
+  };
+
+  const handleToggle2FA = () => {
+    setSaveError(null);
+    if (twoFactorEnabled) {
+      // Desativação real.
+      void disable2FA()
+        .then(() => {
+          setTwoFactorEnabled(false);
+          setBackupCodes(null);
+        })
+        .catch((err: unknown) => setSaveError(err instanceof Error ? err.message : 'Não foi possível desativar.'));
+    } else {
+      // Ativação passa pelo fluxo real de configuração (método + códigos).
+      navigate('/seguranca/2fa/metodo');
+    }
+  };
+
+  const handleShowCodes = () => {
+    setCodesLoading(true);
+    void getBackupCodes()
+      .then(setBackupCodes)
+      .catch(() => setSaveError('Não foi possível carregar os códigos.'))
+      .finally(() => setCodesLoading(false));
+  };
+
+  const handleRegenerateCodes = () => {
+    setCodesLoading(true);
+    void regenerateBackupCodes()
+      .then(setBackupCodes)
+      .catch(() => setSaveError('Não foi possível gerar novos códigos.'))
+      .finally(() => setCodesLoading(false));
+  };
+
+  const persistNotificationPrefs = (next: { push?: boolean; email?: boolean }) => {
+    const pushValue = next.push ?? pushNotifications;
+    const emailValue = next.email ?? emailNotifications;
+    setPushNotifications(pushValue);
+    setEmailNotifications(emailValue);
+    setSaveError(null);
+    // Persistência imediata (sem "salvo" simulado).
+    void updateAccountProfile({
+      displayName,
+      bio,
+      privateProfile,
+      emailNotifications: emailValue,
+      pushNotifications: pushValue,
+    }).catch((err: unknown) => setSaveError(err instanceof Error ? err.message : 'Não foi possível salvar.'));
   };
 
   const handleExportData = () => {
@@ -97,6 +197,20 @@ export default function SettingsModule() {
         ))}
       </div>
 
+      {saveError && (
+        <div role="alert" style={{
+          padding: '12px 16px',
+          borderRadius: 12,
+          background: '#FEF2F2',
+          border: '1px solid #FECACA',
+          color: '#B91C1C',
+          fontSize: 13.5,
+          fontWeight: 600,
+          marginBottom: 20
+        }}>
+          <span>{saveError}</span>
+        </div>
+      )}
       {savedSuccess && (
         <div style={{
           padding: '12px 16px',
@@ -192,18 +306,19 @@ export default function SettingsModule() {
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button
               type="submit"
+              disabled={saving || loadingProfile}
               style={{
                 padding: '10px 24px',
                 borderRadius: 10,
                 border: 'none',
-                background: '#2563EB',
+                background: saving ? '#93C5FD' : '#2563EB',
                 color: '#FFFFFF',
                 fontSize: 14,
                 fontWeight: 700,
-                cursor: 'pointer'
+                cursor: saving || loadingProfile ? 'wait' : 'pointer'
               }}
             >
-              Salvar alterações
+              {saving ? 'Salvando…' : loadingProfile ? 'Carregando…' : 'Salvar alterações'}
             </button>
           </div>
         </form>
@@ -231,7 +346,7 @@ export default function SettingsModule() {
             </div>
             <button
               type="button"
-              onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
+              onClick={handleToggle2FA}
               style={{
                 padding: '8px 16px',
                 borderRadius: 999,
@@ -255,22 +370,56 @@ export default function SettingsModule() {
             <p style={{ margin: '0 0 12px 0', fontSize: 13, color: '#64748B' }}>
               Gere códigos de segurança de uso único caso perca o acesso ao seu e-mail ou autenticador.
             </p>
-            <button
-              type="button"
-              onClick={() => alert('Códigos de backup verificados e ativos no seu cofre de segurança.')}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 10,
-                border: '1px solid #CBD5E1',
-                background: '#FFFFFF',
-                color: '#0F172A',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              Visualizar códigos de reserva
-            </button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+              <button
+                type="button"
+                onClick={handleShowCodes}
+                disabled={codesLoading}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 10,
+                  border: '1px solid #CBD5E1',
+                  background: '#FFFFFF',
+                  color: '#0F172A',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                {codesLoading ? 'Carregando…' : 'Visualizar códigos de reserva'}
+              </button>
+              {backupCodes && (
+                <button
+                  type="button"
+                  onClick={handleRegenerateCodes}
+                  disabled={codesLoading}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 10,
+                    border: '1px solid #CBD5E1',
+                    background: '#F8FAFC',
+                    color: '#475569',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Gerar novos códigos
+                </button>
+              )}
+            </div>
+            {backupCodes && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 8 }}>
+                {backupCodes.length === 0 && (
+                  <span style={{ fontSize: 13, color: '#64748B' }}>Nenhum código disponível — gere novos códigos.</span>
+                )}
+                {backupCodes.map((code) => (
+                  <code key={code} style={{ padding: '8px 10px', borderRadius: 8, background: '#F8FAFC', border: '1px solid #E2E8F0', fontSize: 13, textAlign: 'center' }}>
+                    {code}
+                  </code>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -380,7 +529,7 @@ export default function SettingsModule() {
             <input
               type="checkbox"
               checked={pushNotifications}
-              onChange={e => setPushNotifications(e.target.checked)}
+              onChange={e => persistNotificationPrefs({ push: e.target.checked })}
               style={{ width: 20, height: 20, accentColor: '#2563EB', cursor: 'pointer' }}
             />
           </div>
@@ -397,7 +546,7 @@ export default function SettingsModule() {
             <input
               type="checkbox"
               checked={emailNotifications}
-              onChange={e => setEmailNotifications(e.target.checked)}
+              onChange={e => persistNotificationPrefs({ email: e.target.checked })}
               style={{ width: 20, height: 20, accentColor: '#2563EB', cursor: 'pointer' }}
             />
           </div>
