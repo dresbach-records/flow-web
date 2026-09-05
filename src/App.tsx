@@ -1,5 +1,6 @@
 import React from 'react';
 import { AdminApp, AuthPage, CreatorCenter, MemorialModule, PlatformModules, ProfilePage, PublicApp } from './pages';
+import SiteHome from './app/SiteHome';
 import SocialFeed from './app/SocialFeed';
 import ScheduleCenter from './app/ScheduleCenter';
 import ExploreModule from './app/modules/ExploreModule';
@@ -9,7 +10,8 @@ import NotificationsModule from './app/modules/NotificationsModule';
 import CommunitiesModule from './app/modules/CommunitiesModule';
 import SavedModule from './app/modules/SavedModule';
 import SettingsModule from './app/modules/SettingsModule';
-import MandatoryConsentModal from './components/consent/MandatoryConsentModal';
+import TermsGate from './components/auth/TermsGate';
+import LoadingState from './components/ui/LoadingState';
 import { AppProvider, useAppContext } from './contexts/AppContext';
 import { PlayerProvider } from './contexts/PlayerContext';
 import { AppLayout } from './layouts';
@@ -83,7 +85,16 @@ export default function App() {
     );
   }
 
-  // Public landing
+  // Public landing — nova HOME institucional componentizada
+  if (path === '/') {
+    return (
+      <AppProvider>
+        <FirebaseRuntimeNotice />
+        <SiteHome />
+      </AppProvider>
+    );
+  }
+
   if (!path.startsWith('/app')) {
     return (
       <AppProvider>
@@ -132,7 +143,8 @@ function AppContentResolver({ path, navigate }: { path: string; navigate: (to: s
 }
 
 /**
- * Shell wrapper that enforces mandatory terms & privacy consent gating.
+ * Shell wrapper: exige login para /app* e aplica o consentimento obrigatório
+ * (exibido uma única vez até o aceite versionado).
  */
 function AppShellWrapper({
   path,
@@ -143,7 +155,17 @@ function AppShellWrapper({
   navigate: (to: string) => void;
   children: React.ReactNode;
 }) {
-  const { user, needsConsent, acceptConsent, declineConsent } = useAppContext();
+  const { user, loading, needsConsent, acceptConsent, declineConsent } = useAppContext();
+  const [redirected, setRedirected] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!loading && !user && !redirected) {
+      setRedirected(true);
+      navigate('/login');
+    }
+  }, [loading, user, redirected, navigate]);
+
+  if (loading || !user) return <LoadingState message="Carregando seu FLOW…" />;
 
   return (
     <>
@@ -151,14 +173,9 @@ function AppShellWrapper({
         {children}
       </AppLayout>
 
-      {/* Mandatory Terms & Privacy Consent Modal (Telas 14 a 17) */}
+      {/* Consentimento obrigatório (exibido uma única vez até o aceite). */}
       {needsConsent && (
-        <MandatoryConsentModal
-          userId={user?.uid || 'guest'}
-          userName={user?.displayName}
-          onAccept={acceptConsent}
-          onDecline={declineConsent}
-        />
+        <TermsGate onAccept={acceptConsent} onDecline={declineConsent} />
       )}
     </>
   );

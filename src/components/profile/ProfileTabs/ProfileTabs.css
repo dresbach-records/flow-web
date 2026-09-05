@@ -1,0 +1,7 @@
+/* FLOW — ProfileTabs (FASE 3).
+ * Regras extraídas integralmente de src/app/profile-page.css (bloco tabs).
+ * Original preservado para consolidação da FASE 4. Nenhum valor alterado.
+ */
+.flow-profile-tabs { display: flex; border-top: 1px solid var(--line); padding: 0 12px; }
+.flow-profile-tabs button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 20px; color: var(--muted); font-size: 13px; font-weight: 700; border-bottom: 2px solid transparent; }
+.flow-profile-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }

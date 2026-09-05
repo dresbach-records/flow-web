@@ -1,0 +1,29 @@
+/* FLOW — LoadingState (FASE 3, Light UI, sem redesign) */
+.flow-ui-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 16px;
+  color: #64748B;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.flow-ui-loading-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid #E2E8F0;
+  border-top-color: #3B82F6;
+  animation: flow-ui-spin 0.9s linear infinite;
+  flex-shrink: 0;
+}
+
+.flow-ui-loading-message {
+  color: #475569;
+}
+
+@keyframes flow-ui-spin {
+  to { transform: rotate(360deg); }
+}

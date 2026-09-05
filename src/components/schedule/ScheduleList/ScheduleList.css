@@ -1,0 +1,32 @@
+/* FLOW — ScheduleList (FASE 3).
+ * Regras extraídas integralmente de src/app/schedule-center.css (bloco list).
+ * Original preservado para consolidação da FASE 4. Nenhum valor alterado.
+ */
+.flow-schedule-list { border: 1px solid var(--line); border-radius: 14px; overflow: auto; background: var(--panel); box-shadow: 0 1px 3px rgba(15,23,42,0.03); }
+.flow-schedule-list-head, .flow-schedule-list article {
+  display: grid;
+  grid-template-columns: minmax(230px,2fr) minmax(115px,1fr) 140px 100px 80px;
+  gap: 14px;
+  align-items: center;
+  min-width: 780px;
+  padding: 14px 18px;
+}
+.flow-schedule-list-head { border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 700; background: var(--panel-raised); }
+.flow-schedule-list article { border-bottom: 1px solid var(--line); color: var(--text); font-size: 13px; }
+.flow-schedule-list article:last-child { border-bottom: 0; }
+.flow-schedule-content { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.flow-schedule-content img { width: 42px; height: 42px; object-fit: cover; border-radius: 6px; }
+.flow-schedule-content span { display: grid; gap: 3px; min-width: 0; }
+.flow-schedule-content strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.flow-schedule-content small, .flow-schedule-list time small { color: var(--muted); font-size: 11px; }
+.flow-schedule-list time { display: grid; gap: 2px; }
+.flow-schedule-status { justify-self: start; padding: 4px 10px; border: 1px solid var(--line); border-radius: 20px; color: var(--accent); font-size: 11px; font-weight: 700; background: var(--panel-raised); }
+.flow-schedule-status.published { border-color: rgba(16,185,129,0.3); color: #10B981; }
+.flow-schedule-status.failed { border-color: rgba(239,68,68,0.3); color: #EF4444; }
+.flow-schedule-status.cancelled { color: var(--muted); }
+.flow-schedule-row-actions { display: flex; gap: 6px; }
+.flow-schedule-row-actions button { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--muted); cursor: pointer; }
+.flow-schedule-row-actions button:hover { color: var(--accent); border-color: var(--accent); }
+.flow-schedule-empty { padding: 80px 20px; text-align: center; color: var(--muted); }
+.flow-schedule-empty h2 { margin: 14px 0 6px; font-size: 18px; color: var(--text); }
+.flow-schedule-empty p { margin: 0; font-size: 13px; }

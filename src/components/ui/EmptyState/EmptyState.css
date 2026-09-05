@@ -1,0 +1,44 @@
+/* FLOW — EmptyState (FASE 3, Light UI, sem redesign) */
+.flow-ui-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 40px 24px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+}
+
+.flow-ui-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #F8FAFC;
+  color: #64748B;
+  margin-bottom: 4px;
+}
+
+.flow-ui-empty-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.flow-ui-empty-description {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #64748B;
+  max-width: 420px;
+}
+
+.flow-ui-empty-action {
+  margin-top: 8px;
+}

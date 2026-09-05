@@ -1,0 +1,36 @@
+/* FLOW — ScheduleCalendar (FASE 3).
+ * Regras extraídas integralmente de src/app/schedule-center.css (bloco calendar).
+ * Original preservado para consolidação da FASE 4. Nenhum valor alterado.
+ */
+.flow-calendar-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.flow-calendar-head h2 { flex: 1; margin: 0; font-size: 18px; color: var(--text); text-transform: capitalize; }
+.flow-calendar { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--panel); box-shadow: 0 1px 3px rgba(15,23,42,0.03); }
+.flow-calendar-week, .flow-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); }
+.flow-calendar-week { border-bottom: 1px solid var(--line); background: var(--panel-raised); }
+.flow-calendar-week strong { padding: 11px 8px; color: var(--muted); font-size: 11px; text-align: right; text-transform: uppercase; }
+.flow-calendar-day { min-height: 120px; padding: 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); overflow: hidden; background: var(--panel); }
+.flow-calendar-day:nth-child(7n) { border-right: 0; }
+.flow-calendar-day>span { display: block; margin-bottom: 6px; color: var(--text); font-size: 12px; font-weight: 700; text-align: right; }
+.flow-calendar-day.muted>span { color: var(--muted); opacity: 0.5; }
+.flow-calendar-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px;
+  width: 100%;
+  margin: 4px 0;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: var(--panel-raised);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.flow-calendar-item small { color: var(--accent); font-size: 10px; font-weight: 700; }
+.flow-calendar-item img { width: 28px; height: 28px; grid-row: span 2; object-fit: cover; border-radius: 4px; }
+.flow-calendar-item b { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-size: 10px; line-height: 1.3; }
+.flow-calendar-item.published { border-left-color: #10B981; }
+.flow-calendar-item.failed { border-left-color: #EF4444; }
+.flow-calendar-item.cancelled { opacity: .55; }
+.flow-more { display: block; color: var(--muted); font-size: 10px; }

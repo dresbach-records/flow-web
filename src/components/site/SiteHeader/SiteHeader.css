@@ -1,0 +1,186 @@
+/* FLOW — SiteHeader (logo oficial /logo.png, Light UI) */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #EDF2F7;
+}
+
+.site-header-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.site-brand {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.site-brand img {
+  height: 44px;
+  width: auto;
+  display: block;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 auto;
+}
+
+.site-nav button {
+  border: none;
+  background: none;
+  padding: 10px 14px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  border-radius: 8px;
+  position: relative;
+}
+
+.site-nav button:hover {
+  color: #0F172A;
+  background: #F8FAFC;
+}
+
+.site-nav button.active {
+  color: #2563EB;
+}
+
+.site-nav button.active::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: #2563EB;
+}
+
+.site-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.site-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-icon-btn:hover {
+  background: #F1F5F9;
+}
+
+.site-login-btn {
+  min-height: 42px;
+  padding: 10px 26px;
+  border-radius: 999px;
+  border: 1px solid #DBEAFE;
+  background: #FFFFFF;
+  color: #2563EB;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.site-login-btn:hover {
+  background: #EFF6FF;
+}
+
+.site-register-btn {
+  min-height: 42px;
+  padding: 10px 26px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #4F7FFF 0%, #8B5CF6 50%, #D946EF 100%);
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+
+.site-menu-btn {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #0F172A;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-mobile-nav {
+  display: none;
+  flex-direction: column;
+  padding: 8px 24px 20px;
+  gap: 2px;
+  border-top: 1px solid #EDF2F7;
+  background: #FFFFFF;
+}
+
+.site-mobile-nav > button {
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 13px 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.site-mobile-cta {
+  display: flex;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.site-mobile-cta .site-login-btn,
+.site-mobile-cta .site-register-btn {
+  flex: 1;
+}
+
+@media (max-width: 960px) {
+  .site-nav,
+  .site-header-actions .site-login-btn,
+  .site-header-actions .site-register-btn,
+  .site-header-actions .site-icon-btn {
+    display: none;
+  }
+
+  .site-menu-btn {
+    display: inline-flex;
+  }
+
+  .site-mobile-nav {
+    display: flex;
+  }
+}

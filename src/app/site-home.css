@@ -1,0 +1,20 @@
+/* FLOW — SiteHome (tokens locais da página pública) */
+.site-home {
+  min-height: 100vh;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-family: 'Plus Jakarta Sans', 'Outfit', Inter, system-ui, sans-serif;
+  overflow-x: clip;
+}
+
+.site-home button {
+  font: inherit;
+}
+
+/* Defesa contra o seletor global legado `main{display:flex;...}` de
+ * src/styles.css (dono: FASE 4). Vale só dentro da nova HOME. */
+.site-home main {
+  display: block;
+  max-width: none;
+  margin: 0;
+}

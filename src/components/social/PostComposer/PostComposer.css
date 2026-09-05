@@ -1,0 +1,97 @@
+/* FLOW — PostComposer (FASE 3).
+ * Regras extraídas integralmente de src/app/social-feed.css (bloco COMPOSER CARD).
+ * Original preservado para consolidação da FASE 4. Nenhum valor alterado.
+ */
+.flow-composer-card {
+  width: 100%;
+  background: var(--flow-surface);
+  border: 1px solid var(--flow-border);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.flow-composer-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.flow-composer-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.flow-composer-input {
+  flex: 1;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--flow-border-subtle);
+  background: #F8FAFC;
+  padding: 0 20px;
+  font-size: 14px;
+  color: var(--flow-text-main);
+  outline: none;
+  cursor: pointer;
+}
+
+.flow-composer-input::placeholder {
+  color: var(--flow-text-muted);
+}
+
+.flow-composer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--flow-border-subtle);
+}
+
+.flow-composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.flow-composer-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--flow-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.flow-composer-btn:hover {
+  background: var(--flow-primary-light);
+  color: var(--flow-primary);
+}
+
+.flow-composer-publish-btn {
+  padding: 10px 24px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #EC4899 100%);
+  color: #FFFFFF;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.flow-composer-publish-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(37, 99, 235, 0.35);
+}
