@@ -11,7 +11,10 @@ const schema = z.object({
   FLOW_GUARDIAN_ENABLED: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
   FLOW_GUARDIAN_MODEL: z.string().min(1).default('gemini-2.5-flash'),
   FLOW_GUARDIAN_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
-  CORS_ORIGIN: z.string().default('https://flow-web-mu.vercel.app,http://localhost:3000')
+  CORS_ORIGIN: z.string().default('https://flow-web-mu.vercel.app,http://localhost:3000'),
+  VAPID_PUBLIC: z.string().min(1).optional(),
+  VAPID_PRIVATE: z.string().min(1).optional(),
+  VAPID_SUBJECT: z.string().min(1).optional()
 });
 
 export const env = schema.parse(process.env);

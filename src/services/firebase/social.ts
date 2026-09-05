@@ -14,7 +14,8 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { requireFirebaseAuth, requireFirestore } from './config';
-import { pushNotification } from './notifications';
+import { pushNotification, type NotificationType } from './notifications';
+import { apiRequest } from '../api/client';
 import { uploadMedia, type UploadResult } from './storage';
 
 export type PostInput = { text?: string; type: 'text' | 'image' | 'video'; media?: UploadResult | null };
@@ -31,6 +32,23 @@ function requireUid(): string {
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error('Faça login para continuar.');
   return uid;
+}
+
+/**
+ * Fan-out de notificação: tenta o backend (`POST /api/v1/notify`, que persiste
+ * in-app + dispara Web Push); sem backend, grava direto no Firestore.
+ * Nunca quebra a operação principal.
+ */
+async function fanOut(
+  targetUid: string,
+  data: { type: NotificationType; actorName: string; actorAvatar: string; text: string },
+): Promise<void> {
+  if (!targetUid) return;
+  try {
+    await apiRequest({ path: '/api/v1/notify', method: 'POST', body: { targetUid, ...data } });
+  } catch {
+    await pushNotification(targetUid, data).catch(() => undefined);
+  }
 }
 
 export async function createPost(input: PostInput): Promise<string> {
@@ -76,7 +94,7 @@ export async function toggleLike(postId: string, liked: boolean): Promise<void> 
         const post = await getDoc(postRef);
         const authorId = post.data()?.authorId;
         if (typeof authorId === 'string' && authorId && authorId !== uid) {
-          await pushNotification(authorId, {
+          await fanOut(authorId, {
             type: 'like',
             actorName: auth.currentUser?.displayName || 'Alguém',
             actorAvatar: auth.currentUser?.photoURL || '/logo.png',
@@ -118,7 +136,7 @@ export async function addComment(postId: string, text: string, parentId?: string
       const post = await getDoc(doc(db, 'posts', postId));
       const authorId = post.data()?.authorId;
       if (typeof authorId === 'string' && authorId && authorId !== uid) {
-        await pushNotification(authorId, {
+        await fanOut(authorId, {
           type: 'comment',
           actorName: auth.currentUser?.displayName || 'Alguém',
           actorAvatar: auth.currentUser?.photoURL || '/logo.png',
@@ -169,12 +187,12 @@ export async function toggleFollow(targetUid: string, following: boolean): Promi
       setDoc(reverse, { userId: uid, createdAt: serverTimestamp() }),
     ]);
     // Fan-out real: notifica o seguido (best-effort).
-    void pushNotification(targetUid, {
+    void fanOut(targetUid, {
       type: 'follow',
       actorName: auth.currentUser?.displayName || 'Alguém',
       actorAvatar: auth.currentUser?.photoURL || '/logo.png',
       text: 'começou a seguir você.',
-    }).catch(() => undefined);
+    });
   }
 }
 

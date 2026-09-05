@@ -275,6 +275,12 @@ service cloud.firestore {
       }
     }
 
+    // Push subscriptions: só via backend (Admin SDK ignora rules).
+    // Cliente nunca lê/escreve aqui.
+    match /push_subscriptions/{uid}/targets/{targetId} {
+      allow read, create, update, delete: if false;
+    }
+
     // Trilha de auditoria administrativa: escrita autenticada com autor real,
     // leitura só admin.
     match /admin_audit/{auditId} {

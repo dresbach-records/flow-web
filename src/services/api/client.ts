@@ -16,6 +16,17 @@ export function getApiBaseUrl(): string {
   return API_URL;
 }
 
+/** ID token Firebase best-effort (rotas autenticadas do backend). */
+async function authHeader(): Promise<Record<string, string>> {
+  try {
+    const { firebaseAuth } = await import('../firebase/config');
+    const token = await firebaseAuth?.currentUser?.getIdToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
+
 /** Single frontend/API boundary. Pages and components never access databases directly. */
 export async function apiRequest<T>({ path, method = 'GET', body, signal }: ApiRequest): Promise<T> {
   if (!API_URL) {
@@ -25,7 +36,7 @@ export async function apiRequest<T>({ path, method = 'GET', body, signal }: ApiR
     method,
     signal,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeader()) },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!response.ok) {

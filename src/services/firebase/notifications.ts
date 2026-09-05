@@ -6,6 +6,7 @@ import {
   doc,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
   serverTimestamp,
@@ -81,4 +82,27 @@ export async function markNotificationAsRead(notificationId: string): Promise<vo
   const uid = auth.currentUser?.uid;
   if (!uid) return;
   await updateDoc(doc(requireFirestore(), 'users', uid, 'notifications', notificationId), { read: true });
+}
+
+/**
+ * Tempo real: assina notificações do usuário (snapshot + deltas).
+ * Retorna unsubscribe (cleanup obrigatório no componente).
+ */
+export function subscribeToNotifications(
+  onNotifications: (items: NotificationRecord[]) => void,
+  onError?: (error: Error) => void,
+  max = 50,
+): () => void {
+  const auth = requireFirebaseAuth();
+  const uid = auth.currentUser?.uid;
+  if (!uid) throw new Error('Faça login para continuar.');
+  const db = requireFirestore();
+  const q = query(collection(db, 'users', uid, 'notifications'), orderBy('createdAt', 'desc'), limit(max));
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onNotifications(snapshot.docs.map((d) => toRecord(d.id, d.data() as Record<string, unknown>)));
+    },
+    (error) => onError?.(error),
+  );
 }

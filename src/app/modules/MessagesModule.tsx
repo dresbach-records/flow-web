@@ -5,9 +5,9 @@ import { Send, Image, Smile, Phone, Video, MoreVertical, Search, CheckCheck } fr
 import { useAppContext } from '../../contexts/AppContext';
 import {
   listConversations,
-  listMessages,
   markConversationRead,
   sendMessage,
+  subscribeToMessages,
   type ChatMessage,
   type Conversation,
 } from '../../services/firebase/messages';
@@ -81,29 +81,26 @@ export default function MessagesModule({ initialConversationId = '' }: { initial
       setMessages([]);
       return;
     }
-    let cancelled = false;
+    // Tempo real: snapshot inicial + deltas; cleanup ao trocar/sair.
     setMessagesLoading(true);
-    void listMessages(activeId)
-      .then((items) => {
-        if (!cancelled) setMessages(items);
-      })
-      .catch(() => {
-        if (!cancelled) setMessages([]);
-      })
-      .finally(() => {
-        if (!cancelled) setMessagesLoading(false);
-      });
+    const unsubscribe = subscribeToMessages(
+      activeId,
+      (items) => {
+        setMessages(items);
+        setMessagesLoading(false);
+      },
+      () => setMessagesLoading(false),
+    );
     // Recibo real: abrir marca como lida (sem simulação local de "não lidas").
     void markConversationRead(activeId)
       .then(() => {
-        if (cancelled) return;
         setConversations((prev) =>
           prev.map((c) => (c.id === activeId ? { ...c, readByMeAt: Date.now() } : c)),
         );
       })
       .catch(() => undefined);
     return () => {
-      cancelled = true;
+      unsubscribe();
     };
   }, [activeId]);
 
@@ -114,10 +111,8 @@ export default function MessagesModule({ initialConversationId = '' }: { initial
     if (!text || !activeId) return;
     setSendError(null);
     setInputVal('');
-    // Persistência real; recarrega mensagens após confirmação (sem simulação local).
+    // Persistência real; o listener atualiza a lista (sem simulação local).
     void sendMessage(activeId, text)
-      .then(() => listMessages(activeId))
-      .then(setMessages)
       .then(() => reload())
       .catch(() => setSendError('Não foi possível enviar. Tente novamente.'));
   };

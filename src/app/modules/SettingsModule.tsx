@@ -13,6 +13,7 @@ import {
 } from '../../services/firebase/auth';
 import { getDocument } from '../../services/firebase/firestore';
 import { listBlockedIds, unblockUser } from '../../services/firebase/blocks';
+import { disablePush, enablePush, getPushStatus } from '../../services/firebase/push';
 
 export default function SettingsModule({ initialTab = 'profile' }: { initialTab?: 'profile' | 'security' | 'privacy' | 'notifications' | 'legacy' }) {
   const { user } = useAppContext();
@@ -34,6 +35,30 @@ export default function SettingsModule({ initialTab = 'profile' }: { initialTab?
   const [avatarUrl, setAvatarUrl] = useState(user?.photoURL || '');
   const [coverUrl, setCoverUrl] = useState('');
   const [mediaBusy, setMediaBusy] = useState<'avatar' | 'cover' | null>(null);
+  const [pushOn, setPushOn] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+
+  // Push real neste dispositivo (subscription verificada, não flag local).
+  useEffect(() => {
+    let cancelled = false;
+    void getPushStatus()
+      .then((on) => {
+        if (!cancelled) setPushOn(on);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const togglePush = () => {
+    setSaveError(null);
+    setPushBusy(true);
+    void (pushOn ? disablePush() : enablePush())
+      .then(() => setPushOn(!pushOn))
+      .catch((err: unknown) => setSaveError(err instanceof Error ? err.message : 'Push indisponível.'))
+      .finally(() => setPushBusy(false));
+  };
 
   // Carrega perfil/preferências reais (sem valores fictícios).
   useEffect(() => {
@@ -115,7 +140,7 @@ export default function SettingsModule({ initialTab = 'profile' }: { initialTab?
       .finally(() => setCodesLoading(false));
   };
 
-  const persistNotificationPrefs = (next: { push?: boolean; email?: boolean }) => {
+    const persistNotificationPrefs = (next: { push?: boolean; email?: boolean }) => {
     const pushValue = next.push ?? pushNotifications;
     const emailValue = next.email ?? emailNotifications;
     setPushNotifications(pushValue);
@@ -599,10 +624,38 @@ export default function SettingsModule({ initialTab = 'profile' }: { initialTab?
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <strong style={{ fontSize: 14, color: '#0F172A', display: 'block', marginBottom: 2 }}>
-                Notificações Push no Navegador
+                Push neste dispositivo
               </strong>
               <span style={{ fontSize: 12.5, color: '#64748B' }}>
-                Receba alertas instantâneos de novas curtidas e comentários.
+                Receba curtidas, comentários e seguidores mesmo com o app fechado.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={togglePush}
+              disabled={pushBusy}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 999,
+                border: pushOn ? '1px solid #10B981' : '1px solid #CBD5E1',
+                background: pushOn ? '#ECFDF5' : '#F8FAFC',
+                color: pushOn ? '#059669' : '#64748B',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              {pushBusy ? 'Aguarde…' : pushOn ? 'Ativado' : 'Ativar'}
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #F1F5F9', paddingTop: 16 }}>
+            <div>
+              <strong style={{ fontSize: 14, color: '#0F172A', display: 'block', marginBottom: 2 }}>
+                Notificações no aplicativo
+              </strong>
+              <span style={{ fontSize: 12.5, color: '#64748B' }}>
+                Curtidas, comentários e seguidores na central de notificações.
               </span>
             </div>
             <input

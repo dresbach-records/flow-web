@@ -11,16 +11,32 @@ const guardian = new ModerateContentUseCase(
   new FirestoreModerationRepository(),
 );
 
-export async function listFeed(userId: string | undefined, mode: 'for-you' | 'following' = 'for-you') {
+export async function listFeed(
+  userId: string | undefined,
+  mode: 'for-you' | 'following' = 'for-you',
+  options: { limit?: number; before?: string } = {},
+) {
   const posts = firestore().collection('posts');
-  let query = posts.where('visibility', '==', 'public').orderBy('createdAt', 'desc').limit(30);
+  const limit = Math.min(Math.max(options.limit ?? 30, 1), 50);
+  let query = posts.where('visibility', '==', 'public').orderBy('createdAt', 'desc');
 
   if (mode === 'following' && userId) {
-    query = posts.where('visibility', '==', 'public').orderBy('createdAt', 'desc').limit(30);
+    query = posts.where('visibility', '==', 'public').orderBy('createdAt', 'desc');
   }
 
-  const snapshot = await query.get();
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  if (options.before) {
+    const before = new Date(options.before);
+    if (!Number.isNaN(before.getTime())) query = query.startAfter(before);
+  }
+
+  const snapshot = await query.limit(limit).get();
+  const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  const last = snapshot.docs[snapshot.docs.length - 1]?.data()?.createdAt;
+  const lastDate = last instanceof Date ? last : last?.toDate?.();
+  return {
+    items,
+    nextBefore: lastDate instanceof Date ? lastDate.toISOString() : null,
+  };
 }
 
 export async function createPost(input: { authorId: string; type: 'post' | 'short' | 'video'; caption?: string; mediaUrl?: string; visibility?: string }) {

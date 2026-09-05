@@ -6,6 +6,7 @@ import {
   listNotifications,
   markAllNotificationsAsRead,
   markNotificationAsRead,
+  subscribeToNotifications,
   type NotificationRecord,
   type NotificationType,
 } from '../../services/firebase/notifications';
@@ -46,6 +47,31 @@ export default function NotificationsModule() {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // Tempo real: snapshot inicial + deltas com cleanup.
+  useEffect(() => {
+    let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
+    try {
+      unsubscribe = subscribeToNotifications(
+        (live) => {
+          if (!cancelled) {
+            setItems(live);
+            setLoading(false);
+          }
+        },
+        () => {
+          if (!cancelled) setLoading(false);
+        },
+      );
+    } catch {
+      /* sem sessão: mantém lista pontual */
+    }
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, []);
 
   const markAllAsRead = () => {
     const previous = items;

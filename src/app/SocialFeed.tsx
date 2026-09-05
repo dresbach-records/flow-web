@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
 import { usePosts } from '../hooks/usePosts';
 import { toggleLike, toggleSaved } from '../services/firebase/social';
+import { rankFeed } from '../services/feed/ranking';
 import { listBlockedIds } from '../services/firebase/blocks';
 import { listDocuments } from '../services/firebase/firestore';
 import { listStories } from '../services/firebase/stories';
@@ -27,6 +28,7 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
+  const [order, setOrder] = useState<'relevant' | 'recent'>('relevant');
   const [liked, setLiked] = useState<Set<string>>(new Set());
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [commentsPost, setCommentsPost] = useState<SocialPost | null>(null);
@@ -129,6 +131,12 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
     if (activeTab === 'following') return authorId !== '' && followingIds.has(authorId);
     return true;
   });
+  // Ranking v1 na aba "Para você" (recência + afinidade + engajamento);
+  // "Seguindo" permanece cronológico. Ambos reais, alternáveis.
+  const orderedPosts =
+    activeTab === 'for-you' && order === 'relevant'
+      ? rankFeed(visiblePosts, { followingIds, blockedIds })
+      : visiblePosts;
   const emptyTitle = activeTab === 'following' ? 'Nenhuma publicação de quem você segue' : 'Nenhuma publicação ainda';
   const emptyDescription =
     activeTab === 'following'
@@ -149,9 +157,28 @@ export default function SocialFeed({ path = '/app' }: { path?: string }) {
           {!loading && !error && visiblePosts.length === 0 && (
             <EmptyState title={emptyTitle} description={emptyDescription} />
           )}
+          {!loading && !error && activeTab === 'for-you' && visiblePosts.length > 0 && (
+            <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+              {(['relevant', 'recent'] as const).map((o) => (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => setOrder(o)}
+                  style={{
+                    padding: '6px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+                    border: order === o ? '1px solid #2563EB' : '1px solid #E2E8F0',
+                    background: order === o ? '#EFF6FF' : '#FFFFFF',
+                    color: order === o ? '#2563EB' : '#64748B',
+                  }}
+                >
+                  {o === 'relevant' ? 'Relevantes' : 'Recentes'}
+                </button>
+              ))}
+            </div>
+          )}
           {!loading &&
             !error &&
-            visiblePosts.map((post) => (
+            orderedPosts.map((post) => (
             <PostCard
               key={post.id}
               post={post}
