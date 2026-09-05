@@ -1,0 +1,40 @@
+/* FLOW — ErrorState (FASE 3, Light UI, sem redesign) */
+.flow-ui-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 32px 24px;
+  background: #FFFFFF;
+  border: 1px solid #FECACA;
+  border-radius: 16px;
+}
+
+.flow-ui-error-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #7F1D1D;
+}
+
+.flow-ui-error-description {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #64748B;
+  max-width: 460px;
+}
+
+.flow-ui-error-retry {
+  margin-top: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: none;
+  background: #3B82F6;
+  color: #FFFFFF;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}

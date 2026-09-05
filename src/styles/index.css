@@ -1,3 +1,5 @@
+/* Fonte externa: deve preceder todos os @imports/estilos (spec CSS + minificador). Realocado de src/admin/admin.css (FASE 2: corrige ordem do bundle). */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import './design-tokens.css';
 @import '../styles.css';
 @import '../responsive.css';

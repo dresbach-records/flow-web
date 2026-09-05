@@ -1,0 +1,16 @@
+/* FLOW — UserAvatar (FASE 3, Light UI, sem redesign) */
+.flow-ui-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.flow-ui-avatar-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #E2E8F0;
+  color: #64748B;
+  font-weight: 700;
+}

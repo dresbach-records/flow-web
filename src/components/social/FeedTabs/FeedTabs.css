@@ -1,0 +1,77 @@
+/* FLOW — FeedTabs (FASE 3).
+ * Regras extraídas integralmente de src/app/social-feed.css (bloco FEED NAVIGATION TABS).
+ * Original preservado para consolidação da FASE 4. Nenhum valor alterado.
+ */
+.flow-feed-tabs-bar {
+  width: 100%;
+  background: var(--flow-surface);
+  border: 1px solid var(--flow-border);
+  border-radius: 16px;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.flow-feed-tab-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flow-feed-tab-btn {
+  position: relative;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--flow-text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.flow-feed-tab-btn:hover {
+  color: var(--flow-text-main);
+}
+
+.flow-feed-tab-btn.active {
+  color: var(--flow-primary);
+  font-weight: 700;
+  background: var(--flow-primary-light);
+}
+
+.flow-feed-tabs-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flow-tab-filter-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--flow-border);
+  background: transparent;
+  color: var(--flow-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.flow-tab-sort-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--flow-border);
+  background: transparent;
+  color: var(--flow-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}

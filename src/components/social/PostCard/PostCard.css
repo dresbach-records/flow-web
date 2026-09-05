@@ -1,0 +1,236 @@
+/* FLOW — PostCard (FASE 3).
+ * Regras extraídas integralmente de src/app/social-feed.css (bloco POST CARD
+ * + Comment Preview). Duplicação interim documentada: o arquivo original foi
+ * preservado para a consolidação visual da FASE 4. Nenhum valor foi alterado.
+ */
+.flow-post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.flow-post-card {
+  width: 100%;
+  background: var(--flow-surface);
+  border: 1px solid var(--flow-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.flow-post-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.flow-post-author-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flow-post-author-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.flow-post-author-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.flow-post-author-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.flow-post-author-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--flow-text-main);
+}
+
+.flow-verified-badge {
+  display: inline-flex;
+  align-items: center;
+}
+
+.flow-post-handle,
+.flow-post-time {
+  font-size: 13px;
+  color: var(--flow-text-muted);
+}
+
+.flow-post-dot {
+  font-size: 12px;
+  color: var(--flow-text-muted);
+}
+
+.flow-post-more-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--flow-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.flow-post-more-btn:hover {
+  background: #F1F5F9;
+}
+
+.flow-post-caption-text {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--flow-text-main);
+  margin-bottom: 8px;
+}
+
+.flow-post-hashtags-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.flow-post-hashtag {
+  color: var(--flow-primary);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.flow-post-media-box {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.flow-post-media-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  display: block;
+}
+
+.flow-post-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--flow-border-subtle);
+}
+
+.flow-post-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.flow-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--flow-text-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.flow-action-btn:hover {
+  background: #F1F5F9;
+  color: var(--flow-primary);
+}
+
+.flow-action-btn.is-liked {
+  color: #EC4899;
+}
+
+.flow-action-btn.is-saved {
+  color: var(--flow-primary);
+}
+
+/* Comments Section Preview */
+.flow-post-comment-preview {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--flow-border-subtle);
+}
+
+.flow-comment-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.flow-comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.flow-comment-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.flow-comment-author-name {
+  font-weight: 700;
+  color: var(--flow-text-main);
+  margin-right: 6px;
+}
+
+.flow-comment-text {
+  color: var(--flow-text-main);
+}
+
+.flow-comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11.5px;
+  color: var(--flow-text-muted);
+  margin-top: 2px;
+}
+
+.flow-comment-reply-btn {
+  border: none;
+  background: transparent;
+  color: var(--flow-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.flow-comment-reply-btn:hover {
+  color: var(--flow-primary);
+}
+
+.flow-view-more-comments-btn {
+  border: none;
+  background: transparent;
+  color: var(--flow-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}

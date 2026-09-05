@@ -1,8 +1,7 @@
-// Shared, reusable UI components belong in this layer.
-export { default as AdminApp } from '../admin/AdminApp';
-export { default as ModuleCenter } from '../admin/ModuleCenter';
-export { default as SiteEditor } from '../admin/SiteEditor';
-export { default as AuthPage } from '../app/AuthPage';
-export { default as CreatorCenter } from '../app/CreatorCenter';
-export { default as PlatformModules } from '../app/PlatformModules';
-export { default as FlowWeb } from '../app/FlowWeb';
+// FLOW — Shared components barrel (FASE 3).
+// Esta camada exporta APENAS UI reutilizável (ui, layout, social, etc).
+// Páginas (AuthPage, CreatorCenter, AdminApp, ...) NÃO pertencem aqui:
+// vivem em src/app/*, src/admin/* e são compostas via src/pages/index.ts.
+// (Antes, este barrel reexportava páginas — violação de camadas corrigida.)
+export * from './ui';
+export * as Layout from './layout';

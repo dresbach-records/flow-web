@@ -1,0 +1,16 @@
+/* FLOW — ProfilePostCard (FASE 3).
+ * Regras extraídas integralmente de src/app/profile-page.css (bloco posts).
+ * Original preservado para consolidação da FASE 4. Nenhum valor alterado.
+ */
+.flow-profile-posts { display: grid; gap: 14px; margin-top: 14px; }
+.flow-profile-post { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); box-shadow: 0 1px 3px rgba(15,23,42,0.03); }
+.flow-profile-post header { display: flex; align-items: center; justify-content: space-between; padding: 14px 15px 10px; }
+.flow-profile-post .flow-post-author { display: flex; align-items: center; gap: 10px; text-align: left; }
+.flow-profile-post .flow-post-author>span:last-child { display: grid; gap: 2px; }
+.flow-profile-post .flow-post-author strong { font-size: 13.5px; color: var(--text); }
+.flow-profile-post .flow-post-author small { font-size: 11.5px; color: var(--muted); }
+.flow-profile-post>p { margin: 0; padding: 0 15px 13px; font-size: 14px; line-height: 1.6; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.flow-profile-post-media { background: #F1F5F9; }
+.flow-profile-post-media img { display: block; width: 100%; max-height: 600px; aspect-ratio: 16/10; object-fit: cover; }
+.flow-profile-post footer { display: flex; gap: 22px; padding: 11px 15px 14px; color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--flow-color-border-subtle, #F1F5F9); }
+.flow-profile-post footer span { display: inline-flex; align-items: center; gap: 6px; }
