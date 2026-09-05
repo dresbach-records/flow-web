@@ -20,17 +20,6 @@ export const AdminLogin: React.FC = () => {
     }
   };
 
-  const handleQuickDemoLogin = async () => {
-    setEmail('admin@flow.social');
-    setPassword('admin123');
-    setSubmitting(true);
-    try {
-      await login('admin@flow.social', 'admin123');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
     <div className="admin-login-wrapper">
       <div className="admin-login-box">
@@ -59,7 +48,7 @@ export const AdminLogin: React.FC = () => {
                 type="email"
                 required
                 className="admin-input"
-                placeholder="admin@flow.social"
+                placeholder="seu-email@exemplo.com"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -109,24 +98,10 @@ export const AdminLogin: React.FC = () => {
             <CheckCircle2 size={15} color="#16a34a" />
             <span>Autenticação Firebase Integrada</span>
           </div>
-          <p style={{ margin: '0 0 8px 0' }}>
+          <p style={{ margin: 0 }}>
             Utilize as credenciais de administrador cadastradas no Firebase Authentication do projeto.
+            O acesso é controlado por papel (role) validado pelo backend e pelas regras do Firestore.
           </p>
-          <button
-            type="button"
-            onClick={handleQuickDemoLogin}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#6366f1',
-              fontSize: '11.5px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              textDecoration: 'underline',
-            }}
-          >
-            ⚡ Acesso Rápido de Teste (admin@flow.social)
-          </button>
         </div>
       </div>
     </div>

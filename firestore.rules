@@ -218,6 +218,23 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Contribuições (página "Contribua com o Flow"): criação pública validada
+    // com submissionId de uso único; leitura/gestão somente admin.
+    match /contributors/{submissionId} {
+      allow create: if request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 3
+        && request.resource.data.areas is list
+        && request.resource.data.areas.size() > 0
+        && request.resource.data.experienceLevel is string
+        && request.resource.data.availability is string
+        && request.resource.data.howToContribute is string
+        && request.resource.data.howToContribute.size() >= 10;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
     // Vagas públicas; candidaturas com login; triagem admin.
     match /job_posts/{jobId} {
       allow read: if true;

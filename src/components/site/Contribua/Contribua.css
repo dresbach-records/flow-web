@@ -1,0 +1,238 @@
+/* FLOW — Página "Contribua com o Flow" (Design System do site público). */
+
+.contribua {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 20px 64px;
+}
+
+/* Hero */
+.contribua-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: center;
+  padding: 16px 0 40px;
+}
+.contribua-hero-copy h1 {
+  margin: 0 0 14px 0;
+  font-size: clamp(30px, 4.5vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #0F172A;
+  letter-spacing: -0.02em;
+}
+.contribua-hero-subtitle {
+  margin: 0 0 24px 0;
+  font-size: 18px;
+  line-height: 1.55;
+  color: #475569;
+}
+.contribua-hero-lead {
+  margin: 0 0 28px 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #64748B;
+}
+.contribua-hero-media {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  background: #F8FAFC;
+}
+.contribua-hero-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 460px;
+  object-fit: cover;
+}
+
+/* Botões (mesmo padrão do site) */
+.contribua-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 30px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #FFF;
+  background: linear-gradient(135deg, #4F7FFF 0%, #8B5CF6 50%, #D946EF 100%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.contribua-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(79, 127, 255, 0.28); }
+.contribua-btn:focus-visible { outline: 3px solid rgba(79, 127, 255, 0.4); outline-offset: 2px; }
+
+/* Seções */
+.contribua-section { margin-top: 48px; }
+.contribua-section-eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #4F7FFF;
+  text-transform: uppercase;
+  margin: 0 0 10px 0;
+}
+.contribua-section h2 {
+  margin: 0 0 12px 0;
+  font-size: clamp(24px, 3vw, 30px);
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.2;
+}
+.contribua-section-lead {
+  margin: 0 0 24px 0;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #475569;
+  max-width: 760px;
+}
+.contribua-prose p {
+  margin: 0 0 14px 0;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #475569;
+}
+.contribua-prose strong { color: #0F172A; }
+
+/* Grid de áreas (cards) */
+.contribua-areas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
+}
+.contribua-area-card {
+  background: #FFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 20px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.contribua-area-card:hover { border-color: #BBD0FF; box-shadow: 0 8px 20px rgba(79, 127, 255, 0.1); }
+.contribua-area-card h3 { margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #0F172A; }
+.contribua-area-card p { margin: 0; font-size: 13px; line-height: 1.6; color: #64748B; }
+
+/* Nota de transparência (destaque) */
+.contribua-note {
+  background: linear-gradient(135deg, #EFF4FF 0%, #F6F0FF 100%);
+  border: 1px solid #D6E4FF;
+  border-radius: 18px;
+  padding: 26px 28px;
+  margin-top: 8px;
+}
+.contribua-note h2 { margin-top: 0; }
+.contribua-note p {
+  margin: 0 0 12px 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #334155;
+}
+
+/* Passos ("Como funciona") */
+.contribua-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-top: 8px;
+}
+.contribua-step {
+  background: #FFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 20px;
+}
+.contribua-step h3 { margin: 0 0 6px 0; font-size: 15px; font-weight: 800; color: #0F172A; }
+.contribua-step p { margin: 0; font-size: 13px; line-height: 1.6; color: #64748B; }
+
+/* Formulário */
+.contribua-form {
+  background: #FFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 640px;
+  margin-top: 8px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+.contribua-form h2 { margin-top: 0; }
+.contribua-field { margin-bottom: 14px; }
+.contribua-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+}
+.contribua-field input[type='text'],
+.contribua-field input[type='email'],
+.contribua-field input[type='url'],
+.contribua-field select,
+.contribua-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #0F172A;
+  background: #FFF;
+}
+.contribua-field textarea { height: auto; padding: 12px 14px; resize: vertical; }
+.contribua-field input:focus-visible,
+.contribua-field select:focus-visible,
+.contribua-field textarea:focus-visible {
+  outline: 3px solid rgba(79, 127, 255, 0.35);
+  outline-offset: 1px;
+  border-color: #4F7FFF;
+}
+.contribua-field .contribua-error { color: #B91C1C; font-size: 12px; margin-top: 5px; }
+
+/* Áreas no formulário (multi-select chips) */
+.contribua-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.contribua-chip {
+  border: 1px solid #CBD5E1;
+  background: #FFF;
+  color: #334155;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.contribua-chip.is-active {
+  border-color: #4F7FFF;
+  background: #EFF4FF;
+  color: #1D4ED8;
+}
+.contribua-chip:focus-visible { outline: 3px solid rgba(79, 127, 255, 0.4); outline-offset: 1px; }
+
+.contribua-form-status { font-size: 14px; line-height: 1.7; margin: 12px 0 0 0; }
+.contribua-form-status.is-error { color: #B91C1C; }
+.contribua-form-status.is-success { color: #047857; }
+.contribua-success {
+  text-align: center;
+  padding: 32px 24px;
+}
+.contribua-success h3 { color: #0F172A; margin: 0 0 12px 0; }
+.contribua-success p { color: #475569; line-height: 1.7; margin: 0; }
+
+@media (max-width: 900px) {
+  .contribua-hero { grid-template-columns: 1fr; gap: 24px; }
+  .contribua-hero-media img { max-height: 340px; }
+}
+
+@media (max-width: 480px) {
+  .contribua { padding: 0 16px 48px; }
+  .contribua-form { padding: 20px; }
+  .contribua-btn { width: 100%; }
+}

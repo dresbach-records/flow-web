@@ -1,144 +1,173 @@
-# FLOW Web
+# FLOW — Conecte. Compartilhe. Viva.
 
-Site institucional e experiência web da rede social FLOW. Aplicação web responsiva comum para desktop, notebook, tablet e celular; não depende de PWA ou instalação.
+A FLOW é uma plataforma de rede social independente, construída do zero, com o objetivo de conectar pessoas, comunidades, criadores e histórias reais.
 
-## Arquitetura frontend
+> **Repositório MASTER integrado** (frontend + backend + infraestrutura) — ambiente de desenvolvimento, integração, testes e validação de ponta a ponta.
+> A separação oficial em repositórios (frontend / backend / servidor) está documentada em [`docs/production/repositories.md`](docs/production/repositories.md).
 
-A estrutura canônica segue a separação apresentada no padrão de referência do projeto:
+---
 
-```text
-src/
-├── assets/          # arquivos e referências de assets
-├── components/      # componentes UI reutilizáveis
-├── contexts/        # estado/contextos globais
-├── hooks/           # hooks e lógica reutilizável
-├── layouts/         # layouts de site, app e administração
-├── pages/           # páginas/entrypoints das rotas
-├── services/        # comunicação com backend e regras de integração
-│   ├── api/         # cliente HTTP/API
-│   ├── ads/         # integração de anúncios
-│   ├── commerce/    # Flow Shop e operações comerciais
-│   ├── identity/    # identidade/KYC
-│   ├── moderation/  # denúncias e Trust & Safety
-│   └── rewards/     # recompensas e pagamentos
-├── store/           # estado global da aplicação
-├── styles/          # entrada global de estilos
-├── utils/           # funções utilitárias
-├── App.tsx          # composição/roteamento principal
-└── main.tsx         # bootstrap da aplicação
-```
+## O que é a FLOW
 
-### Regra de dependência
+Uma rede social real, com:
 
-- `pages` compõem telas e casos de uso de apresentação.
-- `components` são reutilizáveis e não devem conhecer detalhes de infraestrutura.
-- `hooks` encapsulam comportamento reutilizável.
-- `contexts` e `store` concentram estado global.
-- `services` são a fronteira de integração com backend/API e provedores externos.
-- Credenciais, segredos, validações de segurança e operações sensíveis permanecem no backend; nunca no bundle do navegador.
-- `styles` é o ponto de entrada dos estilos globais.
-- `main.tsx` apenas inicializa a aplicação; a composição fica em `App.tsx`.
+- **Feed** com ranking, abas "Para você" / "Seguindo" e paginação por cursor;
+- **Perfis** com dados reais, seguir/deixar de seguir e contadores ao vivo;
+- **Publicações** com mídia, reações, comentários (com respostas), salvos, denúncias e bloqueios;
+- **Comunidades**, **Eventos**, **Stories** (24h), **Shorts**, **Mensagens** em tempo real e **Notificações** (in-app + Web Push);
+- **Agendamento de publicações**, **Central do Criador**, **Memorial**, **Busca** e **Exploração**;
+- **Painel administrativo** completo com RBAC, auditoria e moderação;
+- **PWA** (instalável, offline-first, push) e design responsivo mobile-first;
+- **Backend Express** com API versionada, notificações push, moderação por IA (opt-in), agendador e métricas.
 
-## Áreas do produto
+### Princípios inegociáveis
 
-1. **Site institucional** — `/`
-2. **Rede social** — `/app`
-3. **Administração** — `/admin`
+1. **Zero mock / zero static funcional** — a UI reflete sempre o estado real; o que não existe é exibido com estados vazios honestos.
+2. **Regra de conclusão** — nenhuma funcionalidade é "concluída" sem fluxo ponta-a-ponta (UI → serviço → persistência → autorização → estados → testes).
+3. **Autorização real no servidor** — Firestore Rules + backend; nunca confiar apenas no frontend.
+4. **Arquitetura evolutiva** — construída para crescer de aplicação a plataforma de grande escala sem reescrita.
 
-O painel administrativo permanece separado da navegação pública.
-
-## Módulos
-
-A plataforma possui registro central de módulos e painel administrativo para manutenção futura. Os módulos previstos incluem Social, For You, Shorts, Stories, Live, Comunidades, Mensagens, Flow Shop, Vendedores, Afiliados, Ads, Rewards, Moderação, Denúncias, Segurança, Antipirataria, Analytics e Auditoria.
-
-Os módulos são projetados para serem habilitados, desabilitados ou colocados em manutenção de forma centralizada, sem acoplar essa decisão às telas.
-
-## Backend/API
-
-O frontend não implementa backend dentro de componentes. A comunicação deverá passar por `src/services/backend` e pelos serviços de domínio em `src/services/*`.
-
-A camada atual fornece contratos de integração e adaptadores iniciais para substituir os mocks/dados locais por APIs reais sem alterar a composição das páginas.
-
-## Site público
-
-- `/`
-- `/for-you`
-- `/explorar`
-- `/recursos`
-- `/criadores`
-- `/comunidades`
-- `/seguranca`
-- `/empresa`
-- `/sobre`
-- `/carreiras`
-- `/carreiras/vagas`
-- `/imprensa`
-- `/blog`
-- `/contato`
-- `/parcerias`
-- `/marcas`
-- `/media-kit`
-- `/acessibilidade`
-
-### Ajuda
-
-`/ajuda`, `/ajuda/faq`, `/ajuda/conta`, `/ajuda/privacidade`, `/ajuda/seguranca`, `/ajuda/criadores`, `/ajuda/comunidades`, `/ajuda/denuncias`, `/ajuda/contato`.
-
-### Legal
-
-`/legal/termos`, `/legal/privacidade`, `/legal/cookies`, `/legal/diretrizes`, `/legal/conteudo`, `/legal/direitos-autorais`, `/legal/denuncias`.
-
-## Autenticação
-
-`/auth/login`, `/login`, `/cadastro`, `/recuperar-senha`, `/redefinir-senha`, `/verificar-conta`.
-
-A experiência local de demonstração está preparada para ser substituída por autenticação real via API.
-
-## Rede social
-
-`/app` abre no For You. A aplicação também contempla seguindo, explorar, Shorts, criação, Stories, notificações, mensagens, comunidades, perfil, configurações, busca, hashtags e posts.
-
-## Commerce / Flow Shop
-
-A camada de serviços separa as políticas e operações comerciais da UI. O frontend está preparado para integrar catálogo, vendedor, pedidos, entrega, reclamação, troca/devolução, comissionamento e repasses por APIs de backend.
-
-Produtos locais usados permanecem como transações entre usuários conforme as regras de produto; itens proibidos, pirataria e categorias reguladas devem ser bloqueados/revisados por políticas de Trust & Safety no backend.
-
-## Ads / Rewards
-
-A integração de publicidade fica em `src/services/ads`. O frontend representa formatos e estados de revisão, enquanto credenciais, aprovação de campanhas, domínios e integração com provedores devem ser tratados pelo backend.
-
-Rewards fica em `src/services/rewards`, mantendo saldo, regras de elegibilidade e pagamentos fora da camada visual.
-
-## Segurança e moderação
-
-Denúncias e decisões de moderação ficam em `src/services/moderation`. O frontend oferece a experiência; validações antifraude, antipirataria, KYC, análise de conteúdo e cooperação com autoridades são responsabilidades de backend/infraestrutura.
-
-## Responsividade
-
-A aplicação utiliza uma única base frontend para desktop, tablet e mobile, com safe-area, touch targets e adaptação de layout.
+---
 
 ## Stack
 
-- React
-- TypeScript
-- Vite
-- CSS responsivo
-- Lucide Icons
-- APIs via camada de services
+| Camada | Tecnologia |
+|---|---|
+| Frontend | React 19 · TypeScript · Vite 8 · CSS por componente · Lucide |
+| Persistência | Firebase (Authentication · Cloud Firestore · Storage · Analytics) |
+| Backend | Node.js · Express · Firebase Admin SDK · Zod · web-push · Vertex AI (Guardian) |
+| Testes | Vitest · Playwright |
+| PWA | manifest · Service Worker (`flow-shell-v3`) · push VAPID |
+| Deploy | Vercel (frontend) · backend próprio (`api.flowsocial.fun`) |
 
-## Build
+---
+
+## Começando
+
+Pré-requisitos: **Node.js 20+** e **pnpm**.
 
 ```bash
+# Frontend (raiz)
+pnpm install
+pnpm dev            # http://localhost:3000
+
+# Backend
+cd backend
 npm install
-npm run build
-npm run dev
+cp .env.example .env   # preencher Firebase + VAPID (nunca commitar)
+npm run dev            # http://localhost:8080
 ```
 
-O deploy é compatível com Vercel e utiliza rewrite para SPA.
+Variáveis de ambiente: consulte [`.env.example`](.env.example) (frontend) e [`backend/.env.example`](backend/.env.example).
 
-## Identidade FLOW
+| Variável | Produção | Desenvolvimento |
+|---|---|---|
+| `VITE_API_BASE_URL` | `https://api.flowsocial.fun/v1` | `http://localhost:8080/api/v1` |
+| `VITE_SITE_URL` | `https://flowsocial.fun` | *(vazio → fallback)* |
 
-Paleta principal: azul `#2663EB`, ciano `#00D2BE`, roxo `#7C58FF`, rosa `#F24882`, fundo `#F6F8FC` e texto `#101827`.
+---
 
-© 2026 FLOW. Todos os direitos reservados.
+## Áreas do produto
+
+| Área | Rotas |
+|---|---|
+| Site institucional | `/`, `/produto`, `/sobre`, `/recursos`, `/imprensa`, `/comunidades`, `/criadores`, `/baixar-app`, `/ajuda`, `/seguranca`, `/privacidade`, `/termos`, `/contato`, `/contribua`, `/blog`, `/carreiras` |
+| Autenticação | `/login`, `/cadastro`, `/recuperar-senha`, `/redefinir-senha`, `/verificar-email`, `/seguranca/2fa*`, `/conta/*`, `/central-contas` |
+| Rede social | `/app` (feed), `/app/explorar`, `/app/shorts`, `/app/stories`, `/app/pesquisa`, `/app/post/:id`, `/app/mensagens`, `/app/notificacoes`, `/app/comunidades`, `/app/eventos`, `/app/salvos`, `/app/perfil`, `/app/criador`, `/app/agendamento`, `/app/criar`, `/app/configuracoes` |
+| Memorial | `/memorial*`, `/configuracoes/memorial` |
+| Administração | `/admin/*` (RBAC) |
+| Desenvolvedor | `/developer/*` (admin) |
+
+---
+
+## Arquitetura
+
+```
+src/
+├── app/            # páginas e módulos de produto
+│   ├── commerce/   # políticas de marketplace (domínio puro)
+│   ├── memorial/   # módulo memorial (telas 351–365)
+│   ├── modules/    # módulos autenticados
+│   ├── rewards/    # recompensas (domínio puro)
+│   └── site/       # site institucional
+├── admin/          # painel administrativo
+├── developer/      # painel de desenvolvedor
+├── components/     # biblioteca de componentes reutilizáveis
+├── contexts/       # AppContext (auth/consent), PlayerContext
+├── hooks/          # usePosts, useProfile, useSeo, ...
+├── core/           # domínio puro (ModuleRegistry)
+├── layouts/        # AppShell, BottomNav, FloatingPlayer
+├── services/       # FRONTEIRA DE INTEGRAÇÃO (Firebase + API)
+│   ├── api/        #   cliente HTTP
+│   ├── firebase/   #   serviços de dados
+│   └── ...
+└── styles/         # design tokens + css global
+```
+
+Regra de camadas:
+
+```
+Páginas → Componentes → Hooks/Contextos → Services → (Firebase/API) → Backend → Firestore
+```
+
+- **`services/`** é a única fronteira de integração com Firebase/API. Componentes **não** chamam Firestore diretamente.
+- Regras de negócio complexas vivem em funções puras testadas (`commerce`, `core`, validações de formulário).
+- Backend segue **Presentation → Application → Domain → Infrastructure** (em `backend/src`).
+
+---
+
+## Backend / API
+
+Documentação: [`docs/architecture/07-API-ARCHITECTURE.md`](docs/architecture/07-API-ARCHITECTURE.md) e [`docs/architecture/38-API-CATALOG.md`](docs/architecture/38-API-CATALOG.md).
+
+Rotas principais (`backend/src/main.ts`):
+
+- `GET /health`, `GET /api/v1/meta`, `GET /api/v1/metrics`
+- `POST /api/v1/auth/register` (login é client-side via Firebase)
+- `GET /api/v1/feed`
+- `POST /api/v1/posts`, `POST /api/v1/posts/:id/like`
+- `POST /api/v1/reports`, `POST /api/v1/contact`, `POST /api/v1/contributors`
+- `POST /api/v1/notify`, `POST/DELETE /api/v1/push/subscribe`
+- `GET /api/v1/admin/storage-audit`
+
+---
+
+## Comandos
+
+```bash
+pnpm lint / pnpm typecheck   # tsc -b
+pnpm test                    # Vitest (unit)
+pnpm build                   # Vite build
+pnpm exec playwright test    # E2E
+cd backend && npm test       # testes de domínio do backend
+cd backend && npm run build  # build do backend
+```
+
+---
+
+## Contribua com o Flow
+
+A FLOW é um projeto em fase inicial e busca pessoas interessadas em contribuir com tecnologia, produto, design, infraestrutura e inovação.
+
+- Página institucional: **[/contribua](https://flowsocial.fun/contribua)** (formulário de interesse real).
+- Transparência desde o primeiro commit: a participação nesta etapa é voluntária e não constitui promessa de emprego, salário, sociedade ou remuneração futura. Condições futuras, se houver, serão formalizadas individualmente.
+- Veja [`CONTRIBUTING.md`](CONTRIBUTING.md) para mais detalhes.
+
+---
+
+## Licença
+
+**Todos os direitos reservados.** © 2026 Flow Serviços Online LTDA.
+
+Este repositório é **privado**. Não é permitido copiar, distribuir, sublicenciar ou utilizar o código, os assets, o design ou o conteúdo para qualquer finalidade sem autorização prévia e expressa. Consulte [`LICENSE`](LICENSE).
+
+---
+
+## Documentação
+
+- **Mestre de engenharia:** [`docs/FLOW_ENGINEERING_MASTER_PLAN.md`](docs/FLOW_ENGINEERING_MASTER_PLAN.md)
+- **Arquitetura:** [`docs/architecture/`](docs/architecture/) (46 documentos + ADRs)
+- **Produção (domínio/DNS/e-mail):** [`docs/production/`](docs/production/)
+- **Inventário de telas:** [`docs/Inventario/`](docs/Inventario/) (350 telas)
+
+© 2026 Flow Serviços Online LTDA. Todos os direitos reservados.

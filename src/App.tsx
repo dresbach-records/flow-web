@@ -47,6 +47,7 @@ const SitePrivacidadeControles = React.lazy(() => import('./app/site/SiteConfian
 const SiteTermos = React.lazy(() => import('./app/site/SiteConfianca').then((m) => ({ default: m.SiteTermos })));
 const SiteTermosVersoes = React.lazy(() => import('./app/site/SiteConfianca').then((m) => ({ default: m.SiteTermosVersoes })));
 const SiteContato = React.lazy(() => import('./app/site/SiteContato').then((m) => ({ default: m.SiteContato })));
+const SiteContribua = React.lazy(() => import('./app/site/SiteContribua'));
 const SiteBlog = React.lazy(() => import('./app/site/SiteBlog').then((m) => ({ default: m.SiteBlog })));
 const SiteBlogCategoria = React.lazy(() => import('./app/site/SiteBlog').then((m) => ({ default: m.SiteBlogCategoria })));
 const SiteBlogBusca = React.lazy(() => import('./app/site/SiteBlog').then((m) => ({ default: m.SiteBlogBusca })));
@@ -99,7 +100,8 @@ const ROUTE_TITLES: Array<[RegExp, string]> = [
   [/^\/admin/, 'FLOW — Administração'],
   [/^\/developer/, 'FLOW — Desenvolvedor'],
   [/^\/consentimento/, 'FLOW — Consentimento'],
-  [/^\/(produto|recursos|sobre|imprensa|comunidades|criadores|baixar-app|ajuda|seguranca|privacidade|termos|contato|blog|carreiras)/, 'FLOW — Site'],
+  [/^\/contribua/, 'Contribua com o Flow | Construa conosco'],
+  [/^\/(produto|recursos|sobre|imprensa|comunidades|criadores|baixar-app|ajuda|seguranca|privacidade|termos|contato|blog|carreiras|contribua)/, 'FLOW — Site'],
   [/^\/memorial/, 'FLOW — Memorial'],
   [/^\/app\/perfil/, 'FLOW — Perfil'],
   [/^\/app\/comunidades/, 'FLOW — Comunidades'],
@@ -295,6 +297,7 @@ function resolveSiteRoute(path: string): React.ReactNode {
   if (pathname === '/termos') return <SiteTermos />;
   if (pathname === '/termos/versoes') return <SiteTermosVersoes />;
   if (pathname === '/contato') return <SiteContato />;
+  if (pathname === '/contribua') return <SiteContribua />;
   if (pathname === '/blog') return <SiteBlog />;
   if (pathname.startsWith('/blog/categoria/')) {
     return <SiteBlogCategoria slug={decodeURIComponent(pathname.slice('/blog/categoria/'.length))} />;
@@ -325,7 +328,7 @@ function AppContentResolver({ path, navigate }: { path: string; navigate: (to: s
   if (path === '/app/explorar') return <ExploreModule />;
   if (path === '/app/shorts' || path === '/app/reels') return <ShortsModule />;
   if (path === '/app/stories') return <StoriesPage />;
-  if (path === '/app/pesquisa') return <SearchModule />;
+  if (path === '/app/pesquisa' || path.startsWith('/app/busca')) return <SearchModule />;
   if (path.startsWith('/app/post/')) return <PostPage id={decodeURIComponent(path.slice('/app/post/'.length))} />;
   if (path === '/app/mensagens') return <MessagesModule />;
   if (path.startsWith('/app/mensagens/solicitacoes') || path.startsWith('/app/mensagens/arquivadas')) {
@@ -364,7 +367,7 @@ function AppContentResolver({ path, navigate }: { path: string; navigate: (to: s
   }
   if (path === '/app/configuracoes/bloqueados') return <SettingsModule initialTab="privacy" />;
   if (path === '/app/criar') return <CreateHub />;
-  if (path === '/app/criar/publicacao' || path === '/app/criar/video') return <CreatePostPage />;
+  if (path === '/app/criar/publicacao' || path === '/app/criar/video' || path === '/app/criar/post') return <CreatePostPage />;
   if (path.startsWith('/app/memorial')) return <MemorialModule path={path} go={navigate} />;
   if (path === '/app/perfil') return <ProfilePage />;
   if (path.startsWith('/app/perfil/')) return <ProfilePage uid={decodeURIComponent(path.slice('/app/perfil/'.length))} />;

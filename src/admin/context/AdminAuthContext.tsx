@@ -37,7 +37,7 @@ function toAdminInfo(
 ): AdminUser {
   return {
     uid: fbUser.uid,
-    email: fbUser.email || 'admin@flow.social',
+    email: fbUser.email || 'Conta administrativa',
     displayName: fbUser.displayName || flowUser.displayName || 'Administrador',
     role: flowUser.role === 'moderator' ? 'moderator' : 'admin',
     photoURL: fbUser.photoURL || flowUser.photoURL,

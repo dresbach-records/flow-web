@@ -35,6 +35,7 @@ const COLUMNS: FooterColumn[] = [
       { label: 'Sobre o Flow', route: '/sobre' },
       { label: 'Blog', route: '/blog' },
       { label: 'Carreiras', route: '/carreiras' },
+      { label: 'Contribua com o Flow', route: '/contribua' },
       { label: 'Imprensa', route: '/imprensa' },
       { label: 'Contato', route: '/contato' },
     ],

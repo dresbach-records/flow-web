@@ -65,7 +65,7 @@ export async function deletePushSubscription(uid: string, endpoint: string): Pro
 async function sendWebPush(uid: string, title: string, body: string): Promise<{ sent: number; failed: number }> {
   if (!env.VAPID_PUBLIC || !env.VAPID_PRIVATE) return { sent: 0, failed: 0 };
   const { default: webPush } = await import('web-push');
-  webPush.setVapidDetails(env.VAPID_SUBJECT ?? 'mailto:admin@flow.social', env.VAPID_PUBLIC, env.VAPID_PRIVATE);
+  webPush.setVapidDetails(env.VAPID_SUBJECT ?? 'mailto:no-reply@flowsocial.fun', env.VAPID_PUBLIC, env.VAPID_PRIVATE);
   const snapshot = await firestore().collection('push_subscriptions').doc(uid).collection('targets').get();
   let sent = 0;
   let failed = 0;
