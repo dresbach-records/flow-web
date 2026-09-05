@@ -13,6 +13,15 @@ type ServiceAccount = {
 };
 
 function loadServiceAccount(): ServiceAccount | undefined {
+  // Vercel/Serverless: credenciais via variáveis de ambiente (sem arquivo em disco).
+  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) {
+    return {
+      project_id: env.FIREBASE_PROJECT_ID,
+      client_email: env.FIREBASE_CLIENT_EMAIL,
+      private_key: env.FIREBASE_PRIVATE_KEY,
+    };
+  }
+
   const configuredPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   const candidates = configuredPath ? [resolve(configuredPath)] : [];
   const secretsDir = resolve(process.cwd(), 'secrets');

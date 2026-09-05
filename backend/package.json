@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/main.js",
-    "seed:marina": "npm run build && node dist/seed-marina.js",
-    "seed:admin": "npm run build && node dist/seed-admin.js",
-    "test": "tsx tests/domain.test.ts"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/src/main.js",
+    "seed:marina": "npm run build && node dist/src/seed-marina.js",
+    "seed:admin": "npm run build && node dist/src/seed-admin.js",
+    "test": "tsx tests/domain.test.ts && tsx tests/api.test.ts",
+    "vercel-build": "npm run build"
   },
   "dependencies": {
     "@google/genai": "latest",
