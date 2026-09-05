@@ -91,6 +91,14 @@
   rules: `creator_profiles`, `contact_messages`, `job_posts`, `job_applications` +
   leitura de perfil por autenticado (nomes no feed de terceiros).
   Playwright 6/6 (inclui 404 + 14 páginas públicas).
+- P0 OPERADOR (este turno): `.env` local corrigido para `http://localhost:8080/api/v1`
+  (apontava ao próprio frontend); `backend/src/seed-admin.ts` + `npm run seed:admin`
+  (concede `role:'admin'` via Admin SDK — sem isso o admin nega tudo); auditoria manual
+  completa do `firestore.rules` achou e corrigiu 3 bugs reais (events exigia
+  `startsAt timestamp` mas o service grava ISO string; `memberCount` negado no join;
+  tributes sem `memorialId` obrigatório). Deploy das rules + `VITE_API_BASE_URL` na
+  Vercel + seed:admin seguem com o operador (sem CLI Firebase autenticado aqui):
+  `firebase deploy --only firestore:rules`.
 - Infra: `F:` é exFAT (sem symlinks) — `pnpm install` padrão QUEBRA o `node_modules`;
   usar `pnpm install --node-linker=hoisted`. Não commitar `pnpm-lock.yaml` (remoto usa bun/npm).
 

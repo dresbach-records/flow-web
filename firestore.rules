@@ -157,7 +157,11 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['verified', 'status', 'featured']))
         || (isSignedIn() && resource.data.ownerId == request.auth.uid
           && request.resource.data.ownerId == request.auth.uid
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'imageUrl']));
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'imageUrl']))
+        // Contador de membros: incrementado pelos fluxos reais de join/leave
+        // (memberships são a fonte autoritativa; contagem é só display).
+        || (isSignedIn()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount']));
       allow delete: if false;
 
       match /members/{memberId} {
@@ -257,8 +261,10 @@ service cloud.firestore {
         && request.resource.data.ownerId == request.auth.uid
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
-        && request.resource.data.startsAt is timestamp;
-      allow update: if (request.auth != null && resource.data.ownerId == request.auth.uid) || isAdmin();
+        && request.resource.data.startsAt is string
+        && request.resource.data.startsAt.size() > 0;
+      allow update: if ((request.auth != null && resource.data.ownerId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'description', 'location', 'online', 'startsAt', 'status'])) || isAdmin());
       allow delete: if (request.auth != null && resource.data.ownerId == request.auth.uid) || isAdmin();
 
       match /rsvps/{uid} {
@@ -295,6 +301,7 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSignedIn()
         && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.memorialId is string
         && request.resource.data.text is string
         && request.resource.data.text.size() >= 1
         && request.resource.data.text.size() <= 500;
